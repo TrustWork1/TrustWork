@@ -1,0 +1,10 @@
+export const IMAGE_ACCEPT_BASE = 'image/png,image/gif,image/jpeg,image/jpg,image/tiff,image/svg'
+export const IMAGE_ACCEPT = 'image/png,image/gif,image/jpeg,image/jpg,image/tiff'
+export const PDF_ACCEPT = 'application/pdf'
+export const RESEND_PASSWORD_TIME = 30
+export const PAGE_LIMIT_FOR_PAGINATION = 7
+export const LOCATION_IMAGE_ACCEPT_SIZE = 25000000 // 25mb
+export const VALID_DATE_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss'
+export const HUMAN_READABLE_DATE_TIME_FORMAT = 'DD MMM YYYY'
+// export const HUMAN_READABLE_DATE_TIME_FORMAT = 'DD MMM YYYY - hh:mm:ss a'
+// export const HUMAN_READABLE_DATE_TIME_FORMAT = 'dddd, MMMM DD YYYY, hh:mm a'

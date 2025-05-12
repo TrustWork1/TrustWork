@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+
+  #React Nextjs Node Service
+
+  node:
+
+    image: webskittersdocker/nvmnode18:latest
+
+    container_name: trustwork-admin-NextJS
+
+    restart: unless-stopped
+
+    working_dir: /home/wtsadmin/myapp
+
+
+    volumes:
+
+      - ./:/home/wtsadmin/myapp
+
+    ports:
+
+      - "14208:14208"
+    command: >
+      sh -c "yarn start"
+
+
+#Docker Networks
+
+networks:
+  default:
+    external:
+      name: webskitters

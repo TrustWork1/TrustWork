@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>TrustWork</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+		<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>TrustWork requires camera access to take/upload photo of work and location of work.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>TrustWork requires access save photos to your photo library to upload photo of work and location of work.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>TrustWork requires photo library access to upload photo of work and location of work.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fustat-Bold.ttf</string>
+		<string>Fustat-Medium.ttf</string>
+		<string>Fustat-Regular.ttf</string>
+		<string>Fustat-SemiBold.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>remote-notification</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,21 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Fustat-Bold.ttf",
+      "sha1": "6ac480ffc43dd2c1bf381c22dd8fa3b77ae3fb07"
+    },
+    {
+      "path": "src/assets/fonts/Fustat-Medium.ttf",
+      "sha1": "2b556af8d4f3e242939c1703076cb252d5eb793e"
+    },
+    {
+      "path": "src/assets/fonts/Fustat-Regular.ttf",
+      "sha1": "e7033081b3d17804aa7bd4338df6f75aea6f1c67"
+    },
+    {
+      "path": "src/assets/fonts/Fustat-SemiBold.ttf",
+      "sha1": "e747d0aa09cd10a52aa7fe94f29aaf69bbb97584"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+dev-deployment:
+ variables:
+   GIT_STRATEGY: fetch
+ script:
+   - bash -c "echo 3 | /home/developer/deploy.sh"
+ environment:
+     name: Development
+     url : https://trustwork-api.dedicateddevelopers.us/
+ tags:
+         - python-server1
+ only:
+   - dev
+
+
+uat-deployment:
+ variables:
+   GIT_STRATEGY: fetch
+ script:
+   - bash -c "echo 7 | /home/developer/deploy.sh"
+ environment:
+     name: Development
+     url : https://trustwork-api-uat.dedicatedresource.net/
+ tags:
+         - python-server1
+ only:
+   - uat

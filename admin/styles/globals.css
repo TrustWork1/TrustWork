@@ -1,0 +1,86 @@
+html,
+body {
+  min-height: 100%;
+}
+
+#__next {
+  height: 100%;
+}
+
+code {
+  font-family: 'Public Sans', sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue';
+  padding: 0.1rem 0.4rem;
+  font-size: 90%;
+  color: #d400ff;
+  border-radius: 0.1335rem;
+}
+code:not([class*='language-']):before,
+code:not([class*='language-']):after {
+  content: '`';
+}
+code[class*='language-'] {
+  padding: 0;
+}
+
+.project_title {
+  font-size: 13px;
+}
+.project_description {
+  .Mui-error {
+    font-size: 13px !important;
+  }
+  .MuiInputBase-multiline {
+    background-color: white !important;
+  }
+  .MuiFilledInput-input {
+    font-size: 15px !important;
+  }
+
+  .MuiFormHelperText-root {
+    margin-left: 0px !important;
+  }
+
+  .Mui-error {
+    border-color: #d6d5d8 !important;
+  }
+}
+
+.project_border_none {
+  .MuiInputBase-root.Mui-error {
+    border-color: #d6d5d8 !important;
+  }
+
+  .MuiInputBase-root-MuiFilledInput-root.Mui-error:after {
+    border-bottom-color: #d6d5d8 !important;
+  }
+  .MuiInputBase-root-MuiFilledInput-root.Mui-error:before {
+    border-bottom-color: #d6d5d8 !important;
+  }
+}
+
+.text-area-resize {
+  textarea {
+    resize: auto;
+    min-height: 200px;
+  }
+}
+
+/* Custom Layout design do not edit*/
+.primaryDesign {
+  background-color: #4b991e !important;
+  color: #ffffff !important;
+
+  .MuiTypography-root {
+    color: #ffffff !important;
+  }
+}
+.secondaryDesign {
+  background-color: #dce210 !important;
+  color: #111610 !important;
+}
+
+.imgError {
+  color: #ea5455 !important;
+  font-size: 13px !important;
+}

@@ -1,0 +1,13 @@
+dev-deployment:
+ variables:
+   GIT_STRATEGY: fetch
+ script:
+   - bash ~/gitlab/NextJS/nextjs-projectdeploy.sh.new
+ environment:
+     name: Development
+     url : https://trustwork-admin.dedicateddevelopers.us/
+ tags:
+   - node-nextjs
+ only:
+   - dev
+

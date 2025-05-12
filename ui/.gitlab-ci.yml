@@ -1,0 +1,25 @@
+dev-deployment:
+  variables:
+    GIT_STRATEGY: fetch
+  script:
+    - bash ~/gitlab/NextJS/nextjs-projectdeploy-yarn-v1.sh
+  environment:
+    name: Development
+    url: https://trustwork-ui.dedicateddevelopers.us/
+  tags:
+    - node-nextjs5
+  only:
+    - dev
+
+development-deployment:
+  variables:
+    GIT_STRATEGY: fetch
+  script:
+    - bash ~/gitlab/NextJS/nextjs-projectdeploy-development-yarn-v1.sh
+  environment:
+    name: Development
+    url: https://trustwork-dev.dedicateddevelopers.us/
+  tags:
+    - node-nextjs3
+  only:
+    - development

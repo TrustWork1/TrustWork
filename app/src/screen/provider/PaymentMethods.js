@@ -92,7 +92,7 @@ const PaymentMethods = props => {
 
     let obj = {
       bank_account_number: AccountNo,
-      routing_number: ifsc,
+      ifsc_code: ifsc,
       bank_name: bName,
       account_type: account,
       country: countryCode,
@@ -481,7 +481,7 @@ const PaymentMethods = props => {
             </Text>
           </View>
           <View style={[css.row, css.jcfe]}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => {
                 console.log(item);
                 setIsopen(!isOpen);
@@ -495,7 +495,7 @@ const PaymentMethods = props => {
                 source={Icons.editIcon}
                 style={[styles.iconStyle, css.mr3]}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity onPress={() => onConfirmDelete(item?.id)}>
               <Image source={Icons.deleteIcon} style={[styles.iconStyle]} />
             </TouchableOpacity>
@@ -627,7 +627,10 @@ const PaymentMethods = props => {
   return (
     <View style={styles.mainContainer}>
       <Loader
-        visible={ProfileReducer.status == 'Profile/deleteBankAccountRequest'}
+        visible={
+          ProfileReducer.status == 'Profile/deleteBankAccountRequest' ||
+          ProfileReducer.status == 'Profile/makePrimaryRequest'
+        }
       />
       <Header backIcon={Icons.BackIcon} headerTitle={'Payment Methods'} />
       <SafeAreaView style={styles.mainContainer}>

@@ -119,7 +119,7 @@ const Home = props => {
 
     let obj = {
       page: data?.count || page,
-      perpage: 5,
+      perpage: 10,
       keyword_search: '',
     };
     connectionrequest()

@@ -16,6 +16,7 @@ from .serializers import ProjectSerializer, ProfileSerializer
 from .serializers import JobCategorySerializer
 from django.db.models import Q
 from rest_framework.parsers import MultiPartParser,JSONParser,FormParser
+from profile_management.models import BankDetails
 
 class MobileProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -437,9 +438,14 @@ class MobileBidList(APIView):
                 }
     )
     def post(self, request):
+        service_provider=Profile.objects.get(user=request.user)
+        check_bank_account = BankDetails.objects.filter(user_profile=service_provider.id).exists()
+        if not check_bank_account:
+            return Response({"error": "You have to add Bank account."}, status=400)
+        
         serializer = BidSerializer(data=request.data,partial=True)
         if serializer.is_valid():
-            bid=serializer.save(service_provider=Profile.objects.get(user=request.user),project=Project.objects.get(id=request.data.get("project")))  # Adjust if necessary
+            bid=serializer.save(service_provider=service_provider,project=Project.objects.get(id=request.data.get("project")))  # Adjust if necessary
             bid.project.bid_count += 1
             bid.project.save()
             bid.bid_sent = False

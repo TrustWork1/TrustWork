@@ -12,6 +12,7 @@ from firebase_admin import messaging
 from chat_management.models import Notification
 from .serializers import ChatRoomSerializer,MessagesSerializer, AttatchmentSerializer
 from chat_management.models import ChatRoom,Messages
+from django.db.models import Q, Max
 class ChatHandlerView(APIView):
     # permission_classes=[IsAuthenticated]
     def post(self,request):
@@ -38,8 +39,13 @@ class ChatHandlerView(APIView):
     
 class ChatListView(APIView):
     def get(self,request):
-        chat_rooms=ChatRoom.objects.filter(user1=request.user.profile)|ChatRoom.objects.filter(user2=request.user.profile)
-        rooms=ChatRoomSerializer(chat_rooms,many=True)
+        chat_rooms = ChatRoom.objects.filter(
+            Q(user1=request.user.profile) | Q(user2=request.user.profile)
+        )
+        chat_rooms_with_messages = chat_rooms.filter(messages__isnull=False).annotate(
+            last_message_time=Max('messages__created_at')
+        ).order_by('-last_message_time')
+        rooms=ChatRoomSerializer(chat_rooms_with_messages, many=True)
         return Response(rooms.data)
     
 class AttatchmentChatViewSent(APIView):

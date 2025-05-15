@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
 import pytz
-from utils import send_otp
+from utils import send_otp, send_otp_sms
 from .serializers import GenerateOTPSerializer, VerifyOTPSerializer, ChangePasswordSerializer
 from rest_framework.permissions import AllowAny
 import random
@@ -498,7 +498,7 @@ class GenerateOTPView(APIView):
                 try:
                     profile = Profile.objects.get(phone=phone)
                     user = profile.user
-                    send_otp(profile.phone_extension + profile.phone, otp)
+                    send_otp_sms(profile.phone_extension + profile.phone, otp)
                     user.otp = otp
                     user.save()
                     print(user.otp)
@@ -507,7 +507,7 @@ class GenerateOTPView(APIView):
                     return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
                 # user=Profile.objects.get(phone=phone)
                 # # user = CustomUser.objects.get(profile__phone=phone)
-                # send_otp(user.phone_extension+user.phone,otp)
+                # send_otp_sms(user.phone_extension+user.phone,otp)
                 # user=user.user
                 # user.otp = otp
                 # user.save()
@@ -728,7 +728,7 @@ class ResendOtp(APIView):
         if phone:
             user=Profile.objects.filter(phone=phone).last()
             if user:
-                send_otp(user.phone_extension+phone,otp)
+                send_otp_sms(user.phone_extension+phone,otp)
                 user=user.user
                 user.otp=otp
                 user.save()

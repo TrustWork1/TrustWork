@@ -232,9 +232,9 @@ class AppStoreWebhookView(APIView):
             return Response({"error": "Invalid data"}, status=400)
 
         try:
-            # Step 1: Decode outer signed payload
+            # Decode outer signed payload
             payload = jwt.decode(signed_payload, options={"verify_signature": False})
-            print("Decoded Outer Payload:", json.dumps(payload, indent=2))
+            #print("Decoded Outer Payload:", json.dumps(payload, indent=2))
 
             data = payload.get("data", {})
             signed_transaction_info = data.get("signedTransactionInfo")
@@ -243,18 +243,19 @@ class AppStoreWebhookView(APIView):
             if not signed_transaction_info:
                 return Response({"error": "Missing signedTransactionInfo"}, status=400)
 
-            # Step 2:
             transaction_info = jwt.decode(signed_transaction_info, options={"verify_signature": False})
-            print("Decoded Transaction Info:", json.dumps(transaction_info, indent=2))
+            #print("Decoded Transaction Info:", json.dumps(transaction_info, indent=2))
 
-            renewal_info = jwt.decode(signed_renewal_info, options={"verify_signature": False})
-            print("Decoded Renewal Info:", json.dumps(renewal_info, indent=2))
+            # renewal_info = jwt.decode(signed_renewal_info, options={"verify_signature": False})
+            # print("Decoded Renewal Info:", json.dumps(renewal_info, indent=2))
 
             original_transaction_id = transaction_info.get("originalTransactionId")
             product_id = transaction_info.get("productId")
             notification_type = payload.get("notificationType")
 
-            if notification_type in ["CANCEL", "EXPIRED"] and original_transaction_id:
+            if notification_type in ["CANCEL", "EXPIRED", "DID_CHANGE_RENEWAL_STATUS"] and original_transaction_id:
+                event = "EXPIRED" if notification_type == "EXPIRED" else "CANCELED"
+                print(event)
                 updated = Subscriptions.objects.filter(
                     purchase_token=original_transaction_id,
                     is_active=True

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Alert,
   FlatList,
@@ -13,19 +13,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors, Fonts, GifImage, Icons } from '../themes/Themes';
+import {Colors, Fonts, GifImage, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
 
 import BottomSheet from '@gorhom/bottom-sheet';
-import { useIsFocused } from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {
   CardField,
   StripeProvider,
   useConfirmPayment,
 } from '@stripe/stripe-react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import CustomErrorComponent from '../components/CustomErrorComponent';
 import Header from '../components/Header';
 import NextBtn from '../components/NextBtn';
@@ -40,8 +40,8 @@ import {
   addBankAccountRequest,
   BankTransferRequest,
 } from '../redux/reducer/ProfileReducer';
-import { bidStatusRequest } from '../redux/reducer/ProjectReducer';
-import css, { width } from '../themes/css';
+import {bidStatusRequest} from '../redux/reducer/ProjectReducer';
+import css, {width} from '../themes/css';
 import errorMessages from '../utils/errorMessages';
 import Loader from '../utils/helpers/Loader';
 import connectionrequest from '../utils/helpers/NetInfo';
@@ -52,32 +52,22 @@ let status1 = '';
 let status2 = '';
 
 let listData = [
+  // {
+  //   id: 1,
+  //   name: 'Bank Transfer',
+  //   category: 'Lorem ipsum dolor sit amet consectetur',
+  // },
   {
     id: 1,
-    name: 'Bank Transfer',
-    category: 'Lorem ipsum dolor sit amet consectetur',
-  },
-  {
-    id: 2,
     name: 'MTN Payment',
     category: 'Lorem ipsum dolor sit amet consectetur',
   },
-  // {
-  //   id: 3,
-  //   name: 'ORANGE Payment',
-  //   category: 'Lorem ipsum dolor sit amet consectetur',
-  // },
-  // {
-  //   id: 4,
-  //   name: 'Cryptocurrency Payment',
-  //   category: 'Lorem ipsum dolor sit amet consectetur',
-  // },
 ];
 
 const Payment = props => {
   const bidId = props?.route?.params?.bidId;
   const bidAmount = props?.route?.params?.amount;
-  const { confirmPayment, loading } = useConfirmPayment();
+  const {confirmPayment, loading} = useConfirmPayment();
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -133,7 +123,7 @@ const Payment = props => {
 
   const bidStatusChange = (status, id) => {
     let obj = {
-      data: { action: status, phone_number: phoneNo },
+      data: {action: status, phone_number: phoneNo},
       bid_id: id,
     };
     connectionrequest()
@@ -237,7 +227,7 @@ const Payment = props => {
         break;
       case 'Profile/addBankAccountSuccess':
         status2 = ProfileReducer.status;
-        dispatch(BankTransferRequest({ bid_id: bidId }));
+        dispatch(BankTransferRequest({bid_id: bidId}));
         break;
       case 'Profile/addBankAccountFailure':
         status2 = ProfileReducer.status;
@@ -257,7 +247,7 @@ const Payment = props => {
 
   const handlePayPress = async () => {
     try {
-      const { paymentIntent, error } = await confirmPayment(
+      const {paymentIntent, error} = await confirmPayment(
         AuthReducer?.CreatePaymentResponse?.data?.client_secret,
         {
           paymentMethodType: 'Card',
@@ -269,7 +259,7 @@ const Payment = props => {
         setIsProceed(false);
         setIsLoading(false);
 
-        dispatch(StripePaymentFailRequest({ bid_id: bidId }));
+        dispatch(StripePaymentFailRequest({bid_id: bidId}));
         Alert.alert('Fail!', `Payment is Unsuccessful`, [
           {
             text: 'OK',
@@ -306,7 +296,7 @@ const Payment = props => {
 
   const paymentComponent = () => (
     <View style={styles.paymentContainer}>
-      {openPayNow === 'MTN Payment' ? (
+      {openPayNow === 'MTN Payment' && (
         <View>
           <TextIn
             show={phoneNo?.length > 0}
@@ -335,115 +325,17 @@ const Payment = props => {
             paddingRight={normalize(10)}
           />
           {isError && phoneNo === '' && (
-            <View style={{ width: '100%', left: normalize(-20) }}>
+            <View style={{width: '100%', left: normalize(-20)}}>
               <CustomErrorComponent label={errorMessages.ENTER_MOBILE_NUMBER} />
             </View>
           )}
           {isError && isValidateMobile && phoneNo?.length > 1 && (
-            <View style={{ width: '100%', left: normalize(-20) }}>
+            <View style={{width: '100%', left: normalize(-20)}}>
               <CustomErrorComponent
                 label={errorMessages.NUMBER_IN_CORRECT_FORMAT}
               />
             </View>
           )}
-        </View>
-      ) : (
-        <View>
-          {/* <View style={styles.modalMainContainer}>
-            <View style={styles.modalSubContainer}>
-            
-              <View>
-                <TextIn
-                  show={bName?.length > 0 ? true : false}
-                  value={bName}
-                  isVisible={false}
-                  onChangeText={val => {
-                    const sanitizedVal = val?.replace(/[^a-zA-Z\s]/g, '');
-                    setBname(sanitizedVal?.trimStart());
-                  }}
-                  height={normalize(50)}
-                  width={normalize(240)}
-                  fonts={Fonts.FustatMedium}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  maxLength={60}
-                  marginTop={normalize(15)}
-                  marginBottom={normalize(10)}
-                  // marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  label={'Bank Name'}
-                  placeholder={'Enter Bank Name'}
-                  //placeholderIcon={Icons.Email}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  //Eyeshow={true}
-                  paddingLeft={normalize(10)}
-                  paddingRight={normalize(10)}
-                />
-                <TextIn
-                  show={AccountNo?.length > 0 ? true : false}
-                  value={AccountNo}
-                  isVisible={false}
-                  onChangeText={val => {
-                    const sanitizedVal = val?.replace(/[^0-9]/g, '');
-                    setAccountNo(sanitizedVal.trimStart());
-                  }}
-                  height={normalize(50)}
-                  width={normalize(240)}
-                  fonts={Fonts.FustatMedium}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  maxLength={60}
-                  marginTop={normalize(15)}
-                  marginBottom={normalize(10)}
-                  // marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  label={'Account Number'}
-                  placeholder={'Enter Bank Account Number'}
-                  keyboardType="number-pad"
-                  //placeholderIcon={Icons.Email}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  //Eyeshow={true}
-                  paddingLeft={normalize(10)}
-                  paddingRight={normalize(10)}
-                />
-                <TextIn
-                  show={ifsc?.length > 0 ? true : false}
-                  value={ifsc}
-                  isVisible={false}
-                  onChangeText={val => {
-                    const sanitizedVal = val
-                      ?.replace(/[^a-zA-Z0-9]/g, '')
-                      .toUpperCase();
-                    setIFSC(sanitizedVal.trimStart());
-                  }}
-                  height={normalize(50)}
-                  width={normalize(240)}
-                  fonts={Fonts.FustatMedium}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  maxLength={60}
-                  marginTop={normalize(15)}
-                  marginBottom={normalize(10)}
-                  // marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  label={'IFSC Number'}
-                  placeholder={'Enter IFSC Number'}
-                  // keyboardType="number-pad"
-                  //placeholderIcon={Icons.Email}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  //Eyeshow={true}
-                  paddingLeft={normalize(10)}
-                  paddingRight={normalize(10)}
-                />
-              </View>
-            </View>
-          </View> */}
         </View>
       )}
 
@@ -474,7 +366,7 @@ const Payment = props => {
           setOpenPayNow(openPayNow === item.name ? null : item.name);
         }}
         style={styles.renderSubConatiner}>
-        <View style={{ flexDirection: 'column', justifyContent: 'center' }}>
+        <View style={{flexDirection: 'column', justifyContent: 'center'}}>
           <Text style={styles.nameTxt}>{item.name}</Text>
           <Text style={styles.categoryTxt}>{item.category}</Text>
         </View>
@@ -498,7 +390,7 @@ const Payment = props => {
       <View style={styles.succesMainComponent}>
         <Image
           source={GifImage.Done}
-          style={{ width: normalize(100), height: normalize(100) }}
+          style={{width: normalize(100), height: normalize(100)}}
         />
         <View style={styles.modalHeaderTxtContainer}>
           <Text style={styles.modalHeaderTxt}>Success!</Text>
@@ -507,7 +399,7 @@ const Payment = props => {
         <View
           style={[
             styles.btnMainContainer,
-            { paddingHorizontal: normalize(10), marginTop: normalize(20) },
+            {paddingHorizontal: normalize(10), marginTop: normalize(20)},
           ]}>
           <NextBtn
             height={normalize(50)}
@@ -534,7 +426,8 @@ const Payment = props => {
 
   return (
     <>
-      <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc">
+      <StripeProvider publishableKey="pk_test_51Q1uGJ06D9ayl3BS7fwiypJd2zkTFHJte5Itulh67991fpNzKtQchHA2bqwGhIgxhzhw6qvl3Zn81lCPpEw2JOS600ErjSExQF">
+        {/* <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc"> */}
         <View style={styles.mainContainer}>
           <Loader visible={AuthReducer.status == 'Auth/CreatePaymentRequest'} />
           <Header backIcon={Icons.BackIcon} headerTitle={'Payment'} />
@@ -546,13 +439,13 @@ const Payment = props => {
                     data={listData}
                     keyExtractor={(item, index) => index.toString()}
                     ItemSeparatorComponent={() => (
-                      <View style={{ height: normalize(10) }} />
+                      <View style={{height: normalize(10)}} />
                     )}
                     // ListHeaderComponent={() => listHeaderComponent()}
-                    renderItem={({ item, index }) => renderServices(item, index)}
+                    renderItem={({item, index}) => renderServices(item, index)}
                     contentContainerStyle={styles.listConatiner}
                   />
-                  <View style={[styles.listConatiner, { bottom: normalize(30) }]}>
+                  <View style={[styles.listConatiner, {bottom: normalize(30)}]}>
                     <View style={styles.renderConatiner}>
                       <TouchableOpacity
                         onPress={() => {
@@ -617,7 +510,7 @@ const Payment = props => {
               <View
                 style={[
                   styles.CardAddmodalOuter,
-                  { height: isKeyboardVisible ? normalize(250) : normalize(270) },
+                  {height: isKeyboardVisible ? normalize(250) : normalize(270)},
                 ]}>
                 <KeyboardAvoidingView>
                   <ScrollView>
@@ -673,14 +566,14 @@ const Payment = props => {
               ]}>
               <View style={[css.f1]}>
                 <TouchableOpacity
-                  style={[css.aic, { top: normalize(-350) }]}
+                  style={[css.aic, {top: normalize(-350)}]}
                   onPress={() => setIsProceed(!IsProceed)}>
                   {/* <Image source={icons.close} style={[css.closeIcon]} /> */}
                 </TouchableOpacity>
               </View>
 
               <View
-                style={[styles.CardAddmodalOuter, { height: normalize(350) }]}>
+                style={[styles.CardAddmodalOuter, {height: normalize(350)}]}>
                 <KeyboardAwareScrollView
                   enableOnAndroid={true}
                   keyboardShouldPersistTaps="handled"

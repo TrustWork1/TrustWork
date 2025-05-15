@@ -9,7 +9,7 @@ from api.master.views import LocationApiView,JobCategoryApiView
 from api.project.views import ProjectList,ChangeProjectStatusView,ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
 from project_management.models import Project,Bid
 from api.project.mobile_views import MobileBidList, MobileProjectList, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
-from api.referal_management.views import ReferalHandlerView
+from api.referal_management.views import ReferalHandlerView, AppReferView
 from api.auth.views import GenerateOTPView, AuthVerifyOTPView, ChangePasswordView,ResendOtp
 from api.chat.views import SendNotificationView,NotificationListView,ChangeNotificationStatusView,ChatHandlerView,ChatListView # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent 
 from api.payment_management.views import PaymentApiView, PendingPayment, PaymentFailerView
@@ -267,6 +267,8 @@ urlpatterns = [
     path('service-provider/payment-history/', PaymentHistoryApiView.as_view(), name='PaymentHistoryApiView-payment'),
     path('send-payment-request/', SendPaymentRequestApiView.as_view(), name='PaymentHistoryApiView-payment'),
     path('payment/transactions_failed/<int:bid_id>', PaymentFailerView.as_view(), name='failed_transaction'),
-    path('coupons', CouponsView.as_view(), name='coupons')
+    path('coupons', CouponsView.as_view(), name='coupons'),
+    path('app-refer-content/', AppReferView.as_view(), name='app-refer'),
+    path('app-refer-content/<int:pk>', AppReferView.as_view(), name='app-refer-detail'),
     
 ]

@@ -600,35 +600,38 @@ class ProjectBidApiView(APIView):
                 bid.status = 'Accepted'
                 bid.save()
                 if bid.project.status=="myoffer":
-                    bid.project.status="ongoing"
+                    bid.project.status="active"
                     Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
 
                     bid.project.save()
                 # bid.project.project_budget=bid.project_total_cost
                 # bid.project.save()
                 #ddd
-                try:
-                    gateway=PaymentGatewayAPI()
-                    client_details={
-                        "mobile_number":request.data.get("phone_number",bid.service_provider.phone),
-                        "email":bid.project.client.user.email
-                    }
-                    provider_details={
-                "mobile_number":bid.service_provider.phone if bid.service_provider.phone else bid.service_provider.phone ,
-                        "email":bid.service_provider.user.email,
-                    }
-                    response=gateway.initialize_collection(bid.project_total_cost,'EUR',client_details,provider_details,bid.project.id)
-                    print(response)
+                if request.data.get("phone_number") and action == "accept":
                     try:
-                        Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection")
-                        # bid.project.status="ongoing"
-                        # bid.project.save()
-                    except:
-                        pass
-                    Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
-                except Exception as e:
-                    print(e)
-                    response={}
+                        bid.project.status="ongoing"
+                        bid.project.save()
+                        gateway=PaymentGatewayAPI()
+                        client_details={
+                            "mobile_number":request.data.get("phone_number",bid.service_provider.phone),
+                            "email":bid.project.client.user.email
+                        }
+                        provider_details={
+                            "mobile_number":bid.service_provider.phone if bid.service_provider.phone else bid.service_provider.phone ,
+                            "email":bid.service_provider.user.email,
+                        }
+                        response=gateway.initialize_collection(bid.project_total_cost,'EUR',client_details,provider_details,bid.project.id)
+                        print(response)
+                        try:
+                            Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection")
+                            # bid.project.status="ongoing"
+                            # bid.project.save()
+                        except:
+                            pass
+                        Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
+                    except Exception as e:
+                        print(e)
+                        response={}
             elif action == "reject":
                 bid.status = 'Rejected'
                 bid.project.status='active'
@@ -993,7 +996,7 @@ class ServiceProviderListView(generics.ListAPIView):
                 Q(project_title__icontains=search_query) |
                 Q(project_description__icontains=search_query) |
                 Q(status=search_query)
-            )
+            ).order_by("-updated_at")
         queryset=queryset.exclude(status__iexact="myoffer")
         try:
             if not queryset.exists():

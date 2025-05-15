@@ -27,6 +27,7 @@ class BankDetails(AbstractModel):
     stripe_bank_account_id = models.CharField(max_length=255, null=True, blank=True)
     stripe_external_account_id = models.CharField(max_length=255, null=True, blank=True)
     routing_number = models.CharField(max_length=255, null=True, blank=True)
+    bank_account_fingerprint = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
@@ -173,3 +174,7 @@ class Coupons(AbstractModel):
                 return code
     def __str__(self):
         return self.coupon_code
+
+class AppReferContent(AbstractModel):
+    content = models.TextField()
+    icon = models.ImageField(upload_to='app_refer/', null=True)

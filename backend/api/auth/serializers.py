@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 import random
 from django.conf import settings
 from django.contrib.auth.models import Group
-from utils import send_otp
+from utils import send_otp, send_otp_sms
 from master.models import Location
 # from master import *
 import master
@@ -47,7 +47,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         phone_number = validated_data.get("phone", "")
         if validated_data.get("phone"):
             # send_otp(validated_data.get("phone_extension")+validated_data.get("phone"),otp)
-            send_otp(phone_extension + phone_number, otp)
+            send_otp_sms(phone_extension + phone_number, otp)
         if validated_data.get("email"):
             
             self.send_otp_email( email=validated_data['email'],otp=otp)
@@ -426,7 +426,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         user.last_name="" if len(full_name.split(" "))==1 else " ".join(full_name.split(" ")[1:])
         # self.send_otp_email( email=validated_data['email'],otp=otp)
         if profile_data.get("phone_extension") and profile_data.get("phone"):
-            send_otp(profile_data.get("phone_extension")+profile_data.get("phone"),otp)
+            send_otp_sms(profile_data.get("phone_extension")+profile_data.get("phone"),otp)
         if validated_data.get("email"):
             
             self.send_otp_email( email=validated_data['email'],otp=otp)

@@ -85,3 +85,45 @@ def send_otp(phone_number,otp):
         return None  # Return None in case of failure
 
 
+def send_otp_sms(phone_number, otp):
+    import http.client
+    import json
+
+    jwt_url = "https://auth.sms.to/oauth/token"
+    apikey = os.getenv('SMS_API_KEY')
+    client_secret_key = os.getenv('SMS_SECRET_KEY')
+    jwt_headers = {
+        'Authorization': f'Bearer {apikey}',
+        'Content-Type': 'application/json'
+    }
+    jwt_body = {
+        "client_id": "rn7STqQnjwlIzZ0x",    # feLMpuyTp8VIv2ON  rn7STqQnjwlIzZ0x
+        "secret": client_secret_key,
+        "expires_in": 60    # Expire minute(optional)
+    }
+    response = requests.post(jwt_url, headers=jwt_headers, json=jwt_body)
+
+    # print("Status Code:", response.status_code)
+    # print("Response JSON:", response.json())
+    # print("JWT Token:", response.json().get("jwt"))
+    jwt_token = response.json().get("jwt")
+
+    conn = http.client.HTTPSConnection("api.sms.to")
+    payload = json.dumps({
+        "message": f"Your otp is {otp}",
+        "to": phone_number,
+        "bypass_optout": True,
+        "sender_id": "Trustwork",
+        "callback_url": ""
+    })
+    headers = {
+    'Authorization': f'Bearer {jwt_token}',
+    'Content-Type': 'application/json'
+    }
+    
+    conn.request("POST", "/sms/send", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    print("PRINTING SMS: ",data.decode("utf-8"))
+
+# send_otp_sms("+916366724161", "9876")

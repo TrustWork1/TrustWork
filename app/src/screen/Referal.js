@@ -28,13 +28,12 @@ const listData = [
   },
   {
     id: 2,
-    title:
-      'When your friend registers using your referral code, you will get a 5% discount',
+    title: 'When a user registers using your referral code and subscribes',
     image: Icons.Referal1,
   },
   {
     id: 3,
-    title: '5% discount will be applied on your next job',
+    title: '5% discount will be applied on your next subscription',
     image: Icons.Referal2,
   },
 ];
@@ -112,7 +111,7 @@ const Referal = props => {
           <Text style={styles.title}>Refer Your Friend, Earn 5% Discount</Text>
           <Text style={styles.subtitle}>
             Invite your friends to join TrustWork and enjoy a 5% discount on
-            every job when they sign up using your referral code!
+            your next subscription when they sign up using your referral code!
           </Text>
         </View>
 

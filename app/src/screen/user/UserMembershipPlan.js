@@ -79,23 +79,31 @@ const UserMembershipPlan = props => {
     getPurchaseHistory, //gets users purchase history
   } = useIAP();
 
-  const subscriptionSkus = Platform.select({
-    ios: AuthReducer?.isDiscountApplied
-      ? ['Discount_Weekly', 'Discount_Monthly', 'Discount_Yearly']
-      : [
-          'Weekly_plan_1500',
-          'membership_monthly_4999',
-          'membership_yearly_49999',
-        ],
-    // android: [''],
-    android: AuthReducer?.isDiscountApplied
+  const subscriptionSkus = Platform.select(
+    AuthReducer?.isDiscountApplied
       ? [
           'membership.weekly_discount',
           'membership.monthly_discount',
           'membership.yearly_discount',
         ]
       : ['membership.weekly', 'membership.monthly', 'membership.yearly'],
-  });
+    //   {
+    //   ios: AuthReducer?.isDiscountApplied
+    //     ? ['Discount_Weekly', 'Discount_Monthly', 'Discount_Yearly']
+    //     : [
+    //         'Weekly_plan_1500',
+    //         'membership_monthly_4999',
+    //         'membership_yearly_49999',
+    //       ],
+    //   android: AuthReducer?.isDiscountApplied
+    //     ? [
+    //         'membership.weekly_discount',
+    //         'membership.monthly_discount',
+    //         'membership.yearly_discount',
+    //       ]
+    //     : ['membership.weekly', 'membership.monthly', 'membership.yearly'],
+    // }
+  );
 
   const handleGetSubscriptions = async () => {
     // let connection = await initConnection();
@@ -245,6 +253,7 @@ const UserMembershipPlan = props => {
           'subscriptionReceipt--->',
           JSON.parse(purchase?.transactionReceipt),
         );
+
         dispatch(
           SubscriptionRequest({
             isSubscribed: true,
@@ -254,6 +263,7 @@ const UserMembershipPlan = props => {
             subscriptionType: 'Google',
           }),
         );
+
         setIsloading(false);
         acknowledgeSubscription(purchase);
       });

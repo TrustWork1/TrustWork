@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.webskitters.trustwork</string>
+	<string>com.tllc.trustwork</string>
 	<key>PROJECT_ID</key>
 	<string>trustwork-9819e</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:639772854261:ios:73693c025d49a3449602bc</string>
+	<string>1:639772854261:ios:e0c0cc6311183cf49602bc</string>
 </dict>
 </plist>

@@ -433,13 +433,13 @@ const ProfileProvider = props => {
                 title={'Account Settings'}
                 onPress={() => NavigationService.navigate('AccountSetting')}
               />
-              <ProfileDataCard
+              {/* <ProfileDataCard
                 logo={Images.inactivePayment}
                 title={'Withdraw Money'}
                 onPress={() => {
                   NavigationService?.navigate('WithdrawMoney');
                 }}
-              />
+              /> */}
               <ProfileDataCard
                 logo={Icons.landmark}
                 title={'Payment Methods'}

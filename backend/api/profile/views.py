@@ -903,10 +903,10 @@ class BankDetailsAPIView(APIView):
             #     return JsonResponse({"error": "Invalid country code"}, status=400)
             
             bank_account_number = data.get('bank_account_number', '')
-            account_check = BankDetails.objects.filter(user_profile=user_profile, bank_account_number=bank_account_number).exists()
+            # account_check = BankDetails.objects.filter(user_profile=user_profile, bank_account_number=bank_account_number).exists()
 
-            if account_check:
-                return Response({"error": "Bank account already exists."}, status=400)
+            # if account_check:
+            #     return Response({"error": "Bank account already exists."}, status=400)
 
             # Checking if a Stripe account already exists
             existing_banks = BankDetails.objects.filter(user_profile=user_profile)
@@ -952,16 +952,21 @@ class BankDetailsAPIView(APIView):
                     )
                     final_stripe_account_id = account.id
 
+                fingerprint = external_account.fingerprint
+                if BankDetails.objects.filter(user_profile=user_profile, bank_account_fingerprint=fingerprint).exists():
+                    return Response({"error": "Bank account already exists."}, status=400)
+                
                 new_bank_details = BankDetails.objects.create(
                     user_profile=user_profile,
                     bank_name=data.get('bank_name'),
-                    bank_account_number=bank_account_number,
+                    bank_account_number=external_account.last4,
                     ifsc_code=data.get('ifsc_code', ''),
                     is_primary=data.get('is_primary', False),
                     stripe_account_id=final_stripe_account_id,
                     stripe_bank_account_id=external_account.id,
                     stripe_external_account_id=bank_token.id,
                     routing_number=data.get('ifsc_code', ""),
+                    bank_account_fingerprint=fingerprint,
                 )
                 if not stripe_account_id:
                     new_bank_details.is_primary = True
@@ -971,9 +976,6 @@ class BankDetailsAPIView(APIView):
                     "status": 200,
                     "type": "success",
                     "message": "Bank account added successfully",
-                    "stripe_account_id": final_stripe_account_id,
-                    "stripe_bank_account_id": external_account.id,
-                    "stripe_external_account_id": bank_token.id,
                     "bank_details": BankDetailsSerializer(new_bank_details).data
                 }, status=status.HTTP_200_OK)
 
@@ -994,11 +996,43 @@ class BankDetailsAPIView(APIView):
                 user_profile = user_profile.pk
                 bank_details = BankDetails.objects.filter(user_profile_id=user_profile)
                 paginator = CustomPagination()
-                paginated_faq = paginator.paginate_queryset(bank_details, request)
-                serializer = BankDetailsSerializer(paginated_faq, many=True)
-                return paginator.get_paginated_response(serializer.data)
-                # serialized_data = BankDetailsSerializer(bank_details, many=True).data
-                # return Response({"status": 200,"type": "success","message": "Bank details fetched successfully","data": serialized_data}, status=status.HTTP_200_OK)
+                paginated = paginator.paginate_queryset(bank_details, request)
+
+                response_data = []
+                for detail in paginated:
+                    stripe_data = {}
+                    if detail.stripe_account_id and detail.stripe_bank_account_id:
+                        try:
+                            bank_account = stripe.Account.retrieve_external_account(
+                                detail.stripe_account_id,
+                                detail.stripe_bank_account_id,
+                            )
+                            stripe_data = {
+                                "bank_name": bank_account.get("bank_name"),
+                                "last4": bank_account.get("last4"),
+                                "ifsc_code": bank_account.get("routing_number"),
+                                "account_holder_name": bank_account.get("account_holder_name"),
+                                "currency": bank_account.get("currency"),
+                            }
+                        except Exception as e:
+                            stripe_data = {"error": f"Stripe fetch failed: {str(e)}"}
+
+                    response_data.append({
+                        "id": detail.id,
+                        "bank_name": detail.bank_name,
+                        "bank_account_number": bank_account.get("last4"),
+                        "ifsc_code": bank_account.get("routing_number"),
+                        "routing_number": bank_account.get("routing_number"),
+                        "currency": bank_account.get("currency"),
+                        "is_primary": detail.is_primary,
+                        "status": detail.status,
+                        "created_at": detail.created_at,
+                        "updated_at": detail.updated_at,
+                        "user_profile": detail.user_profile.id,
+                        # "stripe_details": stripe_data,
+                    })
+
+                return paginator.get_paginated_response(response_data)
         
         except Profile.DoesNotExist:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -1008,121 +1042,59 @@ class BankDetailsAPIView(APIView):
             print(f"Error: {e}")
             return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    def put(self, request, pk):
-        try:
-            user_profile = Profile.objects.get(user=request.user)
-            bank_detail = get_object_or_404(BankDetails, pk=pk, user_profile=user_profile)
-
-            # Get current Stripe IDs
-            stripe_account_id = bank_detail.stripe_account_id
-            stripe_external_account_id = bank_detail.stripe_external_account_id
-
-            # Remove old external bank account
-            if stripe_account_id and stripe_external_account_id:
-                stripe.Account.delete_external_account(
-                    stripe_account_id, stripe_external_account_id
-                )
-
-            # Create new external bank account token
-            currency_code = get_currency_code(request.data.get("country"))
-            external_account = stripe.Token.create(
-                bank_account={
-                    'country': request.data.get("country"),
-                    'currency': currency_code,
-                    'account_holder_name': user_profile.user.full_name,
-                    'account_holder_type': 'individual',
-                    'routing_number': request.data.get("routing_number"),
-                    'account_number': request.data.get("bank_account_number"),
-                },
-            )
-
-            # Update BankDetails model
-            serializer = BankDetailsSerializer(bank_detail, data={
-                **request.data,
-                "stripe_external_account_id": external_account.id,
-                "stripe_bank_account_id": external_account.bank_account.id,
-            }, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response({
-                    "status": 200,
-                    "type": "success",
-                    "message": "Bank details updated successfully",
-                    "stripe_account_id": stripe_account_id,
-                    "stripe_external_account_id": external_account.id,
-                    "stripe_bank_account_id": external_account.bank_account.id,
-                    "bank_details": serializer.data
-                }, status=status.HTTP_200_OK)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Profile.DoesNotExist:
-            return Response({"detail": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        except stripe.error.StripeError as e:
-            return Response({"error": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Error: {e}")
-            return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    # def put(self, request, pk=None):
-    #     data = {**request.data}
+    # def put(self, request, pk):
     #     try:
-    #         user_profile = Profile.objects.get(user__id=request.user.id)
-    #         bank_details = BankDetails.objects.filter(user_profile_id=user_profile.pk).last()
-    #         print("bank_details", bank_details)
-    #         # bank_details.country = data.get("country", bank_details.country)
-    #         # bank_details.currency = data.get("currency", bank_details.currency)
-    #         bank_details.routing_number = data.get("routing_number", bank_details.routing_number)
-    #         bank_details.bank_account_number = data.get("bank_account_number", bank_details.bank_account_number)
-    #         stripe_account_id = bank_details.stripe_account_id
-    #         print("stripe_account_id", stripe_account_id)
-    #         list_account = stripe.Account.list_external_accounts(stripe_account_id)
-    #         print("list_account", list_account)
-    #         stripe_bank_account = bank_details.stripe_bank_account_id
-    #         print("stripe_bank_account_id", stripe_bank_account)
-    #         # stripe_account = stripe.Customer.retrieve(stripe_account_id)
-    #         stripe_account=stripe.Account.retrieve(stripe_account_id) # 'stripe_account_id', 'stripe_bank_account_id'
-    #         print("stripe_account", stripe_account)
-    #         external_accounts = stripe_account.external_accounts.list()            
-    #         print("stripe_account", external_accounts)
-    #         stripe_bank_account = stripe.Account.retrieve(stripe_account_id).modify_external_account(stripe_account_id, stripe_bank_account, metadata={'id':'stripe_account_id'})
-    #         # stripe_bank_account = stripe.Account.modify_external_account(stripe_account_id) # stripe_bank_account
-    #         print("stripe_bank_account", stripe_bank_account)
-    #         external_accounts = stripe_account.external_accounts.list()
-    #         external_account = None
-    #         for account in external_accounts.data:
-    #             if account.id == stripe_bank_account:
-    #                 external_account = account
-    #                 break
-    #         if external_accounts:
-    #             updated_external_account = external_account.update(
-    #                 account_holder_name=data.get("account_holder_name", external_account.account_holder_name),
-    #                 account_holder_type=data.get("account_holder_type", external_account.account_holder_type),
-    #                 routing_number=data.get("routing_number", external_account.routing_number),
-    #                 account_number=data.get("bank_account_number", external_account.bank_account_number)
+    #         user_profile = Profile.objects.get(user=request.user)
+    #         bank_detail = get_object_or_404(BankDetails, pk=pk, user_profile=user_profile)
+
+    #         # Get current Stripe IDs
+    #         stripe_account_id = bank_detail.stripe_account_id
+    #         stripe_external_account_id = bank_detail.stripe_external_account_id
+
+    #         # Remove old external bank account
+    #         if stripe_account_id and stripe_external_account_id:
+    #             stripe.Account.delete_external_account(
+    #                 stripe_account_id, stripe_external_account_id
     #             )
 
-    #             if data.get("country") == "US":
-    #                 updated_external_account.routing_number = data.get("routing_number", updated_external_account.routing_number)
-    #                 updated_external_account.bank_account_number = data.get("bank_account_number", updated_external_account.bank_account_number)
+    #         # Create new external bank account token
+    #         currency_code = get_currency_code(request.data.get("country"))
+    #         external_account = stripe.Token.create(
+    #             bank_account={
+    #                 'country': request.data.get("country"),
+    #                 'currency': currency_code,
+    #                 'account_holder_name': user_profile.user.full_name,
+    #                 'account_holder_type': 'individual',
+    #                 'routing_number': request.data.get("routing_number"),
+    #                 'account_number': request.data.get("bank_account_number"),
+    #             },
+    #         )
 
-    #             if data.get("country") in ["GB", "FR", "DE", "NL"]:
-    #                 updated_external_account.bank_account_number = data.get("iban", updated_external_account.bank_account_number)
-    #             updated_external_account.save()
+    #         # Update BankDetails model
+    #         serializer = BankDetailsSerializer(bank_detail, data={
+    #             **request.data,
+    #             "stripe_external_account_id": external_account.id,
+    #             "stripe_bank_account_id": external_account.bank_account.id,
+    #         }, partial=True)
+
+    #         if serializer.is_valid():
+    #             serializer.save()
     #             return Response({
     #                 "status": 200,
     #                 "type": "success",
     #                 "message": "Bank details updated successfully",
-    #                 "data": BankDetailsSerializer(bank_details).data
+    #                 "stripe_account_id": stripe_account_id,
+    #                 "stripe_external_account_id": external_account.id,
+    #                 "stripe_bank_account_id": external_account.bank_account.id,
+    #                 "bank_details": serializer.data
     #             }, status=status.HTTP_200_OK)
 
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     #     except Profile.DoesNotExist:
-    #         return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-    #     except BankDetails.DoesNotExist:
-    #         return Response({"error": "Bank details not found."}, status=status.HTTP_404_NOT_FOUND)
+    #         return Response({"detail": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
     #     except stripe.error.StripeError as e:
-    #         return Response({"error": f"Failed to update bank account in Stripe: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+    #         return Response({"error": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
     #     except Exception as e:
     #         print(f"Error: {e}")
     #         return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

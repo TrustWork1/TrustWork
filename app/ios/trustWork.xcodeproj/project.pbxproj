@@ -538,7 +538,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = H23W3EERLK;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = M8CB9R7HZK;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = trustWork/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -551,10 +551,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.webskitters.trustwork;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tllc.trustwork;
 				PRODUCT_NAME = trustWork;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dev_06/05/2025;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dev_13/05/2025;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -573,7 +573,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = H23W3EERLK;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = M8CB9R7HZK;
 				INFOPLIST_FILE = trustWork/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -585,10 +585,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.webskitters.trustwork;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tllc.trustwork;
 				PRODUCT_NAME = trustWork;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dist_06/05/2025;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dist_13/05/2025;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

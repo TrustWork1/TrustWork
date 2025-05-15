@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView,Http404
 from rest_framework.permissions import IsAuthenticated
-from api.pagination import CustomPagination, CustomPaginationProjectProfile
+from api.pagination import CustomPagination, CustomPaginationTransition, CustomPaginationProjectProfile
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -87,24 +87,45 @@ class PaymentApiView(APIView):
 
 class PendingPayment(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, format=None, pk=None):
+    def get(self, request, format=None):
         try:
-            # transaction=Transactions.objects.filter(status="ongoing").exclude(bid__project__status="completed") #Project.objects.filter(status='active'))
-            # transaction=Transactions.objects.exclude(status="completed")
-            # if transaction:
-            data = request.data
-            user_id = request.user
-            search_query = request.query_params.get('search', '')
-            if search_query:
-                transaction= Transactions.objects.filter(status__icontains=search_query,project__client__user = user_id).order_by("-created_at")
-            else:
-                transaction = Transactions.objects.filter(project__client__user = user_id).order_by("-created_at")
-            paginator = CustomPagination()
-            paginated_projects = paginator.paginate_queryset(transaction, request)
-            transaction_serializer = TransectionSerializer(paginated_projects, many=True)
-            return paginator.get_paginated_response(transaction_serializer.data)
+            user = request.user
+            search_query = request.query_params.get('search')  # e.g., "pending" or "completed"
+
+            # Get all transactions by user, ordered latest first
+            transactions_qs = Transactions.objects.filter(
+                project__client__user=user
+            ).select_related('bid', 'project').order_by('-created_at', '-id')
+
+            # Get latest transaction per (bid_id, project_id)
+            latest_per_pair = {}
+            for txn in transactions_qs:
+                key = (txn.bid_id, txn.project_id)
+                if key not in latest_per_pair:
+                    latest_per_pair[key] = txn
+
+            # Now apply filtering if search is given
+            filtered = list(latest_per_pair.values())
+            if search_query in ["pending", "completed"]:
+                filtered = [
+                    txn for txn in filtered
+                    if txn.status.lower() == search_query.lower()
+                ]
+
+            paginator = CustomPaginationTransition()
+            paginated = paginator.paginate_queryset(filtered, request)
+            serializer = TransectionSerializer(paginated, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "status": "400",
+                "message": "Failed",
+                "type": "error",
+                "data": {
+                    "error": str(e)
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TransectionView(APIView):
@@ -175,7 +196,7 @@ class CreateCheckoutSessionView(APIView):
                 print(response)
                 # payload = {'session_id': session.id, 'user_id': user_id, 'unit_amount': amount, 'currency': currency, 'project_id': project_id, 'bid_id': bid_id}
                 try:
-                    payment = Transactions.objects.create(escrow_id=response.get("escrow_id"), project_id=bid.project.id, bid_id=bid.id, status='in_progress') # project_id=project_id, bid_id=bid_id,
+                    payment = Transactions.objects.create(escrow_id=response.get("escrow_id"), project_id=bid.project.id, bid_id=bid.id, status=' ') # project_id=project_id, bid_id=bid_id,
                 except:
                     pass
                 if response:

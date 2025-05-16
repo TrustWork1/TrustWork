@@ -49,19 +49,23 @@ class AppReferView(APIView):
                 serializer = AppReferSerializer(referral)
                 data = serializer.data
                 if referral.icon:
-                    data['icon'] = request.build_absolute_uri(referral.icon.url)
+                    # data['icon'] = request.build_absolute_uri(referral.icon.url)
+                    data['icon'] = referral.icon.url
                 return Response(data, status=status.HTTP_200_OK)
             else:
                 referrals = AppReferContent.objects.all()
                 if not referrals.exists():
                     return Response([], status=status.HTTP_200_OK)
 
-                serializer = AppReferSerializer(referrals, many=True)
-                data = serializer.data
-                
-                for i, item in enumerate(referrals):
-                    if item.icon:
-                        data[i]['icon'] = request.build_absolute_uri(item.icon.url)
+                data = [
+                    {
+                        "id": referral.id,
+                        "content": referral.content,
+                        # "icon": request.build_absolute_uri(referral.icon.url) if referral.icon else None
+                        "icon": referral.icon.url
+                    }
+                    for referral in referrals
+                ]
                 return Response(data, status=status.HTTP_200_OK)
         except:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

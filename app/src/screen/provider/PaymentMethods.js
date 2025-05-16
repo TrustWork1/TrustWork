@@ -474,7 +474,7 @@ const PaymentMethods = props => {
           <View style={[css.ml2, css.f1]}>
             <Text style={[styles.darkTxt]}>{item?.bank_name}</Text>
             <Text style={[styles.greyTxt, css.fs10]}>
-              {item?.bank_account_number}
+              {`*******${item?.bank_account_number}`}
             </Text>
             <Text style={[styles.greyTxt, css.fs10]}>
               {item?.routing_number}

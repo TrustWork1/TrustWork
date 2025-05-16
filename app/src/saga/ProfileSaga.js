@@ -49,6 +49,8 @@ import {
   deleteGalleryItemFailure,
   makePrimarySuccess,
   makePrimaryFailure,
+  ReferralStepsSuccess,
+  ReferralStepsFailure,
 } from '../redux/reducer/ProfileReducer';
 import {deleteApi, getApi, postApi, putApi} from '../utils/helpers/ApiRequest';
 import constants from '../utils/helpers/constants';
@@ -735,6 +737,43 @@ export function* WithdrawPointsSaga(action) {
   }
 }
 
+//////////////////////// Referral Steps //////////////
+export function* ReferralStepsSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(
+      getApi,
+      'app-refer-content/',
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(ReferralStepsSuccess(response?.data));
+    } else if (response?.status == 201) {
+      yield put(ReferralStepsFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else {
+      yield put(ReferralStepsFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(ReferralStepsFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(ReferralStepsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(ReferralStepsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
 //////////////////////// BankTransfer //////////////
 export function* BankTransferSaga(action) {
   const items = yield select(getItem);
@@ -882,6 +921,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Profile/BankTransferRequest', BankTransferSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Profile/ReferralStepsRequest', ReferralStepsSaga);
   })(),
   (function* () {
     yield takeLatest('Profile/deleteGalleryItemRequest', deleteGalleryItemSaga);

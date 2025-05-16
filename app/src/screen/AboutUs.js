@@ -14,7 +14,6 @@ let status = '';
 
 const AboutUs = props => {
   const isFocused = useIsFocused();
-
   const dispatch = useDispatch();
   const ProfileReducer = useSelector(state => state.ProfileReducer);
 

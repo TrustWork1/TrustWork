@@ -92,12 +92,14 @@ def send_otp_sms(phone_number, otp):
     jwt_url = "https://auth.sms.to/oauth/token"
     apikey = os.getenv('SMS_API_KEY')
     client_secret_key = os.getenv('SMS_SECRET_KEY')
+    client_id = os.getenv('SMS_CLIENT_ID')
+
     jwt_headers = {
         'Authorization': f'Bearer {apikey}',
         'Content-Type': 'application/json'
     }
     jwt_body = {
-        "client_id": "rn7STqQnjwlIzZ0x",    # feLMpuyTp8VIv2ON  rn7STqQnjwlIzZ0x
+        "client_id": client_id,
         "secret": client_secret_key,
         "expires_in": 60    # Expire minute(optional)
     }
@@ -110,7 +112,7 @@ def send_otp_sms(phone_number, otp):
 
     conn = http.client.HTTPSConnection("api.sms.to")
     payload = json.dumps({
-        "message": f"Your otp is {otp}",
+        "message": f"Thank you for connecting with TrustWork. Your OTP is {otp}.",
         "to": phone_number,
         "bypass_optout": True,
         "sender_id": "Trustwork",
@@ -126,4 +128,4 @@ def send_otp_sms(phone_number, otp):
     data = res.read()
     print("PRINTING SMS: ",data.decode("utf-8"))
 
-# send_otp_sms("+916366724161", "9876")
+# send_otp_sms("+237675708549", "6371")

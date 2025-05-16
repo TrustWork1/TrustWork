@@ -23,6 +23,7 @@ const initialState = {
   SwitchAccountResponse: {},
   WithdrawPointsResponse: {},
   BankTransferResponse: {},
+  ReferralStepsResponse:{},
   deleteGalleryItemResponse: {},
 };
 
@@ -264,6 +265,20 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
 
+
+    ///////////////////// ReferralSteps //////////////////
+    ReferralStepsRequest(state, action) {
+      state.status = action.type;
+    },
+    ReferralStepsSuccess(state, action) {
+      state.ReferralStepsResponse = action.payload;
+      state.status = action.type;
+    },
+    ReferralStepsFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
+
     // deleteGalleryItem //
     deleteGalleryItemRequest(state, action) {
       state.status = action.type;
@@ -350,6 +365,10 @@ export const {
   BankTransferRequest,
   BankTransferSuccess,
   BankTransferFailure,
+
+  ReferralStepsRequest,
+  ReferralStepsSuccess,
+  ReferralStepsFailure,
 
   deleteGalleryItemRequest,
   deleteGalleryItemSuccess,

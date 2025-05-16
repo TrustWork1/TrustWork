@@ -234,7 +234,7 @@ class AppStoreWebhookView(APIView):
         try:
             # Decode outer signed payload
             payload = jwt.decode(signed_payload, options={"verify_signature": False})
-            #print("Decoded Outer Payload:", json.dumps(payload, indent=2))
+            # print("Decoded Outer Payload:", json.dumps(payload, indent=2))
 
             data = payload.get("data", {})
             signed_transaction_info = data.get("signedTransactionInfo")
@@ -244,7 +244,7 @@ class AppStoreWebhookView(APIView):
                 return Response({"error": "Missing signedTransactionInfo"}, status=400)
 
             transaction_info = jwt.decode(signed_transaction_info, options={"verify_signature": False})
-            #print("Decoded Transaction Info:", json.dumps(transaction_info, indent=2))
+            # print("Decoded Transaction Info:", json.dumps(transaction_info, indent=2))
 
             # renewal_info = jwt.decode(signed_renewal_info, options={"verify_signature": False})
             # print("Decoded Renewal Info:", json.dumps(renewal_info, indent=2))

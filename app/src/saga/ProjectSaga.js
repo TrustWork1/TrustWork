@@ -499,16 +499,15 @@ export function* SendBidSaga(action) {
       showErrorAlert(response?.data?.message);
     } else {
       yield put(SendBidFailure(response?.data));
-
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
     if (error?.status == 502) {
       yield put(SendBidFailure(error));
       showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
+    } else if (error?.status == 400) {
       yield put(SendBidFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
+      showErrorAlert(error?.response?.data?.data?.data?.detail);
     } else {
       yield put(SendBidFailure(error));
       showErrorAlert(error?.message);

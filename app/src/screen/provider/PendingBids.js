@@ -190,7 +190,7 @@ const PendingBids = props => {
                 <View style={{flex: 0.47}}>
                   <TranBtn
                     title={'Withdraw Bid'}
-                    onPress={() => onConfirmCancel(item?.project?.bid?.id)}
+                    onPress={() => onConfirmCancel(item?.id)}
                   />
                 </View>
                 <View style={{flex: 0.47}}>

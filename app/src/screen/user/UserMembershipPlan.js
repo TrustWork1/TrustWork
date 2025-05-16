@@ -79,38 +79,20 @@ const UserMembershipPlan = props => {
     getPurchaseHistory, //gets users purchase history
   } = useIAP();
 
-  const subscriptionSkus = Platform.select(
-    AuthReducer?.isDiscountApplied
-      ? [
-          'membership.weekly_discount',
-          'membership.monthly_discount',
-          'membership.yearly_discount',
-        ]
-      : ['membership.weekly', 'membership.monthly', 'membership.yearly'],
-    //   {
-    //   ios: AuthReducer?.isDiscountApplied
-    //     ? ['Discount_Weekly', 'Discount_Monthly', 'Discount_Yearly']
-    //     : [
-    //         'Weekly_plan_1500',
-    //         'membership_monthly_4999',
-    //         'membership_yearly_49999',
-    //       ],
-    //   android: AuthReducer?.isDiscountApplied
-    //     ? [
-    //         'membership.weekly_discount',
-    //         'membership.monthly_discount',
-    //         'membership.yearly_discount',
-    //       ]
-    //     : ['membership.weekly', 'membership.monthly', 'membership.yearly'],
-    // }
-  );
+  const subscriptionSkus = AuthReducer?.isDiscountApplied
+    ? [
+        'membership.weekly_discount',
+        'membership.monthly_discount',
+        'membership.yearly_discount',
+      ]
+    : ['membership.weekly', 'membership.monthly', 'membership.yearly'];
 
   const handleGetSubscriptions = async () => {
     // let connection = await initConnection();
 
     try {
       const subscription = await getSubscriptions({skus: subscriptionSkus});
-
+      console.log(subscription);
       if (!subscription) {
         console.log('Subscription not found or inactive.');
       }
@@ -185,6 +167,7 @@ const UserMembershipPlan = props => {
   };
 
   useMemo(() => {
+    console.log('subscriptions--->', subscriptions);
     sortDataByPrice(subscriptions);
   }, [subscriptions]);
 

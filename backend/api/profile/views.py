@@ -903,10 +903,6 @@ class BankDetailsAPIView(APIView):
             #     return JsonResponse({"error": "Invalid country code"}, status=400)
             
             bank_account_number = data.get('bank_account_number', '')
-            # account_check = BankDetails.objects.filter(user_profile=user_profile, bank_account_number=bank_account_number).exists()
-
-            # if account_check:
-            #     return Response({"error": "Bank account already exists."}, status=400)
 
             # Checking if a Stripe account already exists
             existing_banks = BankDetails.objects.filter(user_profile=user_profile)
@@ -1989,19 +1985,19 @@ class HandleSubscription(APIView):
 
         if subscription_type.lower() == "google":
             subscription_receipt = request.data.get("subscriptionReceipt", {})
-            purchase_token = subscription_receipt.get("purchaseToken")
+            purchase_id = subscription_receipt.get("purchaseToken")
         
         if subscription_type.lower() == "apple":
             subscription_receipt = request.data.get("subscriptionReceipt", {})
-            purchase_token = subscription_receipt.get("transactionId")
-
-        # check_purchase_token = Subscriptions.objects.filter(profile=request.user.profile,is_active=True, purchase_token=purchase_token)
-        # if check_purchase_token.exists():
-        #     return Response({"error":"Purchase token exists, try again."}, status=status.HTTP_400_BAD_REQUEST)
+            original_transaction_id = subscription_receipt.get("originalTransactionIdentifierIOS")
+            if original_transaction_id:
+                purchase_id = original_transaction_id
+            else:
+                purchase_id = subscription_receipt.get("transactionId")
 
         Subscriptions.objects.filter(profile=request.user.profile,is_active=True).update(is_active=False)
         frequency=subscription_plan.split("_")[1]
-        Subscriptions.objects.create(profile=request.user.profile,subscription_frequency=frequency.lower(),subscription_plan=subscription_plan,purchase_token=purchase_token)
+        Subscriptions.objects.create(profile=request.user.profile,subscription_frequency=frequency.lower(),subscription_plan=subscription_plan,purchase_token=purchase_id)
         user_profile=request.user.profile
         user_profile.is_payment_verified=True
         referer_user=CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).last()

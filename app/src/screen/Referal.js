@@ -1,5 +1,5 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   FlatList,
   Image,
@@ -19,6 +19,10 @@ import Images from '../themes/Images';
 import {Colors, Fonts, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
 import files from '../assets/filesBase64';
+import {ReferralStepsRequest} from '../redux/reducer/ProfileReducer';
+import {useIsFocused} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import constants from '../utils/helpers/constants';
 
 const listData = [
   {
@@ -40,6 +44,14 @@ const listData = [
 
 const Referal = props => {
   const {code} = props?.route?.params;
+
+  const isFocused = useIsFocused();
+  const dispatch = useDispatch();
+  const ProfileReducer = useSelector(state => state.ProfileReducer);
+
+  useEffect(() => {
+    dispatch(ReferralStepsRequest());
+  }, [isFocused]);
 
   const referralCode = code;
   const appLink =
@@ -66,14 +78,23 @@ const Referal = props => {
     }
   };
 
-  const renderItem = ({item}) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.iconWrapper}>
-        <Image source={item.image} resizeMode="contain" style={styles.icon} />
+  const renderSteps = (item, index) => {
+    console.log(item);
+    return (
+      <View style={styles.itemContainer}>
+        <View style={styles.iconWrapper}>
+          <Image
+            source={{
+              uri: constants.IMAGE_URL + '/media/' + item?.icon,
+            }}
+            resizeMode="contain"
+            style={styles.icon}
+          />
+        </View>
+        <Text style={styles.itemText}>{item?.content}</Text>
       </View>
-      <Text style={styles.itemText}>{item.title}</Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.mainContainer}>
@@ -129,9 +150,9 @@ const Referal = props => {
 
         <Text style={styles.heading}>How does it work?</Text>
         <FlatList
-          data={listData}
+          data={ProfileReducer?.ReferralStepsResponse?.data}
           keyExtractor={item => item.id.toString()}
-          renderItem={renderItem}
+          renderItem={({item, index}) => renderSteps(item, index)}
           scrollEnabled={false}
         />
 

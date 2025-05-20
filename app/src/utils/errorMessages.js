@@ -8,6 +8,7 @@ const errorMessages = {
   ENTER_OLD_PASSWORD: 'Please enter old password.',
   CONFIRM_PASSWORD: 'Password and confirm password should be same.',
   ACCEPT_TERM_CONDITION: 'Please accept the Terms & Condition.',
+  ACCEPT_RULES: 'Please accept Trustwork Smart Contract Rules',
   ENTER_CONFIRM_PASSWORD: 'Please enter confirm new password.',
   CONFIRM_NEW_PASSWORD: 'Please enter confirm new password.',
   ENTER_OTP: 'Please enter OTP.',

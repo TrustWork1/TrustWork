@@ -84,14 +84,15 @@ const Referal = props => {
       <View style={styles.itemContainer}>
         <View style={styles.iconWrapper}>
           <Image
-            source={{
-              uri: constants.IMAGE_URL + '/media/' + item?.icon,
-            }}
+            source={item?.image}
+            // source={{
+            //   uri: constants.IMAGE_URL + '/media/' + item?.icon,
+            // }}
             resizeMode="contain"
             style={styles.icon}
           />
         </View>
-        <Text style={styles.itemText}>{item?.content}</Text>
+        <Text style={styles.itemText}>{item?.title}</Text>
       </View>
     );
   };
@@ -150,7 +151,8 @@ const Referal = props => {
 
         <Text style={styles.heading}>How does it work?</Text>
         <FlatList
-          data={ProfileReducer?.ReferralStepsResponse?.data}
+          data={listData}
+          // data={ProfileReducer?.ReferralStepsResponse?.data}
           keyExtractor={item => item.id.toString()}
           renderItem={({item, index}) => renderSteps(item, index)}
           scrollEnabled={false}

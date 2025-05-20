@@ -3,6 +3,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Colors, Fonts, Icons} from '../../themes/Themes';
 import constants from '../../utils/helpers/constants';
 import normalize from '../../utils/helpers/normalize';
+import css from '../../themes/css';
 
 const ProjectCard = ({img, title, desc, location, type, status, onPress}) => {
   function truncateText(text) {
@@ -24,6 +25,7 @@ const ProjectCard = ({img, title, desc, location, type, status, onPress}) => {
             // justifyContent: 'center',
             // alignItems: 'center',
             marginHorizontal: normalize(10),
+            width: '86%',
           }}>
           <Text style={styles.featuredNameTxt}>{title}</Text>
           <View style={styles.mainConatiner}>
@@ -56,6 +58,7 @@ const ProjectCard = ({img, title, desc, location, type, status, onPress}) => {
             <View
               style={[
                 styles.commonConatiner,
+                // css.bgblack,
                 {
                   paddingLeft: normalize(10),
                 },

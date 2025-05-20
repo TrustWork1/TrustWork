@@ -654,7 +654,7 @@ const UserUpdateProfile = props => {
                 <Text style={styles.headerSubTxt}>
                   {/* {'Create an account to get in to our platform'} */}
                   {
-                    'Lorem ipsum dolor sit amet consectetur. Non blandit augue massa nisl leo sagittis amet.'
+                    'Quickly update your personal information, including your address, photo, and experience, to keep your profile current.'
                   }
                 </Text>
               </View>

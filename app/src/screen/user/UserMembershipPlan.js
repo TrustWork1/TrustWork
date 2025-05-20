@@ -160,9 +160,36 @@ const UserMembershipPlan = props => {
 
   const sortDataByPrice = data => {
     console.log(data);
-    const sortedData = data.sort((a, b) => a.price - b.price);
-    if (sortedData?.length > 0) {
-      setPlanList(sortedData);
+    if (Platform.OS == 'ios') {
+      const sortedData = data.sort((a, b) => {
+        parseFloat(a.price) - parseFloat(b.price);
+      });
+      console.log(sortedData);
+      if (sortedData?.length > 0) {
+        console.log(sortedData);
+        setPlanList(sortedData);
+      }
+    } else {
+      const sortedData = data.sort((a, b) => {
+        const priceA = parseFloat(
+          a.subscriptionOfferDetails[0].pricingPhases.pricingPhaseList[0].formattedPrice.replace(
+            /[₹,]/g,
+            '',
+          ),
+        );
+        const priceB = parseFloat(
+          b.subscriptionOfferDetails[0].pricingPhases.pricingPhaseList[0].formattedPrice.replace(
+            /[₹,]/g,
+            '',
+          ),
+        );
+        return priceA - priceB;
+      });
+      console.log(sortedData);
+      if (sortedData?.length > 0) {
+        console.log(sortedData);
+        setPlanList(sortedData);
+      }
     }
   };
 

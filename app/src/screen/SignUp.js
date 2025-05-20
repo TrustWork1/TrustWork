@@ -6,6 +6,7 @@ import {
   ImageBackground,
   Platform,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -34,6 +35,8 @@ import normalize from '../utils/helpers/normalize';
 import css from '../themes/css';
 import CountryCode from '../components/General/CountryCode';
 import Dropdown from '../components/Dropdown';
+import HTMLTextComponent from '../components/HTMLTextComponent';
+import {cmsRequest} from '../redux/reducer/ProfileReducer';
 
 let status = '';
 
@@ -41,12 +44,15 @@ const SignUp = props => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
+  const ProfileReducer = useSelector(state => state.ProfileReducer);
 
   var validate = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   var mobileValidate = /^\d*[1-9]\d*$/;
 
   const [selectedTab, setSelectedTab] = useState('client');
   const [showSeen, setShowSeen] = useState(false);
+  const [TandCModal, setTandCModal] = useState(false);
+  const [rulesMoadal, setRulesMoadal] = useState(false);
 
   const inputRef1 = useRef(null);
   const inputRef2 = useRef(null);
@@ -69,6 +75,7 @@ const SignUp = props => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isChecked, setIsChecked] = useState(false);
+  const [isCheckedRules, setIsCheckedRules] = useState(false);
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [referalCode, setReferalCode] = useState('');
@@ -81,6 +88,13 @@ const SignUp = props => {
 
   useEffect(() => {
     inputRef1?.current?.focus();
+    connectionrequest()
+      .then(() => {
+        dispatch(cmsRequest());
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, []);
 
   useEffect(() => {
@@ -165,6 +179,10 @@ const SignUp = props => {
 
     if (!isChecked) {
       showErrorAlert(errorMessages.ACCEPT_TERM_CONDITION);
+      return;
+    }
+    if (!isCheckedRules) {
+      showErrorAlert(errorMessages.ACCEPT_RULES);
       return;
     }
 
@@ -257,6 +275,29 @@ const SignUp = props => {
           });
       }
     }
+  };
+
+  const RulesComponent = () => {
+    return (
+      <View style={styles.modalViewContainer}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <HTMLTextComponent
+            htmlContent={ProfileReducer?.cmsResponse?.data?.[6]?.content}
+          />
+        </ScrollView>
+      </View>
+    );
+  };
+  const TermsConditionComponent = () => {
+    return (
+      <View style={styles.modalViewContainer}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <HTMLTextComponent
+            htmlContent={ProfileReducer?.cmsResponse?.data?.[2]?.content}
+          />
+        </ScrollView>
+      </View>
+    );
   };
 
   if (status == '' || AuthReducer.status != status) {
@@ -1049,31 +1090,56 @@ const SignUp = props => {
                 </View>
 
                 <View style={styles.termTxtConatiner}>
-                  <TouchableOpacity
-                    onPress={() => setIsChecked(!isChecked)}
-                    style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <Image
-                      source={
-                        isChecked ? Icons.CheckBoxFill : Icons.CheckboxUnFill
-                      }
-                      resizeMode="contain"
-                      style={styles.checkBox}
-                    />
-                    <Text
-                      //   onPress={() => {
-                      //     Linking.openURL(
-                      //       `${constants.WEB_BASE_URL}/terms-condition/`,
-                      //     ).catch(err => {
-                      //       console.log(err);
-                      //     });
-                      //   }}
-                      style={styles.commonText}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <TouchableOpacity onPress={() => setIsChecked(!isChecked)}>
+                      <Image
+                        source={
+                          isChecked ? Icons.CheckBoxFill : Icons.CheckboxUnFill
+                        }
+                        resizeMode="contain"
+                        style={styles.checkBox}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.commonText}>
                       {
                         'Accept terms & conditions and privacy policy \nof TRUST WORK.'
                       }
+                      <TouchableOpacity
+                        onPress={() => {
+                          setTandCModal(true);
+                        }}>
+                        <Text style={styles.greenTxt}>view</Text>
+                      </TouchableOpacity>
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
+
+                <View style={styles.termTxtConatiner}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <TouchableOpacity
+                      onPress={() => setIsCheckedRules(!isCheckedRules)}>
+                      <Image
+                        source={
+                          isCheckedRules
+                            ? Icons.CheckBoxFill
+                            : Icons.CheckboxUnFill
+                        }
+                        resizeMode="contain"
+                        style={styles.checkBox}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.commonText}>
+                      {'Accept Trustwork Smart Contract Rules'}
+                      <TouchableOpacity
+                        onPress={() => {
+                          setRulesMoadal(true);
+                        }}>
+                        <Text style={styles.greenTxt}>view</Text>
+                      </TouchableOpacity>
+                    </Text>
+                  </View>
+                </View>
+
                 <View style={styles.btnMainContainer}>
                   <NextBtn
                     loading={AuthReducer?.status == 'Auth/signUpRequest'}
@@ -1119,6 +1185,24 @@ const SignUp = props => {
         onBackButtonPress={() => setShowSeen(false)}>
         {enterOTPComponent()}
       </Modal>
+
+      <Modal
+        visible={TandCModal}
+        avoidKeyboard={true}
+        style={styles.modalContainer}
+        onBackButtonPress={() => setTandCModal(!TandCModal)}
+        onBackdropPress={() => setTandCModal(!TandCModal)}>
+        {TermsConditionComponent()}
+      </Modal>
+
+      <Modal
+        visible={rulesMoadal}
+        avoidKeyboard={true}
+        style={styles.modalContainer}
+        onBackButtonPress={() => setRulesMoadal(!rulesMoadal)}
+        onBackdropPress={() => setRulesMoadal(!rulesMoadal)}>
+        {RulesComponent()}
+      </Modal>
     </View>
   );
 };
@@ -1139,6 +1223,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: normalize(20),
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    margin: 0,
+    width: '100%',
+  },
+  modalViewContainer: {
+    width: '90%',
+    height: normalize(450),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: normalize(40),
+    backgroundColor: Colors.themeWhite,
+    padding: normalize(15),
+    borderRadius: normalize(10),
   },
   headerContainer: {
     flex: 1,
@@ -1197,6 +1299,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.FustatMedium,
     fontSize: 13,
     lineHeight: normalize(17),
+  },
+  greenTxt: {
+    color: Colors.themeGreen,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(14),
+    lineHeight: normalize(17),
+    top: normalize(2),
+    left: normalize(5),
   },
   termTxtConatiner: {
     flexDirection: 'row',

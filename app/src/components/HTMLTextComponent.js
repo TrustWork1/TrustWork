@@ -25,8 +25,8 @@ const HTMLTextComponent = props => {
 
 const styles = StyleSheet.create({
   p: {
-    marginTop: normalize(5),
-    marginBottom: normalize(3),
+    // marginTop: normalize(2),
+    // marginBottom: normalize(3),
     fontFamily: Fonts.FustatMedium,
     fontSize: normalize(11),
     lineHeight: normalize(16),
@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     color: Colors.themeBlack,
   },
   strong: {
-    fontFamily: Fonts.FustatSemiBold,
-    fontSize: 14,
+    fontFamily: Fonts.FustatBold,
+    fontSize: normalize(13),
     color: Colors.themeBlack,
     lineHeight: normalize(14),
   },

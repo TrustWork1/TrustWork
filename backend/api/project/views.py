@@ -871,9 +871,23 @@ class BidDetail(APIView):
             }
     )
     def delete(self, request, pk):
-        bid = self.get_object(pk)
-        bid.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            bid = get_object_or_404(Bid, id=pk)
+            
+            Transactions.objects.filter(bid=bid, status="failed").delete()
+            
+            if Transactions.objects.filter(bid=bid).exists():
+                return Response(
+                    {"error": "Cannot delete bid because it is referenced by non-failed transactions."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            bid.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Http404:
+            return Response({"error": "Bid Does not exists"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(str(e))
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Serch By Project ID
 # class ServiceProviderListView(generics.ListAPIView):
@@ -992,11 +1006,11 @@ class ServiceProviderListView(generics.ListAPIView):
         except:
             pass
         if search_query:
-            queryset = Project.objects.filter(
+            queryset = queryset.filter(
                 Q(project_title__icontains=search_query) |
                 Q(project_description__icontains=search_query) |
                 Q(status=search_query)
-            ).order_by("-updated_at")
+            ).order_by("id", "-updated_at")
         queryset=queryset.exclude(status__iexact="myoffer")
         try:
             if not queryset.exists():
@@ -1021,7 +1035,7 @@ class ServiceProviderHomeView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         search_query = request.query_params.get('search', '')
-        projects=Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(status__iexact="completed").exclude(status__iexact="ongoing").exclude(status__iexact="myoffer").order_by("created_at")
+        projects=Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(status__iexact="inactive").exclude(status__iexact="completed").exclude(status__iexact="ongoing").exclude(status__iexact="myoffer").order_by("created_at")
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)
         print(projects)

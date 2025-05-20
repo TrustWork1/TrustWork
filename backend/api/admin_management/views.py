@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 # from adminsite_management.models import CMS, FAQ
 from .serializers import CMSSerializer, FAQSerializer
-from api.pagination import CustomPagination 
+from api.pagination import CustomPagination, CustomPaginationTransition
 from drf_yasg.views import get_schema_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -43,11 +43,12 @@ class CMSListCreateAPIView(APIView):
         }
     )
     def get(self, request):
-        cms_entries = CMS.objects.all().order_by('updated_at')
+        print("called")
+        cms_entries = CMS.objects.all().order_by('id')
         name = request.query_params.get('search', None)
         if name:
             cms_entries = cms_entries.filter(title__icontains=name)
-        paginator = CustomPagination()
+        paginator = CustomPaginationTransition()
         paginated_cms = paginator.paginate_queryset(cms_entries, request)
         serializer = CMSSerializer(paginated_cms, many=True)
         return paginator.get_paginated_response(serializer.data)

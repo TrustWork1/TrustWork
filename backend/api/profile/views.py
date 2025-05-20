@@ -1863,6 +1863,10 @@ class ProjectDetails(APIView):
 
     def get(self, request, pk=None):
         search_query = request.query_params.get('search', '')
+        latitude = request.query_params.get("latitude")
+        longitude = request.query_params.get("longitude")
+        radius = float(request.query_params.get("radius", 10))
+        
         if pk:
             project=Project.objects.get(pk=pk)
             # project=project.annotate(
@@ -1880,14 +1884,9 @@ class ProjectDetails(APIView):
                 can__send_bid=True
                 
             serializer=ProjectSerializer(project)
-
             return Response({"can__send_bid":can__send_bid,**serializer.data})
-        user = request.user 
-        print("user", user)
+        
         # conversation_id = Message.objects.filter(Conversation=conversation_id).last()
-        latitude = request.query_params.get("latitude")
-        longitude = request.query_params.get("longitude")
-        radius = request.query_params.get("radius", 10)
        
         if not latitude or not longitude:
             return Response(
@@ -1898,80 +1897,75 @@ class ProjectDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
         try:
-            user_profile = user.profile
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except ValueError:
+            return Response({
+                "status": 400,
+                "type": "error",
+                "message": "Latitude and Longitude must be valid float values"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user_profile = request.user.profile
             user_type = user_profile.get_user_type_display()
         except Profile.DoesNotExist:
-            return Response(
-                {
-                    "status": 400,
-                    "type": "error",
-                    "message": "User profile not found",
-                    
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        # user_type="provider"
-        if user_type == "provider":
-            user_categories=JobCategory.objects.filter(id__in=Profile.objects.get(id=user_profile.id).job_category.all().values_list("id",flat=True))
-            #user_categories=JobCategory.objects.filter()
-            clients = Project.objects.filter(project_category__in=JobCategory.objects.filter(id__in=user_categories)).exclude(status__iexact="completed").exclude(status__iexact="ongoing").exclude(status__iexact="myoffer") # client__user_type='client'
-            if search_query == '':
-                clients = Project.objects.filter(project_category__in=JobCategory.objects.filter(id__in=user_categories)).exclude(status__iexact="completed").exclude(status__iexact="ongoing").exclude(status__iexact="myoffer") # client__user_type='client'
+            return Response({
+                "status": 400,
+                "type": "error",
+                "message": "User profile not found",
+                
+            }, status=status.HTTP_400_BAD_REQUEST)
+         
+        if user_type.lower() == "provider":
+            user_category_ids = user_profile.job_category.all().values_list("id", flat=True)
+
+            # Base query
+            projects = Project.objects.filter(project_category__in=user_category_ids).exclude(
+                status__in=["completed", "ongoing", "myoffer", "inactive"]
+            ).order_by('-created_at')
+
+            # Filter by location
+            filtered_projects = self.filter_by_location(projects, latitude, longitude, radius)
+
+            # Apply search filter manually on filtered list
             if search_query:
-                clients = Project.objects.filter(Q(project_title__icontains=search_query) | Q(project_description__icontains=search_query))
-            filtered_clients = self.filter_by_location(clients, latitude, longitude)
-            if not filtered_clients:
-                return Response({"message": "No clients found"}, status=status.HTTP_200_OK)
+                search_query = search_query.lower()
+                filtered_projects = [
+                    proj for proj in filtered_projects
+                    if search_query in (proj.project_title or '').lower() or
+                    search_query in (proj.project_description or '').lower()
+                ]
+
+            if not filtered_projects:
+                return Response({"message": "No project found"}, status=status.HTTP_200_OK)
+
+            # Paginate and return
             paginator = CustomPaginationProjectProfile()
-            paginated_profiles = paginator.paginate_queryset(filtered_clients, request)
-            if not paginated_profiles:
-                return Response({"message": "No clients found"}, status=status.HTTP_200_OK)
-            serializer = ProjectSerializer(paginated_profiles, many=True)
-            # serializer = ProjectSerializer(filtered_clients, many=True)
+            paginated_projects = paginator.paginate_queryset(filtered_projects, request)
+            serializer = ProjectSerializer(paginated_projects, many=True)
             return paginator.get_paginated_response(serializer.data)
-        
+
         return Response({"message": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
-
-            
-            # last_message_details = None
-            # try:
-            #     conversation = Conversation.objects.filter(participant=user_type).first()
-            #     if conversation:
-            #         last_message = Message.objects.filter(conversation=conversation).order_by('-sent_at').first()
-            #         if last_message:
-            #             last_message_details = {
-            #                 "content": last_message.content,
-            #                 "sent_at": last_message.sent_at,
-            #             }
-            # except Conversation.DoesNotExist:
-            #     last_message_details = None
-
-            # return Response(
-            #     {
-            #         "status": 200,
-            #         "type": "success",
-            #         "message": "Client details fetched successfully",
-            #         "data": serializer.data,
-            #         # "last_message": last_message_details,
-            #     },
-            #     status=status.HTTP_200_OK,
-            # )
-
         
-    def filter_by_location(self, profiles, latitude, longitude):
-        user_location = (float(latitude), float(longitude))
-        filtered_profiles = []
-        radius = 10
-        for projects in profiles:
-            location = projects.project_location
-            if location:
-                profile_location = (location.latitude, location.longitude)
-                distance = geodesic(user_location, profile_location).km
-                if distance <= radius: #float(radius)
-                    filtered_profiles.append(projects)
+    def filter_by_location(self, projects, latitude, longitude, radius):
+        user_location = (latitude, longitude)
+        filtered = []
+        # radius = 10
+        for project in projects:
+            location = project.project_location
+            if location and location.latitude and location.longitude:
+                try:
+                    project_location = (float(location.latitude), float(location.longitude))
+                    distance_km = geodesic(user_location, project_location).km
+                    if distance_km <= radius:
+                        filtered.append(project)
+                except (ValueError, TypeError):
+                    continue  # Skip invalid lat/lng
 
-        return filtered_profiles
+        return filtered
 
 from profile_management.models import Subscriptions, Coupons
 from datetime import datetime, timedelta

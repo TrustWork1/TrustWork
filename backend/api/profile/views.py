@@ -5,8 +5,8 @@ from rest_framework import status
 from .serializers import ProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from profile_management.models import BankDetails,UserDocuments,MembershipPlans,ProfileMembership,Profile
-from .serializers import BankDetailsSerializer,UserDocumentsSerializer,MembershipPlansSerializer,ProfileMembershipSerializer,ProfilePreviousWorksSerializer,PreviousWorks
+from profile_management.models import MTNAccount, BankDetails,UserDocuments,MembershipPlans,ProfileMembership,Profile
+from .serializers import MTNAccountSerializer,BankDetailsSerializer,UserDocumentsSerializer,MembershipPlansSerializer,ProfileMembershipSerializer,ProfilePreviousWorksSerializer,PreviousWorks
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import Group
@@ -94,6 +94,7 @@ class ProfileSelfView(APIView):
             "data" : serializer.data
         }    
         return Response(response,status=status.HTTP_200_OK)
+    
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
@@ -1172,6 +1173,90 @@ class PrimaryBankView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
+class MtnAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user_profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({"error": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        mtn_accounts = MTNAccount.objects.filter(user_profile=user_profile)
+        serializer = MTNAccountSerializer(mtn_accounts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            user_details = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({"error": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        extension = data.get('phone_extension', '')
+        number = data.get('account_number', '')
+        full_account_number = extension + number
+
+        data['user_profile'] = user_details.id
+        data['account_name'] = user_details.user.full_name
+        data['account_number'] = full_account_number
+
+        has_account = MTNAccount.objects.filter(user_profile=user_details.id, account_number=full_account_number).exists()
+        if has_account:
+            return Response({"error": "This account already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = MTNAccountSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk=None):
+        try:
+            user_details = Profile.objects.get(user=request.user)
+            account = MTNAccount.objects.filter(id=pk, user_profile=user_details.id).first()
+            total_bank = MTNAccount.objects.filter(user_profile=user_details)
+
+            if not account:
+                return Response({"error": "MTN account not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            if account.is_primary == True:
+                if total_bank.count() > 1:
+                    return Response({"error": "You cannot delete the default/primary account"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            account.delete()
+            return Response({"message": "MTN account deleted successfully."}, status=status.HTTP_200_OK)
+
+        except Profile.DoesNotExist:
+            return Response({"error": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class MtnPrimaryAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+    def put(self, request, pk):
+        try:
+            user_details = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({"detail": "User profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        acc_detail = get_object_or_404(MTNAccount, pk=pk, user_profile=user_details)
+
+        MTNAccount.objects.filter(user_profile=user_details, is_primary=True).update(is_primary=False)
+
+        acc_detail.is_primary = True
+        acc_detail.save()
+
+        serializer = MTNAccountSerializer(acc_detail)
+
+        response = {
+            "status": 200,
+            "type": "success",
+            "message": "MTN account set as primary successfully.",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 class UserDocumentsAPIView(APIView):
     permission_classes = [IsAuthenticated]

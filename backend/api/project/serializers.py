@@ -623,7 +623,7 @@ class AdminProjectSerializer(serializers.ModelSerializer):
 #         return bid
 
 class BidSerializer(serializers.ModelSerializer):
-    client = ProfileSerializer(read_only=True)
+    client = serializers.SerializerMethodField()
     project = ProjectSerializer(read_only=True)
     # project = serializers.SerializerMethodField()
     service_provider = serializers.SerializerMethodField()
@@ -632,6 +632,11 @@ class BidSerializer(serializers.ModelSerializer):
     is_accepted = serializers.BooleanField(read_only=True)
     project_title = serializers.CharField(source="project.project_title", read_only=True)
 
+    def get_client(self, obj):
+        if hasattr(obj.project, 'client'):
+            return ProfileSerializer(obj.project.client).data
+        return None
+    
     def get_service_provider(self, obj):
         if obj.service_provider.profile_picture:
             return {"id":obj.service_provider.id,"full_name":obj.service_provider.user.full_name, "profile_picture":obj.service_provider.profile_picture.url, "email":obj.service_provider.user.email, "phone":obj.service_provider.phone, "profile_rating":obj.service_provider.profile_rating, "address":obj.service_provider.address}

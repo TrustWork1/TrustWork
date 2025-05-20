@@ -1,6 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import moment from 'moment';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -20,6 +20,7 @@ import {Colors, Fonts, Icons} from '../../themes/Themes';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import NavigationService from '../../navigators/NavigationService';
 
 let status = '';
 let status1 = '';
@@ -193,22 +194,43 @@ const AcceptedBids = props => {
     }
   }
 
-  if (status1 == '' || ChatReducer.status != status1) {
-    switch (ChatReducer.status) {
-      case 'Chat/createChatRoomRequest':
-        status1 = ChatReducer.status;
-        break;
-      case 'Chat/createChatRoomSuccess':
-        status1 = ChatReducer.status;
-        NavigationService?.navigate('Chat', {
-          data: userData,
-        });
-        break;
-      case 'Chat/createChatRoomFailure':
-        status1 = ChatReducer.status;
-        break;
-    }
-  }
+  useFocusEffect(
+    useCallback(() => {
+      switch (ChatReducer.status) {
+        case 'Chat/createChatRoomRequest':
+          status1 = ChatReducer.status;
+          break;
+        case 'Chat/createChatRoomSuccess':
+          status1 = ChatReducer.status;
+          console.log('userData-->', userData);
+          NavigationService?.navigate('Chat', {
+            data: userData,
+          });
+          break;
+        case 'Chat/createChatRoomFailure':
+          status1 = ChatReducer.status;
+          break;
+      }
+    }, [ChatReducer.status]),
+  );
+
+  // if (status1 == '' || ChatReducer.status != status1) {
+  //   switch (ChatReducer.status) {
+  //     case 'Chat/createChatRoomRequest':
+  //       status1 = ChatReducer.status;
+  //       break;
+  //     case 'Chat/createChatRoomSuccess':
+  //       status1 = ChatReducer.status;
+  //       console.log('userData-->', userData);
+  //       // NavigationService?.navigate('Chat', {
+  //       //   data: userData,
+  //       // });
+  //       break;
+  //     case 'Chat/createChatRoomFailure':
+  //       status1 = ChatReducer.status;
+  //       break;
+  //   }
+  // }
 
   return (
     <View style={styles.mainContainer}>

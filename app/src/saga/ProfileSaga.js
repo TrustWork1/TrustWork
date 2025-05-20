@@ -51,6 +51,14 @@ import {
   makePrimaryFailure,
   ReferralStepsSuccess,
   ReferralStepsFailure,
+  addMtnAccountSuccess,
+  addMtnAccountFailure,
+  mtnListSuccess,
+  mtnListFailure,
+  deleteMtnSuccess,
+  deleteMtnFailure,
+  makePrimaryMtnFailure,
+  makePrimaryMtnSuccess,
 } from '../redux/reducer/ProfileReducer';
 import {deleteApi, getApi, postApi, putApi} from '../utils/helpers/ApiRequest';
 import constants from '../utils/helpers/constants';
@@ -539,6 +547,75 @@ export function* addBankAccountSaga(action) {
   }
 }
 
+// addMtnAccountSaga
+export function* addMtnAccountSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(postApi, 'mtn-account/', action.payload, header);
+
+    if (response?.status == 200) {
+      yield put(addMtnAccountSuccess(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else if (response?.status == 201) {
+      yield put(addMtnAccountFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else {
+      yield put(addMtnAccountFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(addMtnAccountFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(addMtnAccountFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(addMtnAccountFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+// mtnListRequest
+export function* mtnListSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(getApi, 'mtn-account/', header);
+
+    if (response?.status == 200) {
+      yield put(mtnListSuccess(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else if (response?.status == 201) {
+      yield put(mtnListFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else {
+      yield put(mtnListFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(mtnListFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(mtnListFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(mtnListFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+
 // updateBankAccountSaga
 export function* updateBankAccountSaga(action) {
   const items = yield select(getItem);
@@ -617,6 +694,45 @@ export function* makePrimarySaga(action) {
     }
   }
 }
+// makePrimarySaga
+export function* makePrimaryMtnSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(
+      putApi,
+      `mtn-primary/${action.payload.id}/`,
+      action.payload,
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(makePrimaryMtnSuccess(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else if (response?.status == 201) {
+      yield put(makePrimaryMtnFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else {
+      yield put(makePrimaryMtnFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(makePrimaryMtnFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(makePrimaryMtnFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(makePrimaryMtnFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
 
 // deleteBankAccountSaga
 export function* deleteBankAccountSaga(action) {
@@ -652,6 +768,44 @@ export function* deleteBankAccountSaga(action) {
       showErrorAlert(error?.response?.data?.data?.detail);
     } else {
       yield put(deleteBankAccountFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+// deleteMtnSaga
+export function* deleteMtnSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(
+      deleteApi,
+      `mtn-account/${action.payload.id}/`,
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(deleteMtnSuccess(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    } else if (response?.status == 201) {
+      yield put(deleteMtnFailure(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    } else {
+      yield put(deleteMtnFailure(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(deleteMtnFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(deleteMtnFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(deleteMtnFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -746,11 +900,7 @@ export function* ReferralStepsSaga(action) {
     authorization: items?.getTokenResponse,
   };
   try {
-    let response = yield call(
-      getApi,
-      'app-refer-content/',
-      header,
-    );
+    let response = yield call(getApi, 'app-refer-content/', header);
 
     if (response?.status == 200) {
       yield put(ReferralStepsSuccess(response?.data));
@@ -902,7 +1052,13 @@ const watchFunction = [
     yield takeLatest('Profile/bankAccountRequest', getBankAccountSaga);
   })(),
   (function* () {
+    yield takeLatest('Profile/mtnListRequest', mtnListSaga);
+  })(),
+  (function* () {
     yield takeLatest('Profile/addBankAccountRequest', addBankAccountSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Profile/addMtnAccountRequest', addMtnAccountSaga);
   })(),
   (function* () {
     yield takeLatest('Profile/updateBankAccountRequest', updateBankAccountSaga);
@@ -911,7 +1067,13 @@ const watchFunction = [
     yield takeLatest('Profile/makePrimaryRequest', makePrimarySaga);
   })(),
   (function* () {
+    yield takeLatest('Profile/makePrimaryMtnRequest', makePrimaryMtnSaga);
+  })(),
+  (function* () {
     yield takeLatest('Profile/deleteBankAccountRequest', deleteBankAccountSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Profile/deleteMtnRequest', deleteMtnSaga);
   })(),
   (function* () {
     yield takeLatest('Profile/SwitchAccountRequest', SwitchAccountSaga);

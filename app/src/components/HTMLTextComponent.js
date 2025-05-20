@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.FustatBold,
     fontSize: normalize(13),
     color: Colors.themeBlack,
-    lineHeight: normalize(14),
+    lineHeight: normalize(15),
   },
   a: {
     fontFamily: Fonts.FustatMedium,

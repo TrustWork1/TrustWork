@@ -16,14 +16,18 @@ const initialState = {
   notificationStatusChangeResponse: {},
   deleteNotificationResponse: {},
   bankAccountResponse: {},
+  mtnListResponse: {},
   addBankAccountResponse: {},
+  addMtnAccountResponse: {},
   deleteBankAccountResponse: {},
+  deleteMtnResponse: {},
   updateBankAccountResponse: {},
   makePrimaryResponse: {},
+  makePrimaryMtnesponse: {},
   SwitchAccountResponse: {},
   WithdrawPointsResponse: {},
   BankTransferResponse: {},
-  ReferralStepsResponse:{},
+  ReferralStepsResponse: {},
   deleteGalleryItemResponse: {},
 };
 
@@ -173,6 +177,18 @@ const ProfileSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
+    // mtn List //
+    mtnListRequest(state, action) {
+      state.status = action.type;
+    },
+    mtnListSuccess(state, action) {
+      state.mtnListResponse = action.payload;
+      state.status = action.type;
+    },
+    mtnListFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
 
     // addBankAccount //
     addBankAccountRequest(state, action) {
@@ -186,6 +202,18 @@ const ProfileSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
+    // addMtnAccount //
+    addMtnAccountRequest(state, action) {
+      state.status = action.type;
+    },
+    addMtnAccountSuccess(state, action) {
+      state.addMtnAccountResponse = action.payload;
+      state.status = action.type;
+    },
+    addMtnAccountFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
 
     // deleteBankAccount //
     deleteBankAccountRequest(state, action) {
@@ -196,6 +224,19 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     deleteBankAccountFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
+
+    // deleteMtn //
+    deleteMtnRequest(state, action) {
+      state.status = action.type;
+    },
+    deleteMtnSuccess(state, action) {
+      state.deleteMtnResponse = action.payload;
+      state.status = action.type;
+    },
+    deleteMtnFailure(state, action) {
       state.error = action.error;
       state.status = action.type;
     },
@@ -222,6 +263,19 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     makePrimaryFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
+
+    // makePrimaryMtn//
+    makePrimaryMtnRequest(state, action) {
+      state.status = action.type;
+    },
+    makePrimaryMtnSuccess(state, action) {
+      state.makePrimaryMtnesponse = action.payload;
+      state.status = action.type;
+    },
+    makePrimaryMtnFailure(state, action) {
       state.error = action.error;
       state.status = action.type;
     },
@@ -264,7 +318,6 @@ const ProfileSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
-
 
     ///////////////////// ReferralSteps //////////////////
     ReferralStepsRequest(state, action) {
@@ -338,13 +391,25 @@ export const {
   bankAccountSuccess,
   bankAccountFailure,
 
+  mtnListRequest,
+  mtnListSuccess,
+  mtnListFailure,
+
   addBankAccountRequest,
   addBankAccountSuccess,
   addBankAccountFailure,
 
+  addMtnAccountRequest,
+  addMtnAccountSuccess,
+  addMtnAccountFailure,
+
   deleteBankAccountRequest,
   deleteBankAccountSuccess,
   deleteBankAccountFailure,
+
+  deleteMtnRequest,
+  deleteMtnSuccess,
+  deleteMtnFailure,
 
   updateBankAccountRequest,
   updateBankAccountSuccess,
@@ -353,6 +418,10 @@ export const {
   makePrimaryRequest,
   makePrimarySuccess,
   makePrimaryFailure,
+
+  makePrimaryMtnRequest,
+  makePrimaryMtnSuccess,
+  makePrimaryMtnFailure,
 
   SwitchAccountRequest,
   SwitchAccountSuccess,

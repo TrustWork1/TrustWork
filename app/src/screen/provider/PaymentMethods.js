@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -21,9 +22,13 @@ import NextBtn from '../../components/NextBtn';
 import TextIn from '../../components/TextIn';
 import {
   addBankAccountRequest,
+  addMtnAccountRequest,
   bankAccountRequest,
   deleteBankAccountRequest,
+  deleteMtnRequest,
+  makePrimaryMtnRequest,
   makePrimaryRequest,
+  mtnListRequest,
   updateBankAccountRequest,
 } from '../../redux/reducer/ProfileReducer';
 import {Colors, Fonts, Icons, Sizes} from '../../themes/Themes';
@@ -33,6 +38,8 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import showErrorAlert from '../../utils/helpers/Toast';
 import normalize from '../../utils/helpers/normalize';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import errorMessages from '../../utils/errorMessages';
+import {ProfileRequest} from '../../redux/reducer/AuthReducer';
 
 let status = '';
 
@@ -50,10 +57,13 @@ const accountType = [
 const PaymentMethods = props => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
+  const AuthReducer = useSelector(state => state.AuthReducer);
   const ProfileReducer = useSelector(state => state.ProfileReducer);
 
   const [bankList, setBankList] = useState([]);
+  const [mtnList, setmtnList] = useState([]);
   const [isOpen, setIsopen] = useState(false);
+  const [isMtnAdd, setIsMtnAdd] = useState(false);
   const [bankId, setBankId] = useState('');
   const [bName, setBname] = useState('');
   const [AccountNo, setAccountNo] = useState('');
@@ -61,10 +71,15 @@ const PaymentMethods = props => {
   const [country, setCountry] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [account, setAccount] = useState('');
+  const [phoneNo, setPhoneNo] = useState('');
+  const [code, setCode] = useState('+1');
+  const [isValidateMobile, setIsValidateMobile] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     if (isFocused) {
       getBankList();
+      getMtnList();
     }
   }, [isFocused]);
 
@@ -72,6 +87,15 @@ const PaymentMethods = props => {
     connectionrequest()
       .then(() => {
         dispatch(bankAccountRequest());
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
+  };
+  const getMtnList = () => {
+    connectionrequest()
+      .then(() => {
+        dispatch(mtnListRequest());
       })
       .catch(err => {
         showErrorAlert('Please connect to the internet');
@@ -115,6 +139,14 @@ const PaymentMethods = props => {
       .catch(err => {
         showErrorAlert('Please connect to the internet');
       });
+  };
+
+  const saveMtnNumber = () => {
+    let obj = {
+      account_number: phoneNo,
+      phone_extension: code,
+    };
+    dispatch(addMtnAccountRequest(obj));
   };
 
   const onUpdateBank = () => {
@@ -218,23 +250,40 @@ const PaymentMethods = props => {
       });
   };
 
+  const deleteMtnAccount = id => {
+    let obj = {
+      id: id,
+    };
+    connectionrequest()
+      .then(() => {
+        dispatch(deleteMtnRequest(obj));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
+  };
+
   const addBankComponent = () => {
     return (
       <View style={styles.modalMainContainer}>
         <View style={styles.modalSubContainer}>
-          <Text style={[styles.addbankHead]}>
-            {bankId ? 'Update Bank Account' : 'Add Bank Account'}
-          </Text>
-          <Text style={[styles.greyTxt, css.fs11, css.asc]}>
-            Manage your bank account
-          </Text>
           <KeyboardAwareScrollView
+            contentContainerStyle={{flexGrow: 1}}
             enableResetScrollToCoords={false}
+            keyboardOpeningTime={0}
+            extraScrollHeight={0}
             bounces={false}
             enableOnAndroid={true}
             scrollEnabled={true}
+            enableAutomaticScroll={false}
             keyboardShouldPersistTaps={'handled'}
             showsVerticalScrollIndicator={false}>
+            <Text style={[styles.addbankHead]}>
+              {bankId ? 'Update Bank Account' : 'Add Bank Account'}
+            </Text>
+            <Text style={[styles.greyTxt, css.fs11, css.asc]}>
+              Manage your bank account
+            </Text>
             <View>
               <TextIn
                 show={bName?.length > 0 ? true : false}
@@ -432,34 +481,200 @@ const PaymentMethods = props => {
       </View>
     );
   };
+  const addMtnComponent = () => {
+    return (
+      <View style={styles.modalMainContainer}>
+        <View style={styles.modalSubContainer}>
+          <Text style={[styles.addbankHead]}>{'Add MTN Account'}</Text>
+
+          <KeyboardAwareScrollView
+            contentContainerStyle={{flexGrow: 1}}
+            scrollEnabled={true}
+            keyboardOpeningTime={0}
+            extraScrollHeight={0}
+            enableOnAndroid={true}
+            enableAutomaticScroll={false}
+            keyboardShouldPersistTaps={'handled'}>
+            <View>
+              <View style={[css.rowBetween, css.asc, {width: normalize(265)}]}>
+                <Dropdown
+                  show={code?.length > 0 ? true : false}
+                  isPhone={true}
+                  data={CountryCode}
+                  height={normalize(45)}
+                  width={normalize(70)}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  fonts={Fonts.VerdanaProMedium}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  marginTop={
+                    Platform.OS == 'ios' ? normalize(20) : normalize(15)
+                  }
+                  paddingLeft={normalize(10)}
+                  valueColor={Colors.themeBlack}
+                  paddingHorizontal={normalize(5)}
+                  // label={'Project Category'}
+                  // placeholder={'Select Category'}
+                  value={code}
+                  isSerachBar={true}
+                  // disabled={item?.bid_count > 0 || false}
+                  // modalHeight
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  onChange={(selecetedItem, index) => {
+                    setCode(selecetedItem?.dial_code);
+                  }}
+                />
+
+                <TextIn
+                  show={phoneNo?.length > 0 ? true : false}
+                  value={phoneNo}
+                  isVisible={false}
+                  onChangeText={val => {
+                    setPhoneNo(val?.replace(/[^0-9]/g, ''));
+                  }}
+                  height={normalize(45)}
+                  width={normalize(190)}
+                  fonts={Fonts.FustatMedium}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  maxLength={10}
+                  keyboardType={'number-pad'}
+                  marginTop={normalize(8)}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(-70)}
+                  outlineTxtwidth={normalize(50)}
+                  label={'Phone Number'}
+                  placeholder={'Enter Phone Number'}
+                  //placeholderIcon={Icons.Email}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  //Eyeshow={true}
+                  paddingLeft={normalize(10)}
+                  paddingRight={normalize(10)}
+                />
+              </View>
+
+              <View style={[css.mt3, css.px1]}>
+                <NextBtn
+                  // loading={}
+                  height={normalize(40)}
+                  title={'Add MTN'}
+                  borderColor={Colors.themeGreen}
+                  color={Colors.themeWhite}
+                  backgroundColor={Colors.themeGreen}
+                  onPress={() => {
+                    saveMtnNumber();
+                  }}
+                />
+              </View>
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+        <TouchableOpacity
+          style={{
+            left: Sizes.width / 4,
+            marginVertical: normalize(10),
+            paddingBottom: normalize(10),
+          }}
+          onPress={() => setIsMtnAdd(!isMtnAdd)}>
+          <View
+            style={{
+              borderRadius: normalize(10),
+              paddingHorizontal: normalize(42),
+              paddingVertical: normalize(11),
+              justifyContent: 'center',
+              alignItems: 'center',
+              alignSelf: 'center',
+              backgroundColor: Colors?.themeGreen,
+              top: normalize(2),
+              right: normalize(2),
+            }}>
+            <Text
+              style={{
+                fontFamily: Fonts.FustatMedium,
+                fontSize: normalize(14),
+                lineHeight: normalize(22),
+                color: Colors.themeWhite,
+                textTransform: 'uppercase',
+              }}>
+              Close
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const listHeaderComponent = () => {
     return (
-      <View
-        style={{
-          paddingTop: normalize(20),
-          paddingHorizontal: normalize(10),
-          paddingVertical: normalize(15),
-        }}>
-        <Text
-          style={{
-            fontFamily: Fonts.FustatSemiBold,
-            fontSize: normalize(15),
-            color: Colors.themeBlack,
-            lineHeight: normalize(22),
-          }}>
-          {'My Bank Details'}
-        </Text>
-        <Text
-          style={{
-            fontFamily: Fonts.FustatMedium,
-            fontSize: normalize(12),
-            color: Colors.themeInactiveTxt,
-            lineHeight: normalize(16),
-            marginTop: normalize(5),
-          }}>
-          Manage your bank accounts
-        </Text>
+      <View style={[styles.headerContainer]}>
+        <View>
+          <Text
+            style={{
+              fontFamily: Fonts.FustatSemiBold,
+              fontSize: normalize(15),
+              color: Colors.themeBlack,
+              lineHeight: normalize(22),
+            }}>
+            {'My Bank Account'}
+          </Text>
+          <Text
+            style={{
+              fontFamily: Fonts.FustatMedium,
+              fontSize: normalize(12),
+              color: Colors.themeInactiveTxt,
+              lineHeight: normalize(16),
+              marginTop: normalize(5),
+            }}>
+            Manage your bank accounts
+          </Text>
+        </View>
+        <View style={styles.addServiceMainContainer}>
+          <TouchableOpacity
+            onPress={() => setIsopen(true)}
+            style={styles.addServiceContainer}>
+            <Text style={[styles.buttonTxt]}>+ Add Bank</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+  const mtnHeaderComponent = () => {
+    return (
+      <View style={[styles.headerContainer]}>
+        <View>
+          <Text
+            style={{
+              fontFamily: Fonts.FustatSemiBold,
+              fontSize: normalize(15),
+              color: Colors.themeBlack,
+              lineHeight: normalize(22),
+            }}>
+            {'My MTN Account'}
+          </Text>
+          <Text
+            style={{
+              fontFamily: Fonts.FustatMedium,
+              fontSize: normalize(12),
+              color: Colors.themeInactiveTxt,
+              lineHeight: normalize(16),
+              marginTop: normalize(5),
+            }}>
+            Manage your MTN accounts
+          </Text>
+        </View>
+        <View style={styles.addServiceMainContainer}>
+          <TouchableOpacity
+            onPress={() => setIsMtnAdd(true)}
+            style={styles.addServiceContainer}>
+            <Text style={[styles.buttonTxt]}>+ Add MTN</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -481,21 +696,6 @@ const PaymentMethods = props => {
             </Text>
           </View>
           <View style={[css.row, css.jcfe]}>
-            {/* <TouchableOpacity
-              onPress={() => {
-                console.log(item);
-                setIsopen(!isOpen);
-                setBankId(item?.id);
-                setBname(item?.bank_name);
-                setAccountNo(item?.bank_account_number);
-                setIFSC(item?.routing_number);
-                setCountryCode();
-              }}>
-              <Image
-                source={Icons.editIcon}
-                style={[styles.iconStyle, css.mr3]}
-              />
-            </TouchableOpacity> */}
             <TouchableOpacity onPress={() => onConfirmDelete(item?.id)}>
               <Image source={Icons.deleteIcon} style={[styles.iconStyle]} />
             </TouchableOpacity>
@@ -526,6 +726,60 @@ const PaymentMethods = props => {
       </View>
     );
   };
+  const mtnListRender = (item, index) => {
+    return (
+      <View style={[styles.whiteContainer, {flexDirection: 'column'}]}>
+        <View style={[css.row]}>
+          <View style={[css.ml2, css.f1]}>
+            <Text>{item?.account_number}</Text>
+          </View>
+          <View style={[css.row, css.jcfe]}>
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert(
+                  'Confirm Delete !!',
+                  'Are you sure you want to delete ?',
+                  [
+                    {
+                      text: 'Cancel',
+                      onPress: () => {},
+                      style: 'cancel',
+                    },
+                    {text: 'OK', onPress: () => deleteMtnAccount(item?.id)},
+                  ],
+                  {cancelable: false},
+                );
+              }}>
+              <Image source={Icons.deleteIcon} style={[styles.iconStyle]} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            !item?.is_primary &&
+              dispatch(makePrimaryMtnRequest({id: item?.id}));
+          }}
+          style={[
+            styles.btnContainer,
+            {
+              borderColor: item?.is_primary
+                ? Colors.themeGreen
+                : Colors.themeBlack,
+            },
+          ]}>
+          <Text
+            style={[
+              css.fs10,
+              {
+                color: item?.is_primary ? Colors.themeGreen : Colors.themeBlack,
+              },
+            ]}>
+            {item?.is_primary ? 'Primary Account' : 'Make Primary'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const listEmptyComponent = () => {
     return (
@@ -534,7 +788,6 @@ const PaymentMethods = props => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          paddingTop: normalize(20),
         }}>
         <Text
           style={{
@@ -564,6 +817,18 @@ const PaymentMethods = props => {
         // showErrorAlert(ProfileReducer?.error?.message);
         break;
 
+      case 'Profile/mtnListRequest':
+        status = ProfileReducer.status;
+        break;
+      case 'Profile/mtnListSuccess':
+        status = ProfileReducer.status;
+        setmtnList(ProfileReducer?.mtnListResponse?.data);
+        break;
+      case 'Profile/mtnListFailure':
+        status = ProfileReducer.status;
+        // showErrorAlert(ProfileReducer?.error?.message);
+        break;
+
       case 'Profile/addBankAccountRequest':
         status = ProfileReducer.status;
         break;
@@ -575,25 +840,26 @@ const PaymentMethods = props => {
         setAccountNo('');
         setIFSC('');
         getBankList();
+        dispatch(ProfileRequest());
         break;
       case 'Profile/addBankAccountFailure':
         status = ProfileReducer.status;
         // showErrorAlert(ProfileReducer?.error?.message);
         break;
 
-      case 'Profile/updateBankAccountRequest':
+      //////////////// Add mtn account ////////
+      case 'Profile/addMtnAccountRequest':
         status = ProfileReducer.status;
         break;
-      case 'Profile/updateBankAccountSuccess':
+      case 'Profile/addMtnAccountSuccess':
         status = ProfileReducer.status;
-        setIsopen(false);
-        setBankId('');
-        setBname('');
-        setAccountNo('');
-        setIFSC('');
-        getBankList();
+        setIsMtnAdd(false);
+        setPhoneNo('');
+        setCode('+1');
+        getMtnList();
+        dispatch(ProfileRequest());
         break;
-      case 'Profile/updateBankAccountFailure':
+      case 'Profile/addMtnAccountFailure':
         status = ProfileReducer.status;
         // showErrorAlert(ProfileReducer?.error?.message);
         break;
@@ -610,6 +876,18 @@ const PaymentMethods = props => {
         // showErrorAlert(ProfileReducer?.error?.message);
         break;
 
+      case 'Profile/makePrimaryMtnRequest':
+        status = ProfileReducer.status;
+        break;
+      case 'Profile/makePrimaryMtnSuccess':
+        status = ProfileReducer.status;
+        getMtnList();
+        break;
+      case 'Profile/makePrimaryMtnFailure':
+        status = ProfileReducer.status;
+        // showErrorAlert(ProfileReducer?.error?.message);
+        break;
+
       case 'Profile/deleteBankAccountRequest':
         status = ProfileReducer.status;
         break;
@@ -618,6 +896,18 @@ const PaymentMethods = props => {
         getBankList();
         break;
       case 'Profile/deleteBankAccountFailure':
+        status = ProfileReducer.status;
+        // showErrorAlert(ProfileReducer?.error?.message);
+        break;
+
+      case 'Profile/deleteMtnRequest':
+        status = ProfileReducer.status;
+        break;
+      case 'Profile/deleteMtnSuccess':
+        status = ProfileReducer.status;
+        getMtnList();
+        break;
+      case 'Profile/deleteMtnFailure':
         status = ProfileReducer.status;
         // showErrorAlert(ProfileReducer?.error?.message);
         break;
@@ -635,38 +925,62 @@ const PaymentMethods = props => {
       <Header backIcon={Icons.BackIcon} headerTitle={'Payment Methods'} />
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <View
-            style={{
-              paddingHorizontal: normalize(10),
-            }}>
-            <FlatList
-              data={bankList}
-              horizontal={false}
-              keyExtractor={(item, index) => index.toString()}
-              ItemSeparatorComponent={() => (
-                <View style={{height: normalize(8)}} />
-              )}
-              ListEmptyComponent={() => listEmptyComponent()}
-              ListHeaderComponent={() => listHeaderComponent()}
-              renderItem={({item, index}) => bankListRender(item, index)}
-            />
-          </View>
-        </View>
-        <View style={styles.addServiceMainContainer}>
-          <TouchableOpacity
-            onPress={() => setIsopen(true)}
-            style={styles.addServiceContainer}>
-            <Text
-              style={{
-                fontFamily: Fonts.FustatMedium,
-                fontSize: normalize(14),
-                lineHeight: normalize(22),
-                color: Colors.themeWhite,
-                textTransform: 'uppercase',
-              }}>
-              + Add Bank
-            </Text>
-          </TouchableOpacity>
+          {AuthReducer?.ProfileResponse?.data?.receive_payment_bank !=
+            'mtn' && (
+            <View style={[css.f1]}>
+              <FlatList
+                data={bankList}
+                horizontal={false}
+                keyExtractor={(item, index) => index.toString()}
+                contentContainerStyle={[css.f1]}
+                ItemSeparatorComponent={() => (
+                  <View style={{height: normalize(8)}} />
+                )}
+                ListEmptyComponent={() => listEmptyComponent()}
+                ListHeaderComponent={() => listHeaderComponent()}
+                renderItem={({item, index}) => bankListRender(item, index)}
+              />
+            </View>
+          )}
+          {/* ////////////////// For Mtn Account /////////////// */}
+
+          {AuthReducer?.ProfileResponse?.data?.receive_payment_bank !=
+            'stripe' && (
+            <View style={[css.f1]}>
+              <FlatList
+                data={mtnList}
+                horizontal={false}
+                keyExtractor={(item, index) => index.toString()}
+                ItemSeparatorComponent={() => (
+                  <View style={{height: normalize(8)}} />
+                )}
+                contentContainerStyle={[css.fg1]}
+                ListEmptyComponent={() => {
+                  return (
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <Text
+                        style={{
+                          fontFamily: Fonts.FustatMedium,
+                          fontSize: normalize(12),
+                          color: Colors.themeInactiveTxt,
+                          lineHeight: normalize(16),
+                          marginTop: normalize(5),
+                        }}>
+                        No MTN Account Added
+                      </Text>
+                    </View>
+                  );
+                }}
+                ListHeaderComponent={() => mtnHeaderComponent()}
+                renderItem={({item, index}) => mtnListRender(item, index)}
+              />
+            </View>
+          )}
         </View>
       </SafeAreaView>
       <Modal
@@ -676,6 +990,14 @@ const PaymentMethods = props => {
         onBackButtonPress={() => setIsopen(!isOpen)}
         onBackdropPress={() => setIsopen(!isOpen)}>
         {addBankComponent()}
+      </Modal>
+      <Modal
+        visible={isMtnAdd}
+        avoidKeyboard={true}
+        style={styles.modalContainer}
+        onBackButtonPress={() => setIsMtnAdd(!isMtnAdd)}
+        onBackdropPress={() => setIsMtnAdd(!isMtnAdd)}>
+        {addMtnComponent()}
       </Modal>
     </View>
   );
@@ -705,6 +1027,7 @@ const styles = StyleSheet.create({
     borderRadius: normalize(10),
     paddingHorizontal: normalize(10),
     paddingVertical: normalize(15),
+    marginHorizontal: normalize(15),
   },
   bankLogo: {
     height: normalize(30),
@@ -715,6 +1038,13 @@ const styles = StyleSheet.create({
     fontSize: normalize(11),
     fontFamily: Fonts.FustatBold,
     color: Colors.themeBlack,
+  },
+  buttonTxt: {
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(12),
+    lineHeight: normalize(20),
+    color: Colors.themeWhite,
+    textTransform: 'uppercase',
   },
   btnContainer: {
     width: normalize(120),
@@ -779,12 +1109,14 @@ const styles = StyleSheet.create({
       height: 2,
     },
   },
-  addServiceMainContainer: {
-    position: 'absolute',
-    // bottom: Platform.OS === 'ios' ? normalize(30) : normalize(50),
-    bottom: normalize(25),
-    right: normalize(18),
+  headerContainer: {
+    paddingTop: normalize(30),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(15),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
+  addServiceMainContainer: {},
   addServiceContainer: {
     borderRadius: normalize(10),
     paddingHorizontal: normalize(15),

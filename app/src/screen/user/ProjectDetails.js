@@ -36,6 +36,7 @@ import showErrorAlert from '../../utils/helpers/Toast';
 import Modal from 'react-native-modal';
 import ImagePicker from 'react-native-image-crop-picker';
 import {StripePaymentFailRequest} from '../../redux/reducer/AuthReducer';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 let status = '';
 let statuss = '';
@@ -726,7 +727,7 @@ const ProjectDetails = props => {
 
   const completedDetailsComponent = () => {
     return (
-      <ScrollView style={styles.ongoingMainConatiner}>
+      <View style={styles.ongoingMainConatiner}>
         <View>
           <Text style={styles.ongoingTitleTxt}>
             {projectDetails?.project_title}
@@ -1002,7 +1003,7 @@ const ProjectDetails = props => {
             </View>
           )}
         </View>
-      </ScrollView>
+      </View>
     );
   };
 
@@ -1113,49 +1114,59 @@ const ProjectDetails = props => {
 
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          {flag === 'Active' ? (
-            <View>
-              <FlatList
-                data={bidList}
-                horizontal={false}
-                keyExtractor={(item, index) => index.toString()}
-                ItemSeparatorComponent={() => (
-                  <View style={{height: normalize(10)}} />
-                )}
-                ListHeaderComponent={() => listHeaderComponent()}
-                renderItem={({item, index}) =>
-                  renderActiveComponent(item, index)
-                }
-                ListEmptyComponent={
-                  <>
-                    <View
-                      style={{
-                        alignItems: 'center',
-                        marginTop: normalize(30),
-                      }}>
-                      <Text
+          <KeyboardAwareScrollView
+            contentContainerStyle={{flexGrow: 1}}
+            scrollEnabled={true}
+            keyboardOpeningTime={0}
+            extraScrollHeight={0}
+            enableOnAndroid={true}
+            enableAutomaticScroll={true}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps={'handled'}>
+            {flag === 'Active' ? (
+              <View>
+                <FlatList
+                  data={bidList}
+                  horizontal={false}
+                  keyExtractor={(item, index) => index.toString()}
+                  ItemSeparatorComponent={() => (
+                    <View style={{height: normalize(10)}} />
+                  )}
+                  ListHeaderComponent={() => listHeaderComponent()}
+                  renderItem={({item, index}) =>
+                    renderActiveComponent(item, index)
+                  }
+                  ListEmptyComponent={
+                    <>
+                      <View
                         style={{
-                          fontSize: normalize(12),
-                          color: Colors.themeBlack,
-                          fontFamily: Fonts.FustatMedium,
+                          alignItems: 'center',
+                          marginTop: normalize(30),
                         }}>
-                        No Bids Found
-                      </Text>
-                    </View>
-                  </>
-                }
-                contentContainerStyle={{
-                  marginTop: normalize(15),
-                  paddingHorizontal: normalize(10),
-                  paddingBottom: normalize(30),
-                }}
-              />
-            </View>
-          ) : flag === 'Ongoing' ? (
-            ongoingDetailsComponent()
-          ) : (
-            completedDetailsComponent()
-          )}
+                        <Text
+                          style={{
+                            fontSize: normalize(12),
+                            color: Colors.themeBlack,
+                            fontFamily: Fonts.FustatMedium,
+                          }}>
+                          No Bids Found
+                        </Text>
+                      </View>
+                    </>
+                  }
+                  contentContainerStyle={{
+                    marginTop: normalize(15),
+                    paddingHorizontal: normalize(10),
+                    paddingBottom: normalize(30),
+                  }}
+                />
+              </View>
+            ) : flag === 'Ongoing' ? (
+              ongoingDetailsComponent()
+            ) : (
+              completedDetailsComponent()
+            )}
+          </KeyboardAwareScrollView>
           {ProjectReducer?.projectDetailsResponse?.data?.payment_status ==
             'in_progress' && (
             <View>
@@ -1274,8 +1285,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.themeBackground,
   },
   container: {
-    height: '100%',
-    width: '100%',
+    flex: 1,
   },
   featuredNameTxt: {
     fontFamily: Fonts.FustatSemiBold,

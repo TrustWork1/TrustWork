@@ -1129,7 +1129,7 @@ const SignUp = props => {
                       />
                     </TouchableOpacity>
                     <Text style={styles.commonText}>
-                      {'Accept Trustwork Smart Contract Rules'}
+                      {'Accept Trustwork Smart Contract Rules.'}
                       <TouchableOpacity
                         onPress={() => {
                           setRulesMoadal(true);
@@ -1305,7 +1305,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.FustatMedium,
     fontSize: normalize(14),
     lineHeight: normalize(17),
-    top: normalize(2),
+    top: Platform.OS == 'ios' ? normalize(2) : normalize(6),
     left: normalize(5),
   },
   termTxtConatiner: {

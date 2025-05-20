@@ -33,6 +33,22 @@ class BankDetails(AbstractModel):
     def __str__(self):
         return f"{self.bank_name} -- {self.bank_account_number}"
 
+class MTNAccount(AbstractModel):
+    user_profile=models.ForeignKey("Profile",on_delete=models.CASCADE)
+    account_number = models.CharField(max_length=20, unique=True)  # e.g., phone number
+    account_name = models.CharField(max_length=100)
+    is_primary=models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not MTNAccount.objects.filter(user_profile=self.user_profile).exists():
+            self.is_primary = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.account_number} -- {self.account_name}"
+
 class UserDocuments(AbstractModel):
     user_profile=models.ForeignKey("Profile",on_delete=models.CASCADE)
     document_type=models.CharField(max_length=255)

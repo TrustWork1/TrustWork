@@ -212,7 +212,7 @@ const Chat = props => {
         break;
     }
   }
-
+  console.log(userdata);
   return (
     <KeyboardAvoidingView
       style={styles.mainContainer}
@@ -230,7 +230,9 @@ const Chat = props => {
           }
           // backIcon={Icons.BackIcon}
           title={
-            otherUser != undefined ? otherUser?.full_name : userdata?.full_name
+            otherUser != undefined
+              ? otherUser?.full_name
+              : `${userdata?.full_name}`
           }
           subTitle={'Online'}
           isTyping

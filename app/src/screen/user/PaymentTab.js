@@ -153,7 +153,7 @@ const PaymentTab = () => {
                 {item?.bid?.service_provider?.full_name}
               </Text>
               <Text style={[styles.timeStyle, css.fs10]}>
-                {moment(item?.created_at).format('LLL')}
+                {moment(item?.created_at).format('MMM D, YYYY')}
               </Text>
             </View>
             <View style={[css.aic, css.row, css.jcsb, css.f1]}>

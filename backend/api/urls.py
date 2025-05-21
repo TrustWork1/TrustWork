@@ -1,6 +1,6 @@
 from django.urls import path,include
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView, ChangePasswordView
-from api.profile.views import MtnPrimaryAccountView, MtnAccountView, BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,HandleSubscription, CouponsView
+from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,HandleSubscription, CouponsView
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView
 from api.profile.views import BankDetailsAPIView,HandleWithdraw,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView
 # from api.bids.views import BidsApiView
@@ -71,10 +71,6 @@ urlpatterns = [
     path('bank-details/', BankDetailsAPIView.as_view(), name='bank-details-list'),
     path('bank-details/<int:pk>/', BankDetailsAPIView.as_view(), name='bank-detail'),
     path('bank-primary/<int:pk>/', PrimaryBankView.as_view(), name='primary-bank'),
-
-    path('mtn-account/', MtnAccountView.as_view(), name='mtn-account-list'),
-    path('mtn-account/<int:pk>/', MtnAccountView.as_view(), name='mtn-account'),
-    path('mtn-primary/<int:pk>/', MtnPrimaryAccountView.as_view(), name='mtn-account'),
 
     path('user-documents/', UserDocumentsAPIView.as_view(), name='user-documents-list'),
     path('user-documents/<int:pk>/', UserDocumentsAPIView.as_view(), name='user-document-detail'),

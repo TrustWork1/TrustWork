@@ -1411,32 +1411,35 @@ class FeedbackView(APIView):
 
     def post(self, request, project_id):
         """
-        Create feedback from the client to the service provider.
+        Submit or update feedback from client to service provider.
         """
         try:
-            project = Project.objects.get(id=project_id)
+            project = Project.objects.get(id=project_id, client__user=request.user)
         except Project.DoesNotExist:
-            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Project not found or access denied"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Validate request data
-        data = request.data.copy()
-        if not data.get('client_review') or not data.get('client_rating'):
-            return Response({"error": "Both 'client_review' and 'client_rating' fields are required."},
+        # Validate input
+        if not request.data.get('client_review') or not request.data.get('client_rating'):
+            return Response({"error": "Both 'client_review' and 'client_rating' are required."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            accepted_bid = Bid.objects.get(project=project, status="Accepted")
+            accepted_bid = Bid.objects.get(project=project, status='Accepted')
         except Bid.DoesNotExist:
-            return Response({"error": "Accepted bid not found for this project"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "No accepted bid found for this project"}, status=status.HTTP_404_NOT_FOUND)
 
-        data['project'] = project.id
-        data['service_provider'] = accepted_bid.service_provider.id
+        # Get or create Feedback entry
+        feedback, _ = Feedback.objects.get_or_create(
+            project=project,
+            service_provider=accepted_bid.service_provider
+        )
 
-        # Save feedback
-        serializer = FeedbackSerializer(data=data)
+        serializer = FeedbackSerializer(
+            feedback, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, project_id, pk=None):
@@ -1493,170 +1496,41 @@ class FeedbackView(APIView):
         feedback.delete()
         return Response({"message": "Feedback deleted successfully"}, status=status.HTTP_200_OK)
 
-# class ProviderFeedbackView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, project_id):
-#         """
-#         Create feedback from the service provider to the client.
-#         """
-#         try:
-#             project = Project.objects.get(id=project_id)
-#         except Project.DoesNotExist:
-#             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-#         provider_id = request.data.get('provider_id')
-#         bid = Bid.objects.filter(project=project, service_provider__id=provider_id).first()
-#         # Ensure the logged-in user is the service provider for this project
-#         # if bid.service_provider.user != request.user:
-#         #     return Response({"error": "You are not authorized to give feedback for this project"}, status=status.HTTP_403_FORBIDDEN)
-
-#         data = request.data.copy()
-#         if not data.get('provider_review', '') or not data.get('provider_rating', ''):
-#             return Response({"error": "Both 'provider_review' and 'provider_rating' fields are required."},
-#         status=status.HTTP_400_BAD_REQUEST
-#     )
-#         data['project'] = project.id
-#         data['client'] = project.client.id
-#         data['service_provider'] =bid.service_provider.id
-
-#         serializer = FeedbackSerializer(data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def get(self, request, project_id):
-#         """
-#         Retrieve the last feedback given for a specific project with project details.
-#         """
-#         try:
-#             project = Project.objects.get(id=project_id)
-#         except Project.DoesNotExist:
-#             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         feedback = Feedback.objects.filter(project=project).last()
-#         project_serializer = ProjectSerializer(project)
-#         feedback_serializer = FeedbackSerializer(feedback)
-
-#         return Response({
-#             "project_details": project_serializer.data,
-#             "feedback": feedback_serializer.data
-#         }, status=status.HTTP_200_OK)
-
-#     def put(self, request, project_id):
-#         """
-#         Update existing feedback.
-#         """
-#         feedback_id = request.data.get("feedback_id", "")
-
-#         try:
-#             feedback = Feedback.objects.get(id=feedback_id)
-#         except Feedback.DoesNotExist:
-#             return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         # Ensure the logged-in user is the service provider who created this feedback
-#         if feedback.project.service_provider.user != request.user:
-#             return Response({"error": "You are not authorized to update this feedback"}, status=status.HTTP_403_FORBIDDEN)
-
-#         serializer = FeedbackSerializer(feedback, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(data=serializer.data, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, feedback_id):
-#         """
-#         Delete feedback.
-#         """
-#         try:
-#             feedback = Feedback.objects.get(id=feedback_id)
-#         except Feedback.DoesNotExist:
-#             return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         # Ensure the logged-in user is the service provider who created this feedback
-#         if feedback.project.service_provider.user != request.user:
-#             return Response({"error": "You are not authorized to delete this feedback"}, status=status.HTTP_403_FORBIDDEN)
-
-#         feedback.delete()
-#         return Response({"message": "Feedback deleted successfully"}, status=status.HTTP_200_OK)
-
-# New Code
 class ProviderFeedbackView(APIView):
     permission_classes = [IsAuthenticated]
-
-    # def post(self, request, project_id):
-    #     """
-    #     Create feedback from the service provider to the client.
-    #     """
-    #     try:
-    #         project = Project.objects.get(id=project_id)
-    #     except Project.DoesNotExist:
-    #         return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-    #     provider_id = request.data.get('provider_id')
-    #     bid = Bid.objects.filter(project=project, service_provider__id=provider_id).first()
-    #     if not bid:
-    #         return Response({"error": "Bid not found for the service provider"}, status=status.HTTP_404_NOT_FOUND)
-
-    #     if request.user != bid.service_provider.user:
-    #         return Response({"error": "You are not authorized to provide feedback for this project"}, status=status.HTTP_403_FORBIDDEN)
-
-    #     data = request.data.copy()
-    #     if not data.get('provider_review') or not data.get('provider_rating'):
-    #         return Response({"error": "Both 'provider_review' and 'provider_rating' fields are required."},
-    #                         status=status.HTTP_400_BAD_REQUEST)
-
-    #     # Prepare data
-    #     data['project'] = project.id
-    #     data['service_provider'] = bid.service_provider.id
-    #     data['client'] = project.client.id
-
-    #     # Save feedback
-    #     feedback=Feedback.objects.get(project=project)
-    #     if feedback:
-    #         serializer = FeedbackSerializer(data=data,instance=feedback,partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self, request, project_id):
         """
-        Create or update feedback from the service provider to the client.
+        Submit or update feedback from service provider to client.
         """
         try:
             project = Project.objects.get(id=project_id)
         except Project.DoesNotExist:
             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        provider_id = request.data.get('provider_id')
-        bid = Bid.objects.filter(project=project, service_provider__id=provider_id).first()
-        if not bid:
-            return Response({"error": "Bid not found for the service provider"}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user != bid.service_provider.user:
-            return Response({"error": "You are not authorized to provide feedback for this project"}, status=status.HTTP_403_FORBIDDEN)
+        # Validate bid
+        try:
+            bid = Bid.objects.get(project=project, service_provider__user=request.user)
+        except Bid.DoesNotExist:
+            return Response({"error": "You are not authorized or no bid found"}, status=status.HTTP_403_FORBIDDEN)
 
-        data = request.data.copy()
-        if not data.get('provider_review') or not data.get('provider_rating'):
-            return Response({"error": "Both 'provider_review' and 'provider_rating' fields are required."},
+        # Validate input
+        if not request.data.get('provider_review') or not request.data.get('provider_rating'):
+            return Response({"error": "Both 'provider_review' and 'provider_rating' are required."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Prepare data
-        data['project'] = project.id
-        data['service_provider'] = bid.service_provider.id
-        data['client'] = project.client.id
+        # Get or create Feedback entry
+        feedback, _ = Feedback.objects.get_or_create(
+            project=project,
+            service_provider=bid.service_provider
+        )
 
-        # Check if feedback exists, otherwise create a new one
-        feedback = Feedback.objects.filter(project=project, service_provider=bid.service_provider).first()
-        if feedback:
-            serializer = FeedbackSerializer(instance=feedback, data=data, partial=True)  # Update
-        else:
-            serializer = FeedbackSerializer(data=data)  # Create new
-
+        serializer = FeedbackSerializer(
+            feedback, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, project_id):

@@ -18,8 +18,8 @@ class AbstractModel(models.Model):
 
 class BankDetails(AbstractModel):
     user_profile=models.ForeignKey("Profile",on_delete=models.CASCADE)
-
-    bank_name=models.CharField(max_length=200)
+    account_holder_name = models.CharField(max_length=100, null=True)
+    bank_name=models.CharField(max_length=200, null=True, blank=True)
     bank_account_number=models.CharField(max_length=40)
     ifsc_code=models.CharField(max_length=40, null=True)
     is_primary=models.BooleanField(default=False)
@@ -30,24 +30,15 @@ class BankDetails(AbstractModel):
     bank_account_fingerprint = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return f"{self.bank_name} -- {self.bank_account_number}"
-
-class MTNAccount(AbstractModel):
-    user_profile=models.ForeignKey("Profile",on_delete=models.CASCADE)
-    account_number = models.CharField(max_length=20, unique=True)  # e.g., phone number
-    account_name = models.CharField(max_length=100)
-    is_primary=models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    payment_type = models.CharField(max_length=25, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not MTNAccount.objects.filter(user_profile=self.user_profile).exists():
+        if not BankDetails.objects.filter(user_profile=self.user_profile).exists():
             self.is_primary = True
         super().save(*args, **kwargs)
-
+    
     def __str__(self):
-        return f"{self.account_number} -- {self.account_name}"
+        return f"{self.bank_name} -- {self.bank_account_number}"
 
 class UserDocuments(AbstractModel):
     user_profile=models.ForeignKey("Profile",on_delete=models.CASCADE)

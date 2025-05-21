@@ -16,7 +16,7 @@ from .serializers import ProjectSerializer, ProfileSerializer
 from .serializers import JobCategorySerializer
 from django.db.models import Q
 from rest_framework.parsers import MultiPartParser,JSONParser,FormParser
-from profile_management.models import BankDetails, MTNAccount
+from profile_management.models import BankDetails
 
 class MobileProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -440,8 +440,7 @@ class MobileBidList(APIView):
     def post(self, request):
         service_provider=Profile.objects.get(user=request.user)
         check_bank_account = BankDetails.objects.filter(user_profile=service_provider.id).exists()
-        check_mtn_account = MTNAccount.objects.filter(user_profile=service_provider.id).exists()
-        if not check_bank_account or not check_mtn_account:
+        if not check_bank_account:
             return Response({
                 "status": "400",
                 "type": "error",

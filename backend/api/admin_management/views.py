@@ -498,7 +498,27 @@ class QMSResponseApiView(APIView):
             send_mail(
                 subject="Trustwork Support",
                 message=f"{request.data['response']}",
-                html_message=f"{request.data['response']}",
+                html_message = f"""
+                <!DOCTYPE html>
+                <html>
+                <body style="margin:0; padding:20px; font-family:Arial, sans-serif; background-color:#f4f4f4;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; margin:0 auto; background-color:#ffffff; border-radius:6px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding:20px;">
+                        <h2 style="color:#333333; text-align:center;">Trustwork Support</h2>
+                        <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;">
+                        <div style="font-size:16px; color:#555555; line-height:1.6;">
+                            {request.data['response']}
+                        </div>
+                        <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;">
+                        <p style="font-size:14px; color:#999999; text-align:center;">This is an automated email from Trustwork. Please do not reply directly.</p>
+                        </td>
+                    </tr>
+                    </table>
+                </body>
+                </html>
+                """,
+                # html_message=f"{request.data['response']}",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[data.qms.user.user.email,"swapnil.chopra@webskitters.in"],
         )

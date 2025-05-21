@@ -113,7 +113,7 @@ export function* clientActiveProjectSaga(action) {
   try {
     let response = yield call(
       getApi,
-      `mobile/project/view/list?page=${action?.payload?.page}&limit=${action?.payload?.perpage}`,
+      `mobile/project/view/list?page=${action?.payload?.page}&limit=${action?.payload?.perpage}&search=${action?.payload?.keyword_search}`,
       // `mobile/project/add/?status=${action.payload?.status}&&page=${action?.payload?.page}&limit=${action?.payload?.perpage}&search=${action?.payload?.keyword_search}`,
       header,
     );

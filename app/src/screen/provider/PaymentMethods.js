@@ -73,13 +73,13 @@ const PaymentMethods = props => {
   const [account, setAccount] = useState('');
   const [phoneNo, setPhoneNo] = useState('');
   const [code, setCode] = useState('+1');
-  const [isValidateMobile, setIsValidateMobile] = useState(false);
+  const [payType, setPayType] = useState('mtn');
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     if (isFocused) {
       getBankList();
-      getMtnList();
+      // getMtnList();
     }
   }, [isFocused]);
 
@@ -103,23 +103,32 @@ const PaymentMethods = props => {
   };
 
   const onSaveBank = () => {
-    if (!AccountNo || !ifsc || !bName) {
-      showErrorAlert(
-        !AccountNo
-          ? 'Enter Account Number'
-          : !ifsc
-          ? 'Enter IFSC Number'
-          : 'Enter Bank Name',
-      );
-      return;
+    if (payType == 'stripe') {
+      if (!AccountNo || !ifsc || !bName) {
+        showErrorAlert(
+          !AccountNo
+            ? 'Enter Account Number'
+            : !ifsc
+            ? 'Enter IFSC Number'
+            : 'Enter Bank Name',
+        );
+        return;
+      }
+    } else if (payType == 'mtn') {
+      if (!phoneNo) {
+        showErrorAlert('Enter Mtn number');
+        return;
+      }
     }
 
     let obj = {
-      bank_account_number: AccountNo,
+      payment_type: payType,
+      bank_account_number: payType == 'stripe' ? AccountNo : phoneNo,
       ifsc_code: ifsc,
       bank_name: bName,
-      account_type: account,
+      // account_type: account,
       country: countryCode,
+      phone_extension: code,
     };
 
     // let obj = {
@@ -278,128 +287,159 @@ const PaymentMethods = props => {
             enableAutomaticScroll={false}
             keyboardShouldPersistTaps={'handled'}
             showsVerticalScrollIndicator={false}>
-            <Text style={[styles.addbankHead]}>
-              {bankId ? 'Update Bank Account' : 'Add Bank Account'}
-            </Text>
-            <Text style={[styles.greyTxt, css.fs11, css.asc]}>
+            <Text style={[styles.addbankHead]}>{'Add Your Account'}</Text>
+            {/* <Text style={[styles.greyTxt, css.fs11, css.asc]}>
               Manage your bank account
-            </Text>
-            <View>
-              <TextIn
-                show={bName?.length > 0 ? true : false}
-                value={bName}
-                isVisible={false}
-                onChangeText={val => {
-                  const sanitizedVal = val?.replace(/[^a-zA-Z\s]/g, '');
-                  setBname(sanitizedVal?.trimStart());
-                }}
-                height={normalize(50)}
-                width={normalize(260)}
-                fonts={Fonts.FustatMedium}
-                borderColor={Colors.themeBoxBorder}
-                borderWidth={1}
-                maxLength={60}
-                marginTop={normalize(15)}
-                marginBottom={normalize(10)}
-                marginLeft={normalize(10)}
-                outlineTxtwidth={normalize(50)}
-                label={'Bank Name'}
-                placeholder={'Enter Bank Name'}
-                //placeholderIcon={Icons.Email}
-                placeholderTextColor={Colors.themePlaceholder}
-                borderRadius={normalize(6)}
-                fontSize={14}
-                //Eyeshow={true}
-                paddingLeft={normalize(10)}
-                paddingRight={normalize(10)}
-              />
-              <TextIn
-                show={AccountNo?.length > 0 ? true : false}
-                value={AccountNo}
-                isVisible={false}
-                onChangeText={val => {
-                  const sanitizedVal = val?.replace(/[^0-9]/g, '');
-                  setAccountNo(sanitizedVal.trimStart());
-                }}
-                height={normalize(50)}
-                width={normalize(260)}
-                fonts={Fonts.FustatMedium}
-                borderColor={Colors.themeBoxBorder}
-                borderWidth={1}
-                maxLength={60}
-                marginTop={normalize(10)}
-                marginBottom={normalize(10)}
-                marginLeft={normalize(10)}
-                outlineTxtwidth={normalize(50)}
-                label={'Account Number'}
-                placeholder={'Enter Bank Account Number'}
-                //placeholderIcon={Icons.Email}
-                placeholderTextColor={Colors.themePlaceholder}
-                borderRadius={normalize(6)}
-                fontSize={14}
-                //Eyeshow={true}
-                paddingLeft={normalize(10)}
-                paddingRight={normalize(10)}
-              />
-              <TextIn
-                show={ifsc?.length > 0 ? true : false}
-                value={ifsc}
-                isVisible={false}
-                onChangeText={val => {
-                  const sanitizedVal = val
-                    ?.replace(/[^a-zA-Z0-9]/g, '')
-                    .toUpperCase();
-                  setIFSC(sanitizedVal.trimStart());
-                }}
-                height={normalize(50)}
-                width={normalize(260)}
-                fonts={Fonts.FustatMedium}
-                borderColor={Colors.themeBoxBorder}
-                borderWidth={1}
-                maxLength={60}
-                marginTop={normalize(10)}
-                marginBottom={normalize(10)}
-                marginLeft={normalize(10)}
-                outlineTxtwidth={normalize(50)}
-                label={'IFSC Code/ Routing Number'}
-                placeholder={'Enter IFSC Number'}
-                placeholderTextColor={Colors.themePlaceholder}
-                borderRadius={normalize(6)}
-                fontSize={14}
-                //Eyeshow={true}
-                paddingLeft={normalize(10)}
-                paddingRight={normalize(10)}
-              />
+            </Text> */}
 
-              <Dropdown
-                show={country?.length > 0 ? true : false}
-                data={CountryCode}
-                height={normalize(50)}
-                width={normalize(260)}
-                borderColor={Colors.themeBoxBorder}
-                borderWidth={1}
-                fonts={Fonts.VerdanaProMedium}
-                borderRadius={normalize(6)}
-                fontSize={14}
-                marginTop={normalize(10)}
-                paddingLeft={normalize(12)}
-                valueColor={Colors.themeBlack}
-                paddingHorizontal={normalize(5)}
-                label={'Select Country'}
-                placeholder={'Select Country'}
-                value={country}
-                marginBottom={normalize(10)}
-                marginLeft={normalize(10)}
-                outlineTxtwidth={normalize(50)}
-                placeholderTextColor={Colors.themePlaceholder}
-                onChange={(selecetedItem, index) => {
-                  console.log(selecetedItem);
-                  setCountry(selecetedItem?.title);
-                  setCountryCode(selecetedItem?.code);
+            <View style={[css.row, css.jcsb, css.mt2]}>
+              <TouchableOpacity
+                onPress={() => {
+                  setPayType('stripe');
                 }}
-              />
+                style={[
+                  styles.selectAccount,
+                  {
+                    borderBottomColor:
+                      payType == 'stripe'
+                        ? Colors.themeGreen
+                        : Colors.themeWhite,
+                  },
+                ]}>
+                <Text style={[styles.txtStyle]}>Bank Account</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setPayType('mtn');
+                }}
+                style={[
+                  styles.selectAccount,
+                  {
+                    borderBottomColor:
+                      payType == 'mtn' ? Colors.themeGreen : Colors.themeWhite,
+                  },
+                ]}>
+                <Text style={[styles.txtStyle]}>Mtn Account</Text>
+              </TouchableOpacity>
+            </View>
 
-              <Dropdown
+            {payType == 'stripe' ? (
+              <View>
+                <TextIn
+                  show={bName?.length > 0 ? true : false}
+                  value={bName}
+                  isVisible={false}
+                  onChangeText={val => {
+                    const sanitizedVal = val?.replace(/[^a-zA-Z\s]/g, '');
+                    setBname(sanitizedVal?.trimStart());
+                  }}
+                  height={normalize(50)}
+                  width={normalize(260)}
+                  fonts={Fonts.FustatMedium}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  maxLength={60}
+                  marginTop={normalize(15)}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  label={'Bank Name'}
+                  placeholder={'Enter Bank Name'}
+                  //placeholderIcon={Icons.Email}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  //Eyeshow={true}
+                  paddingLeft={normalize(10)}
+                  paddingRight={normalize(10)}
+                />
+                <TextIn
+                  show={AccountNo?.length > 0 ? true : false}
+                  value={AccountNo}
+                  isVisible={false}
+                  onChangeText={val => {
+                    const sanitizedVal = val?.replace(/[^0-9]/g, '');
+                    setAccountNo(sanitizedVal.trimStart());
+                  }}
+                  height={normalize(50)}
+                  width={normalize(260)}
+                  fonts={Fonts.FustatMedium}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  maxLength={60}
+                  marginTop={normalize(10)}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  label={'Account Number'}
+                  placeholder={'Enter Bank Account Number'}
+                  //placeholderIcon={Icons.Email}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  //Eyeshow={true}
+                  paddingLeft={normalize(10)}
+                  paddingRight={normalize(10)}
+                />
+                <TextIn
+                  show={ifsc?.length > 0 ? true : false}
+                  value={ifsc}
+                  isVisible={false}
+                  onChangeText={val => {
+                    const sanitizedVal = val
+                      ?.replace(/[^a-zA-Z0-9]/g, '')
+                      .toUpperCase();
+                    setIFSC(sanitizedVal.trimStart());
+                  }}
+                  height={normalize(50)}
+                  width={normalize(260)}
+                  fonts={Fonts.FustatMedium}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  maxLength={60}
+                  marginTop={normalize(10)}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  label={'IFSC Code/ Routing Number'}
+                  placeholder={'Enter IFSC Number'}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  //Eyeshow={true}
+                  paddingLeft={normalize(10)}
+                  paddingRight={normalize(10)}
+                />
+
+                <Dropdown
+                  show={country?.length > 0 ? true : false}
+                  data={CountryCode}
+                  height={normalize(50)}
+                  width={normalize(260)}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  fonts={Fonts.VerdanaProMedium}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  marginTop={normalize(10)}
+                  paddingLeft={normalize(12)}
+                  valueColor={Colors.themeBlack}
+                  paddingHorizontal={normalize(5)}
+                  label={'Select Country'}
+                  placeholder={'Select Country'}
+                  value={country}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  onChange={(selecetedItem, index) => {
+                    console.log(selecetedItem);
+                    setCountry(selecetedItem?.title);
+                    setCountryCode(selecetedItem?.code);
+                  }}
+                />
+
+                {/* <Dropdown
                 show={account?.length > 0 ? true : false}
                 data={accountType}
                 height={normalize(50)}
@@ -423,27 +463,89 @@ const PaymentMethods = props => {
                 onChange={(selecetedItem, index) => {
                   setAccount(selecetedItem?.title);
                 }}
-              />
-
-              <View style={[css.mt3, css.px1]}>
-                <NextBtn
-                  loading={
-                    bankId
-                      ? ProfileReducer?.status ==
-                        'Profile/updateBankAccountRequest'
-                      : ProfileReducer?.status ==
-                        'Profile/addBankAccountRequest'
-                  }
-                  height={normalize(40)}
-                  title={bankId ? 'Update Bank' : 'Add Bank'}
-                  borderColor={Colors.themeGreen}
-                  color={Colors.themeWhite}
-                  backgroundColor={Colors.themeGreen}
-                  onPress={() => {
-                    bankId ? onUpdateBank() : onSaveBank();
-                  }}
-                />
+              /> */}
               </View>
+            ) : (
+              <View>
+                <View
+                  style={[css.rowBetween, css.asc, {width: normalize(265)}]}>
+                  <Dropdown
+                    show={code?.length > 0 ? true : false}
+                    isPhone={true}
+                    data={CountryCode}
+                    height={normalize(45)}
+                    width={normalize(70)}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    fonts={Fonts.VerdanaProMedium}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    marginTop={
+                      Platform.OS == 'ios' ? normalize(20) : normalize(15)
+                    }
+                    paddingLeft={normalize(10)}
+                    valueColor={Colors.themeBlack}
+                    paddingHorizontal={normalize(5)}
+                    // label={'Project Category'}
+                    // placeholder={'Select Category'}
+                    value={code}
+                    isSerachBar={true}
+                    // disabled={item?.bid_count > 0 || false}
+                    // modalHeight
+                    marginBottom={normalize(10)}
+                    marginLeft={normalize(10)}
+                    outlineTxtwidth={normalize(50)}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    onChange={(selecetedItem, index) => {
+                      setCode(selecetedItem?.dial_code);
+                    }}
+                  />
+
+                  <TextIn
+                    show={phoneNo?.length > 0 ? true : false}
+                    value={phoneNo}
+                    isVisible={false}
+                    onChangeText={val => {
+                      setPhoneNo(val?.replace(/[^0-9]/g, ''));
+                    }}
+                    height={normalize(45)}
+                    width={normalize(190)}
+                    fonts={Fonts.FustatMedium}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    maxLength={10}
+                    keyboardType={'number-pad'}
+                    marginTop={normalize(8)}
+                    marginBottom={normalize(10)}
+                    marginLeft={normalize(-70)}
+                    outlineTxtwidth={normalize(50)}
+                    label={'Phone Number'}
+                    placeholder={'Enter Phone Number'}
+                    //placeholderIcon={Icons.Email}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    //Eyeshow={true}
+                    paddingLeft={normalize(10)}
+                    paddingRight={normalize(10)}
+                  />
+                </View>
+              </View>
+            )}
+            <View style={[css.mt3, css.px1]}>
+              <NextBtn
+                loading={
+                  ProfileReducer.status == 'Profile/addBankAccountRequest'
+                }
+                height={normalize(40)}
+                title={'Add Account'}
+                borderColor={Colors.themeGreen}
+                color={Colors.themeWhite}
+                backgroundColor={Colors.themeGreen}
+                onPress={() => {
+                  onSaveBank();
+                }}
+              />
             </View>
           </KeyboardAwareScrollView>
         </View>
@@ -621,7 +723,7 @@ const PaymentMethods = props => {
               color: Colors.themeBlack,
               lineHeight: normalize(22),
             }}>
-            {'My Bank Account'}
+            {'My Payment Account'}
           </Text>
           <Text
             style={{
@@ -631,14 +733,14 @@ const PaymentMethods = props => {
               lineHeight: normalize(16),
               marginTop: normalize(5),
             }}>
-            Manage your bank accounts
+            Manage your payment accounts
           </Text>
         </View>
         <View style={styles.addServiceMainContainer}>
           <TouchableOpacity
             onPress={() => setIsopen(true)}
             style={styles.addServiceContainer}>
-            <Text style={[styles.buttonTxt]}>+ Add Bank</Text>
+            <Text style={[styles.buttonTxt]}>+ Add</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -683,18 +785,27 @@ const PaymentMethods = props => {
     return (
       <View style={[styles.whiteContainer, {flexDirection: 'column'}]}>
         <View style={[css.row]}>
-          <View>
-            <Image source={Icons.Bank_1} style={[styles.bankLogo]} />
-          </View>
-          <View style={[css.ml2, css.f1]}>
-            <Text style={[styles.darkTxt]}>{item?.bank_name}</Text>
-            <Text style={[styles.greyTxt, css.fs10]}>
-              {`*******${item?.bank_account_number}`}
-            </Text>
-            <Text style={[styles.greyTxt, css.fs10]}>
-              {item?.routing_number}
-            </Text>
-          </View>
+          {item?.payment_type == 'stripe' && (
+            <View>
+              <Image source={Icons.Bank_1} style={[styles.bankLogo]} />
+            </View>
+          )}
+          {item?.payment_type == 'stripe' ? (
+            <View style={[css.ml2, css.f1]}>
+              <Text style={[styles.darkTxt]}>{item?.bank_name}</Text>
+              <Text style={[styles.greyTxt, css.fs10]}>
+                {`*******${item?.bank_account_number}`}
+              </Text>
+              <Text style={[styles.greyTxt, css.fs10]}>
+                {item?.routing_number}
+              </Text>
+            </View>
+          ) : (
+            <View style={[css.ml2, css.f1]}>
+              <Text>{item?.bank_account_number}</Text>
+            </View>
+          )}
+
           <View style={[css.row, css.jcfe]}>
             <TouchableOpacity onPress={() => onConfirmDelete(item?.id)}>
               <Image source={Icons.deleteIcon} style={[styles.iconStyle]} />
@@ -702,9 +813,7 @@ const PaymentMethods = props => {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() =>
-            item?.is_primary ? onUnPrimary(item, index) : onPrimary(item, index)
-          }
+          onPress={() => !item?.is_primary && onPrimary(item, index)}
           style={[
             styles.btnContainer,
             {
@@ -925,62 +1034,57 @@ const PaymentMethods = props => {
       <Header backIcon={Icons.BackIcon} headerTitle={'Payment Methods'} />
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          {AuthReducer?.ProfileResponse?.data?.receive_payment_bank !=
-            'mtn' && (
-            <View style={[css.f1]}>
-              <FlatList
-                data={bankList}
-                horizontal={false}
-                keyExtractor={(item, index) => index.toString()}
-                contentContainerStyle={[css.f1]}
-                ItemSeparatorComponent={() => (
-                  <View style={{height: normalize(8)}} />
-                )}
-                ListEmptyComponent={() => listEmptyComponent()}
-                ListHeaderComponent={() => listHeaderComponent()}
-                renderItem={({item, index}) => bankListRender(item, index)}
-              />
-            </View>
-          )}
+          <View style={[css.f1]}>
+            <FlatList
+              data={bankList}
+              horizontal={false}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={[css.f1]}
+              ItemSeparatorComponent={() => (
+                <View style={{height: normalize(8)}} />
+              )}
+              ListEmptyComponent={() => listEmptyComponent()}
+              ListHeaderComponent={() => listHeaderComponent()}
+              renderItem={({item, index}) => bankListRender(item, index)}
+            />
+          </View>
+
           {/* ////////////////// For Mtn Account /////////////// */}
 
-          {AuthReducer?.ProfileResponse?.data?.receive_payment_bank !=
-            'stripe' && (
-            <View style={[css.f1]}>
-              <FlatList
-                data={mtnList}
-                horizontal={false}
-                keyExtractor={(item, index) => index.toString()}
-                ItemSeparatorComponent={() => (
-                  <View style={{height: normalize(8)}} />
-                )}
-                contentContainerStyle={[css.fg1]}
-                ListEmptyComponent={() => {
-                  return (
-                    <View
+          {/* <View style={[css.f1]}>
+            <FlatList
+              data={mtnList}
+              horizontal={false}
+              keyExtractor={(item, index) => index.toString()}
+              ItemSeparatorComponent={() => (
+                <View style={{height: normalize(8)}} />
+              )}
+              contentContainerStyle={[css.fg1]}
+              ListEmptyComponent={() => {
+                return (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <Text
                       style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        fontFamily: Fonts.FustatMedium,
+                        fontSize: normalize(12),
+                        color: Colors.themeInactiveTxt,
+                        lineHeight: normalize(16),
+                        marginTop: normalize(5),
                       }}>
-                      <Text
-                        style={{
-                          fontFamily: Fonts.FustatMedium,
-                          fontSize: normalize(12),
-                          color: Colors.themeInactiveTxt,
-                          lineHeight: normalize(16),
-                          marginTop: normalize(5),
-                        }}>
-                        No MTN Account Added
-                      </Text>
-                    </View>
-                  );
-                }}
-                ListHeaderComponent={() => mtnHeaderComponent()}
-                renderItem={({item, index}) => mtnListRender(item, index)}
-              />
-            </View>
-          )}
+                      No MTN Account Added
+                    </Text>
+                  </View>
+                );
+              }}
+              ListHeaderComponent={() => mtnHeaderComponent()}
+              renderItem={({item, index}) => mtnListRender(item, index)}
+            />
+          </View> */}
         </View>
       </SafeAreaView>
       <Modal
@@ -991,14 +1095,14 @@ const PaymentMethods = props => {
         onBackdropPress={() => setIsopen(!isOpen)}>
         {addBankComponent()}
       </Modal>
-      <Modal
+      {/* <Modal
         visible={isMtnAdd}
         avoidKeyboard={true}
         style={styles.modalContainer}
         onBackButtonPress={() => setIsMtnAdd(!isMtnAdd)}
         onBackdropPress={() => setIsMtnAdd(!isMtnAdd)}>
         {addMtnComponent()}
-      </Modal>
+      </Modal> */}
     </View>
   );
 };
@@ -1100,6 +1204,7 @@ const styles = StyleSheet.create({
   modalSubContainer: {
     backgroundColor: Colors.themeWhite,
     width: '90%',
+    maxHeight: normalize(600),
     borderRadius: 20,
     paddingVertical: normalize(10),
     paddingHorizontal: normalize(10),
@@ -1119,11 +1224,23 @@ const styles = StyleSheet.create({
   addServiceMainContainer: {},
   addServiceContainer: {
     borderRadius: normalize(10),
-    paddingHorizontal: normalize(15),
+    paddingHorizontal: normalize(10),
     paddingVertical: normalize(10),
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     backgroundColor: Colors?.themeGreen,
+  },
+  selectAccount: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderBottomWidth: 3,
+    width: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  txtStyle: {
+    fontSize: normalize(14),
+    fontFamily: Fonts.FustatMedium,
   },
 });

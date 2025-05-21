@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from profile_management.models import BankDetails, MTNAccount, UserDocuments, MembershipPlans, ProfileMembership, Profile,ProfileJobCategories,PreviousWorks, Coupons
+from profile_management.models import BankDetails, UserDocuments, MembershipPlans, ProfileMembership, Profile,ProfileJobCategories,PreviousWorks, Coupons
 from django.contrib.auth import get_user_model
 from master.models import JobCategory
 from rest_framework import serializers
@@ -28,11 +28,6 @@ class ProfileJobCategoriesSerializer(serializers.ModelSerializer):
 class BankDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = BankDetails
-        fields = '__all__'
-
-class MTNAccountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MTNAccount
         fields = '__all__'
         read_only_fields = ['is_primary', 'created_at', 'updated_at']
 
@@ -63,8 +58,8 @@ class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = '__all__'
-        # fields = ['id', 'client_review','client_rating','service_provider','project']
-        write_only_fields = ['service_provider']
+        read_only_fields = ['project', 'service_provider']
+
 class ProfilePreviousWorksSerializer(serializers.ModelSerializer):
     class Meta:
         model=PreviousWorks
@@ -106,7 +101,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     profile_rating= serializers.SerializerMethodField()
     # coupons = serializers.SerializerMethodField()
     is_discount = serializers.BooleanField(source='user.is_discount', read_only=True)
-    receive_payment_bank = serializers.SerializerMethodField(read_only=True)
 
     # def get_job_category(self, obj):
     #     # return obj.profilejobcategories_set.all().values("job_category__id").annotate(title=F("job_category__title"))
@@ -145,17 +139,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     # def get_coupons(self,obj):
     #     coupons = Coupons.objects.filter(user=obj.user, is_active=True)
     #     return CouponSerializer(coupons, many=True).data
-
-    def get_receive_payment_bank(self, obj):
-        has_bank = BankDetails.objects.filter(user_profile=obj.id).exists()
-        has_mtn = MTNAccount.objects.filter(user_profile=obj.id).exists()
-
-        if has_bank and not has_mtn:
-            return "stripe"
-        elif has_mtn and not has_bank:
-            return "mtn"
-        else:
-            return ""
     
     def get_job_category(self, obj):
         try:
@@ -292,7 +275,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'organization_registration_id', 'service_details', 'client_notes', 'profile_bio','year_of_experience',
             'bank_details', 'user_documents', 'memberships',"user","id","status","job_category","street","profession","city","state","zip_code",
             "is_accepted_terms_conditions",'is_payment_verified', "is_profile_updated","profile_rating", "year_of_experiance" ,
-            "latitude", "longitude", "country", "completed_project", "is_discount", "receive_payment_bank"
+            "latitude", "longitude", "country", "completed_project", "is_discount"
         ]
     
     def create(self, validated_data):

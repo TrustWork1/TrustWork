@@ -724,7 +724,9 @@ const ProjectDetails = props => {
       </ScrollView>
     );
   };
-
+  console.log(
+    ProjectReducer?.getFeedBackResponse?.data?.feedback?.provider_rating,
+  );
   const completedDetailsComponent = () => {
     return (
       <View style={styles.ongoingMainConatiner}>
@@ -928,7 +930,7 @@ const ProjectDetails = props => {
           <View style={{marginTop: normalize(20)}}>
             <Text style={styles.feedbackTxt}>{'Send Feedback'}</Text>
             {ProjectReducer?.getFeedBackResponse?.data?.feedback
-              ?.provider_rating == undefined ? (
+              ?.client_rating == undefined ? (
               <Rating
                 size={normalize(16)}
                 starDistance={normalize(5)}
@@ -1003,6 +1005,39 @@ const ProjectDetails = props => {
             </View>
           )}
         </View>
+
+        {ProjectReducer.getFeedBackResponse.data.feedback.provider_rating !=
+          undefined && (
+          <>
+            <Text style={[styles.providerHeaderTxt, css.mt3]}>
+              {'Client Feedback'}
+            </Text>
+            <View style={styles.providerContiner}>
+              <View style={{marginTop: normalize(0)}}>
+                <Rating
+                  size={normalize(16)}
+                  starDistance={normalize(5)}
+                  rating={
+                    ProjectReducer.getFeedBackResponse.data.feedback
+                      .provider_rating
+                  }
+                  maxRating={5}
+                  isBlack={true}
+                  // onStarPress={newRating => setCurrentRating(newRating)}
+                />
+              </View>
+
+              <View style={{paddingTop: normalize(10)}}>
+                <Text style={styles.bidCommonTxt}>
+                  {
+                    ProjectReducer.getFeedBackResponse.data.feedback
+                      .provider_review
+                  }
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
     );
   };

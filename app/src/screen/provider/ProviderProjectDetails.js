@@ -29,6 +29,7 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 import NavigationService from '../../navigators/NavigationService';
+import css from '../../themes/css';
 
 let status = '';
 
@@ -494,50 +495,10 @@ const ProviderProjectDetails = props => {
                     {`${projectDetails?.client?.profile_rating}/5`}
                   </Text>
                 </View>
-                {/* <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    paddingLeft: normalize(8),
-                  }}>
-                  <Image
-                    source={Icons.WorkType}
-                    style={styles.recentStarRating}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.featuredSubTxt}>
-                    {projectDetails?.project_category?.title}
-                  </Text>
-                </View> */}
-                {/* <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    paddingLeft: normalize(8),
-                  }}>
-                  <Image
-                    source={Icons.Experience}
-                    style={styles.recentStarRating}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.featuredSubTxt}>{'2 Year'}</Text>
-                </View> */}
               </View>
             </View>
           </View>
-          {/* <Text
-            style={{
-              fontFamily: Fonts.FustatMedium,
-              fontSize: normalize(12),
-              color: Colors.themeInactiveTxt,
-              lineHeight: normalize(16),
-              marginTop: normalize(15),
-            }}>
-            Lorem ipsum dolor sit amet consectetur. Tristique praes ent viverra
-            volutpat in. Sed ante ac quis.
-          </Text> */}
+
           <View style={{marginTop: normalize(20)}}>
             <Text
               style={{
@@ -612,6 +573,39 @@ const ProviderProjectDetails = props => {
             </View>
           )}
         </View>
+
+        {ProjectReducer.getFeedBackResponse.data.feedback.client_rating !=
+          undefined && (
+          <>
+            <Text style={[styles.providerHeaderTxt, css.mt3]}>
+              {'Service Provider Feedback'}
+            </Text>
+            <View style={styles.providerContiner}>
+              <View style={{marginTop: normalize(0)}}>
+                <Rating
+                  size={normalize(16)}
+                  starDistance={normalize(5)}
+                  rating={
+                    ProjectReducer.getFeedBackResponse.data.feedback
+                      .client_rating
+                  }
+                  maxRating={5}
+                  isBlack={true}
+                  // onStarPress={newRating => setCurrentRating(newRating)}
+                />
+              </View>
+
+              <View style={{paddingTop: normalize(10)}}>
+                <Text style={styles.bidCommonTxt}>
+                  {
+                    ProjectReducer.getFeedBackResponse.data.feedback
+                      .client_review
+                  }
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
     );
   };
@@ -739,5 +733,19 @@ const styles = StyleSheet.create({
   bidCommonTxt: {
     color: Colors.themeBlack,
     fontSize: normalize(12),
+  },
+  providerHeaderTxt: {
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(16),
+    color: Colors.themeBlack,
+    lineHeight: normalize(22),
+    marginBottom: normalize(15),
+  },
+  providerContiner: {
+    backgroundColor: Colors.themeWhite,
+    borderRadius: normalize(12),
+    paddingTop: normalize(12),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(15),
   },
 });

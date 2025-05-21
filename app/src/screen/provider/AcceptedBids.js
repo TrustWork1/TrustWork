@@ -117,7 +117,7 @@ const AcceptedBids = props => {
                 <DataWithIcon
                   img={Icons.profileCircle}
                   darkTxt={'Client Name'}
-                  lightTxt={item?.project?.client_full_name}
+                  lightTxt={item?.client_name}
                 />
               </View>
               <View style={{flex: 0.47}}>
@@ -156,7 +156,7 @@ const AcceptedBids = props => {
                     createChatRoomRequest({
                       user_id: item?.project?.client?.id,
                     }),
-                    setUserdata(item?.project?.client),
+                    setUserdata(item?.client),
                   );
                 }}
               />

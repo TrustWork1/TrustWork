@@ -13,6 +13,8 @@ from chat_management.models import Notification
 from .serializers import ChatRoomSerializer,MessagesSerializer, AttatchmentSerializer
 from chat_management.models import ChatRoom,Messages
 from django.db.models import Q, Max
+from api.pagination import CustomPagination
+
 class ChatHandlerView(APIView):
     # permission_classes=[IsAuthenticated]
     def post(self,request):
@@ -142,6 +144,7 @@ from rest_framework.generics import ListAPIView
 class NotificationListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         return Notification.objects.filter(receiver=self.request.user.profile,status=True).order_by('-created_at')

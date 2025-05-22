@@ -16,6 +16,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import Q, Sum, FloatField
 from django.db.models.functions import Cast
+from datetime import datetime
 
 
 # CMS SearchView 
@@ -508,7 +509,9 @@ class QMSResponseApiView(APIView):
                         <h2 style="color:#333333; text-align:center;">Trustwork Support</h2>
                         <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;">
                         <div style="font-size:16px; color:#555555; line-height:1.6;">
-                            {request.data['response']}
+                            Subject: {data.qms.query}<br>
+                            Query: {data.qms.answer}<br><br>
+                            Answer: {request.data['response']}
                         </div>
                         <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;">
                         <p style="font-size:14px; color:#999999; text-align:center;">This is an automated email from Trustwork. Please do not reply directly.</p>
@@ -529,6 +532,7 @@ class QMSResponseApiView(APIView):
                 "data":serializer.data
             }
             data.qms.status="inactive"
+            data.qms.answer_at=datetime.now()
             data.qms.save()
             return Response(response,status=status.HTTP_201_CREATED)
 

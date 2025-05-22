@@ -398,11 +398,13 @@ class SendPaymentRequestApiView(APIView):
         project=Project.objects.get(pk=project_id)
         # bid=project.bid.filter(service_provider=request.user,status="Accepted").first()
         notification=Notification.objects.create(
-                        sender=request.user.profile,
-                        receiver=project.client,
-                        title="Payment request for project",
-                        message="A patment request has been created for "
-                    )
+            sender=request.user.profile,
+            receiver=project.client,
+            title="Payment request for project",
+            message="A payment request has been created for ",
+            object_type = "payment request",
+            object_id = project_id
+        )
         notification.send_to_token(extra_data={"project":json.dumps(ProjectSerializer(project).data),"notification_type":"payment_request"})
         return Response({"message":"Payment request sent to client"})
     

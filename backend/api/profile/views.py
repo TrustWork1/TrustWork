@@ -1842,7 +1842,7 @@ class ProjectDetails(APIView):
             # Base query
             projects = Project.objects.filter(project_category__in=user_category_ids).exclude(
                 status__in=["completed", "ongoing", "myoffer", "inactive"]
-            ).order_by('-created_at')
+            ).exclude(client=request.user.profile.id).order_by('-created_at')
 
             # Filter by location
             filtered_projects = self.filter_by_location(projects, latitude, longitude, radius)

@@ -1035,10 +1035,14 @@ class ServiceProviderHomeView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         search_query = request.query_params.get('search', '')
-        projects=Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(status__iexact="inactive").exclude(status__iexact="completed").exclude(status__iexact="ongoing").exclude(status__iexact="myoffer").order_by("created_at")
+        
+        projects = Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(
+            status__in=["completed", "ongoing", "myoffer", "inactive"]
+        ).exclude(client=request.user.profile.id).order_by("created_at")
+        
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)
-        print(projects)
+        # print(projects)
         projects=projects.annotate(
             can__send_bid=Case(
                 When(Q(bid__service_provider=request.user.profile)&Q(status__iexact="Rejected"), then=Value(False)),

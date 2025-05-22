@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from chat_management.models import ChatRoom, Notification,Messages
+from chat_management.models import ChatRoom, Notification, Messages
 # from profile_management.models import Profile
 from api.profile.serializers import ProfileSerializer
 
@@ -47,7 +47,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'message', 'sender', 'receiver', 'created_at', 'has_read']
+        fields = ['id', 'title', 'message', 'sender', 'receiver', 'created_at', 'has_read', 'object_type', 'object_id']
 
     def get_sender(self, obj):
         serializer = ProfileSerializer(obj.sender)

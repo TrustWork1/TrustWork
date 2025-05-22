@@ -86,14 +86,22 @@ def bid_post_save_handler(sender,instance,created,**kwargs):
         sender=instance.service_provider
         receiver= instance.project.client
         message = "Bid Has Been Created"
-        notification = Notification.objects.create(sender=sender,receiver=receiver,message=message)
+        notification = Notification.objects.create(
+            sender=sender,
+            receiver=receiver,
+            message=message,
+            object_type = "bid",
+            object_id = instance.id
+        )
         sender=ProfileSerializer(sender)
         receiver=ProfileSerializer(receiver)
 
         data = {
             "sender" : sender.data,
             "receiver" : receiver.data,
-            "message" : message
+            "message" : message,
+            "object_type" : "bid",
+            "object_id" : instance.id
         }
         firebase_admin.firestore.client().collection("messages").add({"mssage":data['message']})
 
@@ -111,7 +119,9 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 title="New Feedback Received",
                 message=f"You have received feedback for the project: {instance.project.project_title}.",
                 sender=instance.project.client, 
-                receiver=instance.service_provider,  
+                receiver=instance.service_provider,
+                object_type = "feedback",
+                object_id = instance.project.id
             )
 
         # Create a notification for the client when a service provider provides feedback
@@ -120,5 +130,7 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 title="Feedback from Service Provider",
                 message=f"You have received feedback from the service provider for your project: {instance.project.project_title}.",
                 sender=instance.service_provider, 
-                receiver=instance.project.client,  
+                receiver=instance.project.client,
+                object_type = "feedback",
+                object_id = instance.project.id
             )            

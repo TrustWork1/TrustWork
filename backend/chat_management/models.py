@@ -40,9 +40,11 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     has_read = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
+    object_type = models.CharField(max_length=255, null=True, blank=True)
+    object_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.title} ({self.notification_type})"
+        return f"{self.title} {self.object_id}"
     
 # m=firebase_admin.messaging.Message(notification=firebase_admin.messaging.Notification(title="Hello",body="Ok"),token=r"dB0s4RnqQHGoTMr0nZgBtb:APA91bFKg586PIR0y0F37USJ2_MRVSqv57aODvXbTEcseW-oTckqhIGWM8rc7iFoa5vPR__kCHybEdohtesOxH8rO25q31UNO3RKt-rAkF9bInZfCkRigw0")
 

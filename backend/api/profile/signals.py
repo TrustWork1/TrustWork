@@ -23,7 +23,9 @@ def project_post_save_handler(sender, instance, created, **kwargs):
                 sender=sender_profile,
                 receiver=provider,
                 title="New Project Created",
-                message=message
+                message=message,
+                object_type = "project",
+                object_id = instance.id
             )
             notification.send_to_token()
 
@@ -49,7 +51,9 @@ def project_post_delete_handler(sender, instance, **kwargs):
             sender=sender_profile,
             receiver=provider,
             title="Project Deleted",
-            message=message
+            message=message,
+            object_type = "project",
+            object_id = instance.id
         )
     sender_data = ProfileSerializer(sender_profile).data
     for provider in related_providers:

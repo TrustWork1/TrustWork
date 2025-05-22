@@ -91,7 +91,9 @@ def project_post_save_handler(sender, instance:Project, created, **kwargs):
                         sender=sender_profile,
                         receiver=provider,
                         title="New Project Created",
-                        message=message
+                        message=message,
+                        object_type = "project",
+                        object_id = instance.id
                     )
                     notification.send_to_token(extra_data={"project":json.dumps(ProjectSerializer(instance).data),"notification_type":"project_creation"})
                 except :
@@ -112,7 +114,9 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                     sender=instance.project.client,
                     receiver=instance.service_provider,
                     title="Status of Bid has changed",
-                    message=message
+                    message=message,
+                    object_type = "bid",
+                    object_id = instance.id
                 )
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
@@ -124,7 +128,9 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                     sender=instance.project.client,
                     receiver=instance.service_provider,
                     title="Status of Bid has changed",
-                    message=message
+                    message=message,
+                    object_type = "bid",
+                    object_id = instance.id
                 )
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
@@ -134,11 +140,13 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
             else:
                 message=f"A bid has been created for your project -: {instance.project.project_title}"
                 notification=Notification.objects.create(
-                receiver=instance.project.client,
-                sender=instance.service_provider,
-                title="Bid has been created",
-                message=f"A bid has been created for your project -: {instance.project.project_title}"
-            )
+                    receiver=instance.project.client,
+                    sender=instance.service_provider,
+                    title="Bid has been created",
+                    message=f"A bid has been created for your project -: {instance.project.project_title}",
+                    object_type = "bid",
+                    object_id = instance.id
+                )
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"active"})

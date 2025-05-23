@@ -46,10 +46,8 @@ const Chat = props => {
   const ws = new WebSocket(constants?.SOCKET_URL + roomId + '/');
   console.log(
     'check-->',
-    AuthReducer?.ProfileResponse?.data?.id !=
-      props?.route?.params?.data?.user2?.id
-      ? props?.route?.params?.data?.user2
-      : props?.route?.params?.data?.user1,
+    userdata,
+    ChatReducer?.createChatRoomResponse?.data?.id,
   );
   // console.log('otherUser--->', otherUser, userdata);
 
@@ -84,6 +82,7 @@ const Chat = props => {
       showErrorAlert('Please enter message');
     } else {
       if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log('socket connected');
         const message = {
           user_id: AuthReducer?.ProfileResponse?.data?.id,
           message: msg,

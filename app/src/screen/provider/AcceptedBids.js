@@ -214,24 +214,6 @@ const AcceptedBids = props => {
     }, [ChatReducer.status]),
   );
 
-  // if (status1 == '' || ChatReducer.status != status1) {
-  //   switch (ChatReducer.status) {
-  //     case 'Chat/createChatRoomRequest':
-  //       status1 = ChatReducer.status;
-  //       break;
-  //     case 'Chat/createChatRoomSuccess':
-  //       status1 = ChatReducer.status;
-  //       console.log('userData-->', userData);
-  //       // NavigationService?.navigate('Chat', {
-  //       //   data: userData,
-  //       // });
-  //       break;
-  //     case 'Chat/createChatRoomFailure':
-  //       status1 = ChatReducer.status;
-  //       break;
-  //   }
-  // }
-
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.mainContainer}>

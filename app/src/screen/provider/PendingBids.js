@@ -205,7 +205,7 @@ const PendingBids = props => {
                         createChatRoomRequest({
                           user_id: item?.project?.client?.id,
                         }),
-                        setUserdata(item?.project?.client),
+                        setUserdata(item?.client),
                       );
                     }}
                   />

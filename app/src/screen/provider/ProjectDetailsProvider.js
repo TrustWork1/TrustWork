@@ -175,9 +175,11 @@ const ProjectDetailsProvider = props => {
                 }}
                 style={[css.row, css.aic]}>
                 <Image source={Icons.fileDoc} style={[styles.fileIcon]} />
-                <Text style={[styles.featuredSubTxt, css.ml2]}>
-                  {providerDetails?.document?.split('/')?.pop()}
-                </Text>
+                <View style={[css.w80]}>
+                  <Text style={[styles.featuredSubTxt, css.ml2]}>
+                    {providerDetails?.document?.split('/')?.pop()}
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <Text style={styles.loactionTxt}>Location</Text>

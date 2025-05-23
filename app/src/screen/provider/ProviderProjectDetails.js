@@ -574,7 +574,7 @@ const ProviderProjectDetails = props => {
           )}
         </View>
 
-        {ProjectReducer.getFeedBackResponse.data.feedback.client_rating !=
+        {ProjectReducer?.getFeedBackResponse?.data?.feedback?.client_rating !=
           undefined && (
           <>
             <Text style={[styles.providerHeaderTxt, css.mt3]}>
@@ -586,8 +586,8 @@ const ProviderProjectDetails = props => {
                   size={normalize(16)}
                   starDistance={normalize(5)}
                   rating={
-                    ProjectReducer.getFeedBackResponse.data.feedback
-                      .client_rating
+                    ProjectReducer?.getFeedBackResponse?.data?.feedback
+                      ?.client_rating
                   }
                   maxRating={5}
                   isBlack={true}
@@ -598,8 +598,8 @@ const ProviderProjectDetails = props => {
               <View style={{paddingTop: normalize(10)}}>
                 <Text style={styles.bidCommonTxt}>
                   {
-                    ProjectReducer.getFeedBackResponse.data.feedback
-                      .client_review
+                    ProjectReducer?.getFeedBackResponse?.data?.feedback
+                      ?.client_review
                   }
                 </Text>
               </View>

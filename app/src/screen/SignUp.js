@@ -330,7 +330,7 @@ const SignUp = props => {
         setTwo('');
         setThree('');
         setFour('');
-        // inputRef1.current.focus();
+        inputRef1.current.focus();
         break;
     }
   }

@@ -47,7 +47,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'message', 'sender', 'receiver', 'created_at', 'has_read', 'object_type', 'object_id']
+        fields = ['id', 'title', 'message', 'sender', 'receiver', 'created_at', 'has_read', 'object_type', 'project_id', 'bid_id']
 
     def get_sender(self, obj):
         serializer = ProfileSerializer(obj.sender)

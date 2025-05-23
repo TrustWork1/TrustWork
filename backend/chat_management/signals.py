@@ -90,8 +90,9 @@ def bid_post_save_handler(sender,instance,created,**kwargs):
             sender=sender,
             receiver=receiver,
             message=message,
-            object_type = "bid",
-            object_id = instance.id
+            object_type = "bid created",
+            bid_id = instance.id,
+            project_id = instance.project.id
         )
         sender=ProfileSerializer(sender)
         receiver=ProfileSerializer(receiver)
@@ -101,7 +102,9 @@ def bid_post_save_handler(sender,instance,created,**kwargs):
             "receiver" : receiver.data,
             "message" : message,
             "object_type" : "bid",
-            "object_id" : instance.id
+            "object_type" : "bid created",
+            "bid_id" : instance.id,
+            "project_id" : instance.project.id
         }
         firebase_admin.firestore.client().collection("messages").add({"mssage":data['message']})
 
@@ -120,8 +123,9 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 message=f"You have received feedback for the project: {instance.project.project_title}.",
                 sender=instance.project.client, 
                 receiver=instance.service_provider,
-                object_type = "feedback",
-                object_id = instance.project.id
+                object_type = "project feedback",
+                project_id = instance.project.id,
+                bid_id = ""
             )
 
         # Create a notification for the client when a service provider provides feedback
@@ -131,6 +135,7 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 message=f"You have received feedback from the service provider for your project: {instance.project.project_title}.",
                 sender=instance.service_provider, 
                 receiver=instance.project.client,
-                object_type = "feedback",
-                object_id = instance.project.id
+                object_type = "provider feedback",
+                project_id = instance.project.id,
+                bid_id = ""
             )            

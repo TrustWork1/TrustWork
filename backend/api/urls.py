@@ -11,7 +11,7 @@ from project_management.models import Project,Bid
 from api.project.mobile_views import MobileBidList, MobileProjectList, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
 from api.referal_management.views import ReferalHandlerView, AppReferView
 from api.auth.views import GenerateOTPView, AuthVerifyOTPView, ChangePasswordView,ResendOtp
-from api.chat.views import SendNotificationView,NotificationListView,ChangeNotificationStatusView,ChatHandlerView,ChatListView # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent 
+from api.chat.views import SendNotificationView,NotificationListView,ChangeNotificationStatusView,NotificationReadStatus,ChatHandlerView,ChatListView # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent 
 from api.payment_management.views import PaymentApiView, PendingPayment, PaymentFailerView
 from api.payment_management.views import CreateCheckoutSessionView, CheckPaymentStatus, StripeBalanceAPIView, DeleteStripeAccountAPIView, TriggerPayoutView, TransectionProjectView, TransectionView,PaymentHistoryApiView ,SendPaymentRequestApiView# InitiatePaymentAPIView, PaymentResponseAPIView, CreateCheckoutSessionViewAPI
 from payment_handle.webhooks import ProcessStripeSession
@@ -227,6 +227,7 @@ urlpatterns = [
     path('notifications/send/', SendNotificationView.as_view(), name='send_notification'),
     path('notifications/', NotificationListView.as_view(), name='list_notifications'),
     path('notifications_status_change/', ChangeNotificationStatusView.as_view(), name='notifications_status'),
+    path('notification_read_status/<int:pk>/', NotificationReadStatus.as_view(), name='read_notification_status'),
 
     # Search List
     path('projects', MobileProjectList.as_view(), name='profile-api-view-search'),

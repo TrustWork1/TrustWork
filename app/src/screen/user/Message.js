@@ -31,6 +31,37 @@ const Message = props => {
     }
   }, [isFocused]);
 
+  const formatNotificationDate = dateString => {
+    const inputDate = new Date(dateString);
+    const now = new Date();
+
+    const isSameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (isSameDay(inputDate, now)) {
+      // Show time if today
+      return inputDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } else if (isSameDay(inputDate, yesterday)) {
+      // Show "Yesterday"
+      return 'Yesterday';
+    } else {
+      // Show full date
+      return inputDate.toLocaleDateString([], {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  };
+
   const userListRender = (item, index) => {
     let userdata =
       AuthReducer?.ProfileResponse?.data?.id == item?.user1?.id
@@ -46,9 +77,7 @@ const Message = props => {
           }
           name={userdata?.full_name}
           msg={item?.last_message_details?.message}
-          time={moment(item?.last_message_details?.updated_at).format(
-            'hh:mm A',
-          )}
+          time={formatNotificationDate(item?.last_message_details?.updated_at)}
           count={item?.count}
           onPress={() => {
             NavigationService?.navigate('ClientChat', {data: item});

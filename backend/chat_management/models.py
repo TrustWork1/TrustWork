@@ -41,7 +41,8 @@ class Notification(models.Model):
     has_read = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
     object_type = models.CharField(max_length=255, null=True, blank=True)
-    object_id = models.IntegerField(null=True, blank=True)
+    project_id = models.IntegerField(null=True, blank=True)
+    bid_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} {self.object_id}"

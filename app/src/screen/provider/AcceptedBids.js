@@ -205,6 +205,7 @@ const AcceptedBids = props => {
           console.log('userData-->', userData);
           NavigationService?.navigate('Chat', {
             data: userData,
+            type: 'create',
           });
           break;
         case 'Chat/createChatRoomFailure':

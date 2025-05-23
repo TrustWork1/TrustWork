@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from master.models import JobCategory
 from django.db import transaction
 from .serializers import ProfileSerializer
@@ -315,13 +316,21 @@ class ProfileAPIView(APIView):
                         group_name = user_type.capitalize()
                         group, _ = Group.objects.get_or_create(name=group_name)
                         user.groups.add(group)
+
+                        # Render the email body from the HTML template
+                        html_message = render_to_string('emails/index.html', {
+                            'title': 'Your Account Has Been Created',
+                            'otp': f'Hello {user.email}, your account has been created. Your password is {random_password}',
+                        })
+
                         try:
                             send_mail(
-                            'Your Account Has Been Created',
-                            f'Hello {user.email}, your account has been created. Your password is {random_password}',
-                            settings.DEFAULT_FROM_EMAIL,
-                            [user.email],
-                            fail_silently=True,
+                                subject='Your Account Has Been Created',
+                                message=f'Hello {user.email}, your account has been created. Your password is {random_password}',
+                                html_message=html_message,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[user.email],
+                                fail_silently=True,
                             )
                         except:
                             pass

@@ -4,9 +4,23 @@ import {Colors, Fonts} from '../../themes/Themes';
 import css from '../../themes/css';
 import normalize from '../../utils/helpers/normalize';
 
-const MsgListCard = ({Img, name, msg, time, count, onPress}) => {
+const MsgListCard = ({
+  Img,
+  name,
+  msg,
+  time,
+  count,
+  isNotification,
+  backColor,
+  onPress,
+}) => {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.mainContainer}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.mainContainer,
+        {backgroundColor: isNotification ? backColor : Colors.themeWhite},
+      ]}>
       <Image source={Img} resizeMode="stretch" style={styles.profileImg} />
       <View style={[css.ml2, css.f1]}>
         <View style={[css.aic, css.row, css.jcsb, css.f1]}>
@@ -30,7 +44,6 @@ export default MsgListCard;
 
 const styles = StyleSheet.create({
   mainContainer: {
-    backgroundColor: Colors.themeWhite,
     marginTop: normalize(10),
     borderRadius: normalize(10),
     padding: normalize(10),

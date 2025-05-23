@@ -19,6 +19,7 @@ from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import pytz
 from utils import send_otp, send_otp_sms
 from .serializers import GenerateOTPSerializer, VerifyOTPSerializer, ChangePasswordSerializer
@@ -532,8 +533,20 @@ class GenerateOTPView(APIView):
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [email]
         
+        # Render the email body from the HTML template
+        html_message = render_to_string('emails/index.html', {
+            'title': 'Password Reset OTP',
+            'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.'
+        })
+        
         try:
-            send_mail(subject, message, from_email, recipient_list)
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=recipient_list,
+                html_message=html_message
+            )
             return Response(
                 {'message': 'OTP has been sent to your email'}, 
                 status=status.HTTP_200_OK
@@ -717,7 +730,20 @@ def send_otp_email(email, otp):
         message = f'Your OTP for registration is {otp}.'
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email]
-        send_mail(subject, message, from_email, recipient_list)
+
+        # Render the email body from the HTML template
+        html_message = render_to_string('emails/index.html', {
+            'title': 'Registration OTP',
+            'otp': f'Your OTP for registration is {otp}.'
+        })
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            html_message=html_message
+        )
 class ResendOtp(APIView):
     def post(self,request):
         otp = str(random.randint(1000, 9999))

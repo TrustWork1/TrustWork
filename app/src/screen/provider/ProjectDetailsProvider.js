@@ -60,7 +60,10 @@ const ProjectDetailsProvider = props => {
 
   const getServiceProviderList = (lat, long) => {
     let obj = {
-      id: item?.id,
+      id:
+        props?.route?.params?.id == undefined
+          ? item?.id
+          : props?.route?.params?.id,
       lat: lat,
       long: long,
       radius: 10,
@@ -240,7 +243,7 @@ const ProjectDetailsProvider = props => {
                         'You have already sent a bid for this project. Please wait for the client to accept your bid.',
                       )
                     : NavigationService.navigate('SendBid', {
-                        item: item,
+                        item: ProjectReducer?.projectDetailsByLocationResponse?.data,
                       });
                 }}
               />

@@ -7,6 +7,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import random
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -84,7 +85,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
         message = f'Your OTP for registration is {otp}.'
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email]
-        send_mail(subject, message, from_email, recipient_list,fail_silently=True)
+
+        # Render the email body from the HTML template
+        html_message = render_to_string('emails/index.html', {
+            'title': 'Registration OTP',
+            'otp': f'Your OTP for registration is {otp}.'
+        })
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            html_message=html_message,
+            fail_silently=True
+        )
         
 
 # import random
@@ -380,7 +395,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         message = f'Your OTP for registration is {otp}.'
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email]
-        send_mail(subject, message, from_email, recipient_list)
+
+        # Render the email body from the HTML template
+        html_message = render_to_string('emails/index.html', {
+            'title': 'Registration OTP',
+            'otp': f'Your OTP for registration is {otp}.'
+        })
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            html_message=html_message
+        )
     def validate(self, data):
         email = data.get('email',"")
         phone = data.get('phone',"")

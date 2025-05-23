@@ -403,7 +403,8 @@ class SendPaymentRequestApiView(APIView):
             title="Payment request for project",
             message="A payment request has been created for ",
             object_type = "payment request",
-            object_id = project_id
+            project_id = project_id,
+            bid_id = ""
         )
         notification.send_to_token(extra_data={"project":json.dumps(ProjectSerializer(project).data),"notification_type":"payment_request"})
         return Response({"message":"Payment request sent to client"})

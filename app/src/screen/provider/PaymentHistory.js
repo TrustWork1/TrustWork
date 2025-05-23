@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   SafeAreaView,
@@ -21,6 +22,7 @@ import {ProviderPaymentListRequest} from '../../redux/reducer/ProjectReducer';
 import Images from '../../themes/Images';
 import constants from '../../utils/helpers/constants';
 import moment from 'moment';
+import Loader from '../../utils/helpers/Loader';
 let status = '';
 const PaymentHistory = props => {
   const [page, setPage] = useState(1);
@@ -50,9 +52,7 @@ const PaymentHistory = props => {
     // console.log(item);
     return (
       <>
-        <TouchableOpacity
-          onPress={() => NavigationService?.navigate('Demo')}
-          style={[styles.msgContainer]}>
+        <TouchableOpacity onPress={() => {}} style={[styles.msgContainer]}>
           <Image
             source={
               item?.project?.client?.profile_picture
@@ -129,9 +129,14 @@ const PaymentHistory = props => {
     <View style={styles.mainContainer}>
       <Header backIcon={Icons.BackIcon} headerTitle={'Payment History'} />
       <SafeAreaView style={styles.mainContainer}>
+        {/* <Loader
+          visible={
+            ProjectReducer.status == 'Project/ProviderPaymentListRequest'
+          }
+        /> */}
         <View style={styles.container}>
           <View style={[css.px3, css.mt3]}>
-            <View style={styles.searchContainer}>
+            {/* <View style={styles.searchContainer}>
               <TextInput
                 placeholder="Search "
                 placeholderTextColor={Colors.themeBlack}
@@ -142,7 +147,7 @@ const PaymentHistory = props => {
                 onChangeText={text => searchProject(text?.trimStart())}
                 style={styles.searchInputContainer}
               />
-            </View>
+            </View> */}
             <View>
               <View style={[css.fg1]}>
                 <FlatList
@@ -174,6 +179,18 @@ const PaymentHistory = props => {
                           <Text style={styles.projectTitle}>
                             No payment Found
                           </Text>
+                        </View>
+                      )}
+                    </>
+                  }
+                  ListFooterComponent={
+                    <>
+                      {ProjectReducer.status ==
+                        'Project/ProviderPaymentListRequest' && (
+                        <View style={[css.aic, css.jcc, css.f1, css.mt2]}>
+                          <ActivityIndicator
+                            size={'large'}
+                            color={Colors.themeGreen}></ActivityIndicator>
                         </View>
                       )}
                     </>

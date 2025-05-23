@@ -231,7 +231,7 @@ const ClientChat = props => {
           title={
             otherUser != undefined ? otherUser?.full_name : userdata?.full_name
           }
-          subTitle={'Online'}
+          subTitle={''}
           isTyping
         />
 

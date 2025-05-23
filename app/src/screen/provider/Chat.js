@@ -41,6 +41,8 @@ const Chat = props => {
   const roomId =
     props?.route?.params?.type != undefined
       ? ChatReducer?.createChatRoomResponse?.data?.id
+      : props?.route?.params?.roomId != undefined
+      ? props?.route?.params?.roomId
       : userdata?.id;
 
   const ws = new WebSocket(constants?.SOCKET_URL + roomId + '/');
@@ -86,31 +88,15 @@ const Chat = props => {
         const message = {
           user_id: AuthReducer?.ProfileResponse?.data?.id,
           message: msg,
-          room_id:
-            userdata?.id == undefined
-              ? ChatReducer?.createChatRoomResponse?.data?.id
-              : userdata?.id,
+          room_id: roomId,
+          // userdata?.id == undefined
+          //   ? ChatReducer?.createChatRoomResponse?.data?.id
+          //   : userdata?.id,
         };
+
+        console.log(message);
         socket.send(JSON.stringify(message));
-        // let newMsg = {
-        //   chat_room: message?.room_id,
-        //   created_at: new Date().toISOString(),
-        //   id: chatWithMe?.length + 1,
-        //   message: msg,
-        //   sender: AuthReducer?.ProfileResponse?.data?.full_name,
-        //   sender_id: AuthReducer?.ProfileResponse?.data?.id,
-        //   sender_pic: AuthReducer?.ProfileResponse?.data?.profile_picture,
-        //   status: 'ac',
-        //   updated_at: new Date().toISOString(),
-        // };
-        // let arr = [...chatWithMe];
-        // arr.push(newMsg);
-        // console.log(arr);
-        // setChatWithMe(arr);
-        // setTimeout(() => {
-        //   scrollRef.current?.scrollToEnd({animated: true});
-        // }, 1000);
-        // console.log('Message sent:', chatWithMe);
+
         setMsg('');
       }
     }
@@ -211,7 +197,9 @@ const Chat = props => {
         break;
     }
   }
-  console.log(userdata);
+
+ 
+
   return (
     <KeyboardAvoidingView
       style={styles.mainContainer}
@@ -233,7 +221,7 @@ const Chat = props => {
               ? otherUser?.full_name
               : `${userdata?.full_name}`
           }
-          subTitle={'Online'}
+          subTitle={''}
           isTyping
         />
 

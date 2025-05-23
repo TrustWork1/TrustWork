@@ -41,6 +41,7 @@ let status = '';
 
 const SendBid = props => {
   const {item} = props?.route?.params;
+  console.log(item?.id);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();

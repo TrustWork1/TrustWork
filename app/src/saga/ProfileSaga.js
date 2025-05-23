@@ -59,6 +59,8 @@ import {
   deleteMtnFailure,
   makePrimaryMtnFailure,
   makePrimaryMtnSuccess,
+  ReadNotificationSuccess,
+  ReadNotificationFailure,
 } from '../redux/reducer/ProfileReducer';
 import {deleteApi, getApi, postApi, putApi} from '../utils/helpers/ApiRequest';
 import constants from '../utils/helpers/constants';
@@ -493,7 +495,7 @@ export function* getBankAccountSaga(action) {
       // showErrorAlert(response?.data?.message);
     } else if (response?.status == 201) {
       yield put(bankAccountFailure(response?.data));
-      showErrorAlert(response?.data?.message);
+      // showErrorAlert(response?.data?.message);
     } else {
       yield put(bankAccountFailure(response?.data));
       showErrorAlert(response?.data?.message);
@@ -1001,6 +1003,45 @@ export function* deleteGalleryItemSaga(action) {
     }
   }
 }
+// ReadNotificationSaga
+export function* ReadNotificationSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(
+      putApi,
+      `notification_read_status/${action.payload.id}/`,
+      action.payload,
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(ReadNotificationSuccess(response?.data));
+      // showErrorAlert(response?.data?.data?.message);
+    } else if (response?.status == 201) {
+      yield put(ReadNotificationFailure(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    } else {
+      yield put(ReadNotificationFailure(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(ReadNotificationFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(ReadNotificationFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(ReadNotificationFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
 
 const watchFunction = [
   (function* () {
@@ -1089,6 +1130,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Profile/deleteGalleryItemRequest', deleteGalleryItemSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Profile/ReadNotificationRequest', ReadNotificationSaga);
   })(),
 ];
 

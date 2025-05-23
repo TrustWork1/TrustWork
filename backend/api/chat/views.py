@@ -170,3 +170,15 @@ class ChangeNotificationStatusView(APIView):
         # Update the status of all notifications for the user
         Profile.objects.filter(user=request.user).update(notification_enabled=new_status)
         return Response({"success": True, "status": new_status}, status=200)
+
+class NotificationReadStatus(APIView):
+    permission_classes = [IsAuthenticated]
+    def put(self, request, pk=None):
+        notification = get_object_or_404(Notification, id=pk)
+
+        if not notification.has_read:
+            notification.has_read = True
+            notification.save()
+            return Response({"message": "Notification marked as read."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Notification already marked as read."}, status=status.HTTP_200_OK)

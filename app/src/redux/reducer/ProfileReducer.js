@@ -29,6 +29,7 @@ const initialState = {
   BankTransferResponse: {},
   ReferralStepsResponse: {},
   deleteGalleryItemResponse: {},
+  ReadNotificationResponse:{},
 };
 
 const ProfileSlice = createSlice({
@@ -344,6 +345,19 @@ const ProfileSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
+
+    // Read Notification //
+    ReadNotificationRequest(state, action) {
+      state.status = action.type;
+    },
+    ReadNotificationSuccess(state, action) {
+      state.ReadNotificationResponse = action.payload;
+      state.status = action.type;
+    },
+    ReadNotificationFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
   },
 });
 export const {
@@ -442,6 +456,10 @@ export const {
   deleteGalleryItemRequest,
   deleteGalleryItemSuccess,
   deleteGalleryItemFailure,
+
+  ReadNotificationRequest,
+  ReadNotificationSuccess,
+  ReadNotificationFailure,
 } = ProfileSlice.actions;
 
 export default ProfileSlice.reducer;

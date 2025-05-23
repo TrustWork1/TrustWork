@@ -5,12 +5,16 @@ import {FlatList, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import Header from '../components/Header';
 import MsgListCard from '../components/Micro/MsgListCard';
-import {notificationRequest} from '../redux/reducer/ProfileReducer';
+import {
+  notificationRequest,
+  ReadNotificationRequest,
+} from '../redux/reducer/ProfileReducer';
 import {Colors, Fonts, Icons} from '../themes/Themes';
 import constants from '../utils/helpers/constants';
 import Loader from '../utils/helpers/Loader';
 import connectionrequest from '../utils/helpers/NetInfo';
 import normalize from '../utils/helpers/normalize';
+import NavigationService from '../navigators/NavigationService';
 
 let status = '';
 
@@ -30,7 +34,7 @@ const Notification = () => {
 
   const getNotificationList = count => {
     let obj = {
-      perpage: 10,
+      perpage: 20,
       page: count ? count : page,
     };
     connectionrequest()
@@ -67,15 +71,56 @@ const Notification = () => {
     }
   }
 
+  const formatNotificationDate = dateString => {
+    const inputDate = new Date(dateString);
+    const now = new Date();
+
+    const isSameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (isSameDay(inputDate, now)) {
+      // Show time if today
+      return inputDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } else if (isSameDay(inputDate, yesterday)) {
+      // Show "Yesterday"
+      return 'Yesterday';
+    } else {
+      // Show full date
+      return inputDate.toLocaleDateString([], {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  };
+
   const renderItem = (item, index) => {
     return (
       <>
         <MsgListCard
+          isNotification
+          backColor={!item?.has_read ? '#c6e3b6' : Colors.themeWhite}
           Img={{uri: `${constants.IMAGE_URL}${item?.sender?.profile_picture}`}}
           name={item?.sender?.full_name}
           msg={item?.message}
-          time={moment(item?.created_at).format('hh:mm A')}
-          onPress={() => {}}
+          // time={moment(item?.created_at).format('hh:mm A')}
+          time={formatNotificationDate(item?.created_at)}
+          onPress={() => {
+            dispatch(ReadNotificationRequest({id: item?.id}));
+            // item?.object_type == 'project' &&
+            //   NavigationService.navigate('ProjectDetailsProvider', {
+            //     item: item,
+            //     id: item?.object_id,
+            //   });
+          }}
         />
       </>
     );
@@ -126,12 +171,12 @@ const Notification = () => {
           <FlatList
             data={notificationsData}
             contentContainerStyle={styles.flatlistContianer}
-            // scrollEventThrottle={16}
-            // onMomentumScrollEnd={e => {
-            //   if (isCloseToBottom(e.nativeEvent)) {
-            //     fetchNotificationData();
-            //   }
-            // }}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={e => {
+              if (isCloseToBottom(e.nativeEvent)) {
+                fetchNotificationData();
+              }
+            }}
             ListEmptyComponent={() => listEmptyComponent()}
             // ItemSeparatorComponent={() => (
             //   <View style={{height: normalize(10)}} />

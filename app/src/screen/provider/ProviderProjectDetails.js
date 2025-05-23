@@ -245,7 +245,9 @@ const ProviderProjectDetails = props => {
                 onPress={() => {
                   NavigationService?.navigate('Chat', {
                     data: ProjectReducer?.projectDetailsResponse?.data?.client,
-                    type: 'create',
+                    roomId:
+                      ProjectReducer?.projectDetailsResponse?.data?.last_message
+                        ?.chat_room,
                   });
                 }}
               />

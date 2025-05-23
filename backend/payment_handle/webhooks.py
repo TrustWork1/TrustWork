@@ -170,7 +170,8 @@ class ProcessStripeSession(APIView):
                 title="Payment Failed",
                 message=f"Your payment for project {payment.bid.project.project_title} has failed.",
                 object_type = "payment failed",
-                object_id = payment.bid.project.id
+                project_id = payment.bid.project.id,
+                bid_id = payment.bid.id
             ).send_to_token(extra_data=json.dumps({"notification_type": "payment_failed"}))
 
             Notification.objects.create(
@@ -178,7 +179,8 @@ class ProcessStripeSession(APIView):
                 title="Payment Failed",
                 message=f"The payment for the bid on project {payment.bid.project.project_title} has failed.",
                 object_type = "payment failed",
-                object_id = payment.bid.project.id
+                project_id = payment.bid.project.id,
+                bid_id = payment.bid.id
             ).send_to_token(extra_data=json.dumps({"notification_type": "payment_failed"}))
 
             return Response({'message': 'Payment marked as failed'}, status=status.HTTP_200_OK)

@@ -48,6 +48,37 @@ const PaymentHistory = props => {
     );
   };
 
+  const formatNotificationDate = dateString => {
+    const inputDate = new Date(dateString);
+    const now = new Date();
+
+    const isSameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (isSameDay(inputDate, now)) {
+      // Show time if today
+      return inputDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } else if (isSameDay(inputDate, yesterday)) {
+      // Show "Yesterday"
+      return 'Yesterday';
+    } else {
+      // Show full date
+      return inputDate.toLocaleDateString([], {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  };
+
   const paymentHistoryRender = ({item, index}) => {
     // console.log(item);
     return (
@@ -76,12 +107,14 @@ const PaymentHistory = props => {
               </Text>
             </View>
             <View style={[css.aic, css.row, css.jcsb, css.f1]}>
-              <Text style={[styles.timeStyle, css.fs11]}>
-                {item?.project?.project_title}
-              </Text>
+              <View style={[css.w70]}>
+                <Text style={[styles.timeStyle, css.fs11]}>
+                  {item?.project?.project_title}
+                </Text>
+              </View>
 
               <Text style={[styles.dateTxt]}>
-                {moment(item?.created_at).format('ll')}
+                {formatNotificationDate(item?.created_at)}
               </Text>
             </View>
           </View>

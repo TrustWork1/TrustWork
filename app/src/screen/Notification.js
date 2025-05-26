@@ -30,7 +30,7 @@ const Notification = () => {
 
   useEffect(() => {
     getNotificationList();
-  }, []);
+  }, [isFocused]);
 
   const getNotificationList = count => {
     let obj = {
@@ -114,12 +114,26 @@ const Notification = () => {
           // time={moment(item?.created_at).format('hh:mm A')}
           time={formatNotificationDate(item?.created_at)}
           onPress={() => {
+            // if (!item?.has_read) {
             dispatch(ReadNotificationRequest({id: item?.id}));
-            // item?.object_type == 'project' &&
-            //   NavigationService.navigate('ProjectDetailsProvider', {
-            //     item: item,
-            //     id: item?.object_id,
-            //   });
+            if (item?.object_type == 'project created') {
+              NavigationService.navigate('ProjectDetailsProvider', {
+                item: item,
+                id: item?.project_id,
+              });
+            } else if (item?.object_type == 'bid created') {
+              NavigationService.navigate('ProjectDetails', {
+                id: item?.project_id,
+                flag: 'Active',
+              });
+            } else if (item?.object_type == 'bid accepted') {
+              NavigationService.navigate('ProviderProjectDetails', {
+                id: item?.project_id,
+                flag: 'Active',
+              });
+            } else if (item?.object_type == 'bid rejected') {
+            }
+            // }
           }}
         />
       </>

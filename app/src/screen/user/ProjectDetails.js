@@ -43,6 +43,7 @@ let statuss = '';
 
 const ProjectDetails = props => {
   const {flag, item} = props?.route?.params;
+  const projectId = props?.route?.params?.id;
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -63,7 +64,8 @@ const ProjectDetails = props => {
   useEffect(() => {
     if (isFocused) {
       getProjectDetails();
-      flag === 'Completed' && getFeedBack(item?.id);
+      flag === 'Completed' &&
+        getFeedBack(item?.id == undefined ? projectId : item?.id);
       flag === 'Active' && getBidList();
     }
   }, [isFocused]);
@@ -89,7 +91,9 @@ const ProjectDetails = props => {
   const getProjectDetails = () => {
     connectionrequest()
       .then(() => {
-        dispatch(projectDetailsRequest(item?.id));
+        dispatch(
+          projectDetailsRequest(item?.id == undefined ? projectId : item?.id),
+        );
       })
       .catch(err => {
         showErrorAlert('Please connect to the internet');
@@ -99,7 +103,9 @@ const ProjectDetails = props => {
   const getBidList = () => {
     connectionrequest()
       .then(() => {
-        dispatch(ProjectBidsRequest(item?.id));
+        dispatch(
+          ProjectBidsRequest(item?.id == undefined ? projectId : item?.id),
+        );
       })
       .catch(err => {
         showErrorAlert('Please connect to the internet');
@@ -688,7 +694,12 @@ const ProjectDetails = props => {
             borderColor={Colors.themeGreen}
             color={Colors.themeWhite}
             backgroundColor={Colors.themeGreen}
-            onPress={() => markAsCompletedProject('completed', item?.id)}
+            onPress={() =>
+              markAsCompletedProject(
+                'completed',
+                item?.id == undefined ? projectId : item?.id,
+              )
+            }
           />
         </View>
         <TouchableOpacity
@@ -1000,7 +1011,9 @@ const ProjectDetails = props => {
                 borderColor={Colors.themeGreen}
                 color={Colors.themeWhite}
                 backgroundColor={Colors.themeGreen}
-                onPress={() => sendFeedBack(item?.id)}
+                onPress={() =>
+                  sendFeedBack(item?.id == undefined ? projectId : item?.id)
+                }
               />
             </View>
           )}
@@ -1107,7 +1120,7 @@ const ProjectDetails = props => {
         break;
       case 'Project/sendFeedBackSuccess':
         status = ProjectReducer.status;
-        getFeedBack(item?.id);
+        getFeedBack(item?.id == undefined ? projectId : item?.id);
         break;
       case 'Project/sendFeedBackFailure':
         status = ProjectReducer.status;

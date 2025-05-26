@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -10,7 +10,7 @@ import {
 import Header from '../../components/Header';
 import {Colors, Fonts, Icons} from '../../themes/Themes';
 
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import moment from 'moment';
 import {useDispatch, useSelector} from 'react-redux';
 import DataWithIcon from '../../components/Micro/DataWithIcon';
@@ -30,15 +30,19 @@ import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 import NavigationService from '../../navigators/NavigationService';
 import css from '../../themes/css';
+import {createChatRoomRequest} from '../../redux/reducer/ChatReducer';
 
 let status = '';
+let status1 = '';
 
 const ProviderProjectDetails = props => {
   const {item, flag} = props?.route?.params;
+  const projectId = props?.route?.params?.id;
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const ProjectReducer = useSelector(state => state.ProjectReducer);
+  const ChatReducer = useSelector(state => state.ChatReducer);
   const AuthReducer = useSelector(state => state.AuthReducer);
 
   const [projectDetails, setProjectDetails] = useState({});
@@ -48,14 +52,17 @@ const ProviderProjectDetails = props => {
   useEffect(() => {
     if (isFocused) {
       getProjectDetails();
-      flag === 'Completed' && getFeedBack(item?.id);
+      flag === 'Completed' &&
+        getFeedBack(item?.id == undefined ? projectId : item?.id);
     }
   }, [isFocused]);
 
   const getProjectDetails = () => {
     connectionrequest()
       .then(() => {
-        dispatch(projectDetailsRequest(item?.id));
+        dispatch(
+          projectDetailsRequest(item?.id == undefined ? projectId : item?.id),
+        );
       })
       .catch(err => {
         showErrorAlert('Please connect to the internet');
@@ -98,6 +105,26 @@ const ProviderProjectDetails = props => {
         showErrorAlert('Please connect to the internet');
       });
   };
+  useFocusEffect(
+    useCallback(() => {
+      switch (ChatReducer.status) {
+        case 'Chat/createChatRoomRequest':
+          status1 = ChatReducer.status;
+          break;
+        case 'Chat/createChatRoomSuccess':
+          status1 = ChatReducer.status;
+          console.log('userData-->', projectDetails?.client);
+          NavigationService?.navigate('Chat', {
+            data: projectDetails?.client,
+            type: 'create',
+          });
+          break;
+        case 'Chat/createChatRoomFailure':
+          status1 = ChatReducer.status;
+          break;
+      }
+    }, [ChatReducer.status]),
+  );
 
   if (status == '' || ProjectReducer.status != status) {
     switch (ProjectReducer.status) {
@@ -117,7 +144,7 @@ const ProviderProjectDetails = props => {
         break;
       case 'Project/sendFeedBackProviderSuccess':
         status = ProjectReducer.status;
-        getFeedBack(item?.id);
+        getFeedBack(item?.id == undefined ? projectId : item?.id);
         break;
       case 'Project/sendFeedBackProviderFailure':
         status = ProjectReducer.status;
@@ -210,7 +237,7 @@ const ProviderProjectDetails = props => {
 
         {/* /////////////////// Project Updates //////////////////// */}
 
-        {projectDetails?.last_message?.message && (
+        {projectDetails?.last_message?.message ? (
           <View>
             <Text
               style={[styles.projectTitle, {marginVertical: normalize(16)}]}>
@@ -253,6 +280,29 @@ const ProviderProjectDetails = props => {
               />
             </View>
           </View>
+        ) : (
+          <View style={[css.mt5]}>
+            <NextBtn
+              height={normalize(28)}
+              title={'send Message'}
+              borderColor={Colors.themeGreen}
+              color={Colors.themeWhite}
+              backgroundColor={Colors.themeGreen}
+              onPress={() => {
+                dispatch(
+                  createChatRoomRequest({
+                    user_id: projectDetails?.client?.id,
+                  }),
+                );
+                // NavigationService?.navigate('Chat', {
+                //   data: ProjectReducer?.projectDetailsResponse?.data?.client,
+                //   roomId:
+                //     ProjectReducer?.projectDetailsResponse?.data?.last_message
+                //       ?.chat_room,
+                // });
+              }}
+            />
+          </View>
         )}
 
         {/* ////////////////////// Payment History //////////////// */}
@@ -273,42 +323,7 @@ const ProviderProjectDetails = props => {
                   </Text>
                 </View>
               </View>
-              {/* <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginVertical: normalize(8),
-                }}>
-                <Image source={Icons.clock} style={styles.clockGreen} />
-                <Text
-                  style={[
-                    {
-                      color: Colors.themeGreen,
-                      fontSize: normalize(11),
-                      marginLeft: normalize(4),
-                    },
-                  ]}>
-                  {moment(
-                    ProjectReducer?.projectDetailsResponse?.data?.updated_at,
-                  ).format('ll')}
-                </Text>
-              </View> */}
             </View>
-
-            <NextBtn
-              height={normalize(28)}
-              title={'send payment Request'}
-              borderColor={Colors.themeGreen}
-              color={Colors.themeWhite}
-              backgroundColor={Colors.themeGreen}
-              onPress={() => {
-                let obj = {
-                  project_id: ProjectReducer?.projectDetailsResponse?.data?.id,
-                };
-
-                dispatch(paymentReqRequest(obj));
-              }}
-            />
           </View>
         </View>
       </View>
@@ -570,7 +585,9 @@ const ProviderProjectDetails = props => {
                 borderColor={Colors.themeGreen}
                 color={Colors.themeWhite}
                 backgroundColor={Colors.themeGreen}
-                onPress={() => sendFeedBack(item?.id)}
+                onPress={() =>
+                  sendFeedBack(item?.id == undefined ? projectId : item?.id)
+                }
               />
             </View>
           )}
@@ -658,7 +675,6 @@ const styles = StyleSheet.create({
     // padding: normalize(14),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingBottom: normalize(15),
   },
   locationIcon: {
     width: normalize(12),

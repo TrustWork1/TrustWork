@@ -21,6 +21,9 @@ from django.db.models import Q, ProtectedError
 from django.db import IntegrityError
 # from payment_handle.gateways.escrow import *
 from django.db import transaction
+from project_management.models import Notification
+import json
+
 class ProjectList(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -490,8 +493,34 @@ class ChangeProjectStatusView(APIView):
                 print(response)
                 Transactions.objects.create(escrow_id=escrow_id,status='in_progress',project=project,transaction_type="disbursement")
             except:
-                pass
+                print(f"Disbursement error: {e}")
+        
         project.save()
+        
+        try:
+            sender_profile = Profile.objects.get(user=request.user).id
+            # print("Sender",sender_profile)
+            transaction = Transactions.objects.filter(project=project).order_by('-created_at').first()
+            bid = transaction.bid
+            receiver_profile = bid.service_provider.id
+            # print("Receiver",receiver_profile)
+            
+            notification = Notification.objects.create(
+                sender=sender_profile,
+                receiver=receiver_profile,
+                title="Project Completed",
+                message=f"The project '{project.project_title}' has been marked as completed.",
+                object_type="project completed",
+                project_id=project.id,
+                bid_id=bid.id
+            )
+            project_data = ProjectSerializer(project).data
+            notification.send_to_token(extra_data={
+                "project": json.dumps(project_data),
+                "notification_type": "project_completed"
+            })
+        except Exception as e:
+            print(f"Notification error: {e}")
 
         response = {
             "status" : 202,
@@ -601,7 +630,7 @@ class ProjectBidApiView(APIView):
                 bid.save()
                 if bid.project.status=="myoffer":
                     bid.project.status="active"
-                    Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
+                    # Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
 
                     bid.project.save()
                 # bid.project.project_budget=bid.project_total_cost
@@ -1010,7 +1039,7 @@ class ServiceProviderListView(generics.ListAPIView):
                 Q(project_title__icontains=search_query) |
                 Q(project_description__icontains=search_query) |
                 Q(status=search_query)
-            ).order_by("id", "-updated_at")
+            )
         queryset=queryset.exclude(status__iexact="myoffer")
         try:
             if not queryset.exists():
@@ -1025,7 +1054,7 @@ class ServiceProviderListView(generics.ListAPIView):
             )
         )
         paginator = CustomPaginationProjectProfile()
-        paginated_queryset = paginator.paginate_queryset(queryset.distinct("id"), request)
+        paginated_queryset = paginator.paginate_queryset(queryset.order_by('-updated_at'), request)
         
         serializer = BidSerializerProjectView(paginated_queryset, many=True)
         return paginator.get_paginated_response(serializer.data)

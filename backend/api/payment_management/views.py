@@ -377,7 +377,7 @@ class PaymentHistoryApiView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         search_query=request.GET.get("search")
-        transactions=Transactions.objects.filter(bid__service_provider=request.user.profile)
+        transactions=Transactions.objects.filter(bid__service_provider=request.user.profile).exclude(status__iexact=" ")
         if search_query:
             transactions=transactions.filter(Q(project__project_title__icontains=search_query)|Q(project__client__user__full_name__icontains=search_query))
             
@@ -404,7 +404,7 @@ class SendPaymentRequestApiView(APIView):
             message="A payment request has been created for ",
             object_type = "payment request",
             project_id = project_id,
-            bid_id = ""
+            bid_id = None
         )
         notification.send_to_token(extra_data={"project":json.dumps(ProjectSerializer(project).data),"notification_type":"payment_request"})
         return Response({"message":"Payment request sent to client"})

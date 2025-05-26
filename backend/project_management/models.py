@@ -94,23 +94,24 @@ def project_post_save_handler(sender, instance:Project, created, **kwargs):
                         message=message,
                         object_type = "project created",
                         project_id = instance.id,
-                        bid_id = ""
+                        bid_id = None
                     )
-                    notification.send_to_token(extra_data={"project":json.dumps(ProjectSerializer(instance).data),"notification_type":"project_creation"})
-                except :
+                    project=ProjectSerializer(instance).data
+                    notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"project_creation"})
+                except Exception as e:
                     pass
             sender_data = ProfileSerializer(sender_profile).data
             sender_full_name = sender_data.get('full_name')
-    except:
+    except Exception as e:
         pass
         
         
 @receiver(post_save, sender=Bid)
 def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
     try:
-        if  not created:
+        if not created:
             if instance.status=="Accepted":
-                message=f"Bid for project -: {instance.project.project_title} has been Accepted"
+                message=f"Bid for project -: {instance.project.project_title} has been Accepted."
                 notification=Notification.objects.create(
                     sender=instance.project.client,
                     receiver=instance.service_provider,
@@ -125,7 +126,7 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"accepted"})
 
             elif instance.status=="Rejected":
-                message=f"Bid for project -: {instance.project.project_title} has been Rejected"
+                message=f"Bid for project -: {instance.project.project_title} has been Rejected."
                 notification=Notification.objects.create(
                     sender=instance.project.client,
                     receiver=instance.service_provider,
@@ -141,12 +142,12 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"rejected"})
 
             else:
-                message=f"A bid has been created for your project -: {instance.project.project_title}"
+                message=f"A bid has been created for your project: {instance.project.project_title}"
                 notification=Notification.objects.create(
                     receiver=instance.project.client,
                     sender=instance.service_provider,
                     title="Bid has been created",
-                    message=f"A bid has been created for your project -: {instance.project.project_title}",
+                    message=f"A bid has been created for your project: {instance.project.project_title}",
                     object_type = "bid created",
                     bid_id = instance.id,
                     project_id = instance.project.id

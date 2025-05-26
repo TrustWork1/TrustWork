@@ -324,6 +324,10 @@ class ClientActiveProjectsView(generics.ListAPIView):
         if status_filter in ['ongoing','accepted','active']:
             if status_filter in ["accepted" ,"Accepted"]:
                 queryset = queryset.filter(status__iexact=status_filter).exclude(project__status__iexact="completed")
+            elif status_filter.lower() == "active":
+                queryset = queryset.filter(
+                    Q(status__iexact="active") | Q(status__iexact="rejected")
+                )
             else:
                 queryset = queryset.filter(project__status__iexact=status_filter).exclude(status__iexact="accepted")
                 # status_filter="Accepted"
@@ -331,7 +335,7 @@ class ClientActiveProjectsView(generics.ListAPIView):
             # else:
             #     queryset = queryset.filter(~Q(status__icontains="accepted"), project__status__iexact=status_filter)
         elif status_filter:
-            queryset = queryset.filter(project__status=status_filter)
+            queryset = queryset.filter(project__status=status_filter).exclude(status__iexact="rejected")
         # queryset=queryset.filter(service_provider__user=self.request.user)
         return queryset
 

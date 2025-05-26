@@ -125,7 +125,7 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 receiver=instance.service_provider,
                 object_type = "project feedback",
                 project_id = instance.project.id,
-                bid_id = ""
+                bid_id = None
             )
 
         # Create a notification for the client when a service provider provides feedback
@@ -137,5 +137,5 @@ def create_feedback_notification(sender, instance, created, **kwargs):
                 receiver=instance.project.client,
                 object_type = "provider feedback",
                 project_id = instance.project.id,
-                bid_id = ""
+                bid_id = None
             )            

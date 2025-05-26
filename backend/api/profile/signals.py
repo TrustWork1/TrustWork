@@ -13,7 +13,7 @@ import firebase_admin
 def project_post_save_handler(sender, instance, created, **kwargs):
     if created:
         sender_profile = instance.client
-        message = f"Project '{instance.project_title}' has been created by {sender_profile.user.full_name}."
+        message = f"Project '{instance.project_title}' has been created by {sender_profile.user.full_name}"
         related_providers = Profile.objects.filter(job_category=instance.project_category).exclude(user=instance.client.user)
         # related_providers = Project.objects.filter(service_provider=Bid.objects.filter(service_provider__id= instance.client.user.id).values_list('service_provider__id', flat=True))
 
@@ -26,7 +26,7 @@ def project_post_save_handler(sender, instance, created, **kwargs):
                 message=message,
                 object_type = "project created",
                 project_id = instance.id,
-                bid_id = ""
+                bid_id = None
             )
             notification.send_to_token()
 
@@ -55,7 +55,7 @@ def project_post_delete_handler(sender, instance, **kwargs):
             message=message,
             object_type = "project deleted",
             project_id = instance.id,
-            bid_id = ""
+            bid_id = None
         )
     sender_data = ProfileSerializer(sender_profile).data
     for provider in related_providers:

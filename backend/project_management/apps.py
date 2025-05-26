@@ -5,7 +5,5 @@ class ProjectManagementConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'project_management'
 
-
-
-# def ready(self) -> None:
-#         from . import signals
+    # def ready(self):
+    #     from api.project import signals

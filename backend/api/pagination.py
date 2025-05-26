@@ -61,7 +61,6 @@ class CustomPaginationProjectProfile(PageNumberPagination):
     max_page_size = 100
     def paginate_queryset(self, queryset, request, view=None):
         return super().paginate_queryset(queryset, request, view)
-        # return super().paginate_queryset(queryset.order_by("-updated_at"),request,view)
     def get_paginated_response(self, data):
         return Response({
             "status": 200,

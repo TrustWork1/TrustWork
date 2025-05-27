@@ -15,6 +15,11 @@ from utils import send_otp, send_otp_sms
 from master.models import Location
 # from master import *
 import master
+import os
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
+BASE_API = os.getenv('BASE_API')
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -87,9 +92,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         recipient_list = [email]
 
         # Render the email body from the HTML template
-        html_message = render_to_string('emails/index.html', {
+        html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
-            'otp': f'Your OTP for registration is {otp}.'
+            'otp': f'Your OTP for registration is {otp}.',
+            'image': BASE_API+"/static/images/logo.svg"
         })
 
         send_mail(
@@ -397,9 +403,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         recipient_list = [email]
 
         # Render the email body from the HTML template
-        html_message = render_to_string('emails/index.html', {
+        html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
-            'otp': f'Your OTP for registration is {otp}.'
+            'otp': f'Your OTP for registration is {otp}.',
+            'image': BASE_API+"/static/images/logo.svg"
         })
         send_mail(
             subject=subject,

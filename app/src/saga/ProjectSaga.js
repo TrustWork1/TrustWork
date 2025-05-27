@@ -1,5 +1,7 @@
 import {call, put, select, takeLatest} from 'redux-saga/effects';
 import {
+  bidDetailsFailure,
+  bidDetailsSuccess,
   bidListFailure,
   bidListSuccess,
   bidStatusFailure,
@@ -1097,6 +1099,38 @@ export function* paymentReqSaga(action) {
   }
 }
 
+////////////////// bidDetails ///////////
+export function* bidDetailsSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'multipart/form-data',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(getApi, `bid-detail/${action.payload}/`, header);
+
+    if (response?.status == 200) {
+      yield put(bidDetailsSuccess(response?.data));
+      showErrorAlert(response?.data?.data?.message);
+    } else {
+      yield put(bidDetailsFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(bidDetailsFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(bidDetailsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else {
+      yield put(bidDetailsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+
 const watchFunction = [
   (function* () {
     yield takeLatest('Project/projectListRequest', projectListSaga);
@@ -1202,6 +1236,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Project/paymentReqRequest', paymentReqSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Project/bidDetailsRequest', bidDetailsSaga);
   })(),
 ];
 

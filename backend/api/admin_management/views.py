@@ -18,6 +18,12 @@ from django.db.models import Q, Sum, FloatField
 from django.db.models.functions import Cast
 from datetime import datetime
 from django.template.loader import render_to_string
+import re
+import os
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
+BASE_API = os.getenv('BASE_API')
 
 
 # CMS SearchView 
@@ -499,11 +505,15 @@ class QMSResponseApiView(APIView):
             data=serializer.save(qms=QMS.objects.get(pk=request.data['qms']))
 
             # Render the email body from the HTML template
-            html_content = render_to_string('emails/index.html', {
+            answer = request.data['response']
+            clean_answer = re.sub(r'<\/?p>', '', answer)
+
+            html_content = render_to_string('email_temp.html', {
                 'title': 'Trustwork Support',
                 'subject': data.qms.query,
                 'query': data.qms.answer,
-                'answer': request.data['response'],
+                'answer': clean_answer,
+                'image': BASE_API+"/static/images/logo.svg"
             })
 
             send_mail(

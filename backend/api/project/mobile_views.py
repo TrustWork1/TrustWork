@@ -274,6 +274,19 @@ class ProjectBidApiView(APIView):
 
         return paginator.get_paginated_response(serializer.data)
 
+class BidApiView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request, pk):
+        try:
+            bid = get_object_or_404(Bid, id=pk)
+            serializer = BidSerializer(bid)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Http404:
+            return Response({"error": "Bid not available"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # previous working code
 # class ClientActiveProjectsView(APIView):
 #     permission_classes = [IsAuthenticated]

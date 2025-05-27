@@ -33,6 +33,12 @@ from profile_management.models import Subscriptions, Coupons
 from master.models import Location
 User = get_user_model()
 
+import os
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
+BASE_API = os.getenv('BASE_API')
+
 
 class RegisterView(APIView):
     permission_classes=[AllowAny]
@@ -534,9 +540,10 @@ class GenerateOTPView(APIView):
         recipient_list = [email]
         
         # Render the email body from the HTML template
-        html_message = render_to_string('emails/index.html', {
+        html_message = render_to_string('email_temp.html', {
             'title': 'Password Reset OTP',
-            'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.'
+            'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.',
+            'image': BASE_API+"/static/images/logo.svg"
         })
         
         try:
@@ -732,9 +739,10 @@ def send_otp_email(email, otp):
         recipient_list = [email]
 
         # Render the email body from the HTML template
-        html_message = render_to_string('emails/index.html', {
+        html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
-            'otp': f'Your OTP for registration is {otp}.'
+            'otp': f'Your OTP for registration is {otp}.',
+            'image': BASE_API+"/static/images/logo.svg"
         })
 
         send_mail(

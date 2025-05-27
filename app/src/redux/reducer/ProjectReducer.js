@@ -34,6 +34,7 @@ const initialState = {
   UploadImagesResponse: {},
   RejectBidResponse: {},
   paymentReqResponse: {},
+  bidDetailsResponse:{},
 };
 
 const ProjectSlice = createSlice({
@@ -425,6 +426,20 @@ const ProjectSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
+
+
+    ///////////////////// bidDetails //////////////////
+    bidDetailsRequest(state, action) {
+      state.status = action.type;
+    },
+    bidDetailsSuccess(state, action) {
+      state.bidDetailsResponse = action.payload;
+      state.status = action.type;
+    },
+    bidDetailsFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
   },
 });
 export const {
@@ -547,6 +562,10 @@ export const {
   paymentReqRequest,
   paymentReqSuccess,
   paymentReqFailure,
+
+  bidDetailsRequest,
+  bidDetailsSuccess,
+  bidDetailsFailure,
 } = ProjectSlice.actions;
 
 export default ProjectSlice.reducer;

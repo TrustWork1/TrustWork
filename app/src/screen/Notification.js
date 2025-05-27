@@ -121,6 +121,11 @@ const Notification = () => {
                 item: item,
                 id: item?.project_id,
               });
+            } else if (item?.object_type == 'project completed') {
+              NavigationService.navigate('ProviderProjectDetails', {
+                id: item?.project_id,
+                flag: 'Completed',
+              });
             } else if (item?.object_type == 'bid created') {
               NavigationService.navigate('ProjectDetails', {
                 id: item?.project_id,
@@ -132,7 +137,11 @@ const Notification = () => {
                 flag: 'Active',
               });
             } else if (item?.object_type == 'bid rejected') {
+              NavigationService.navigate('BidDetails', {
+                bid_id: item?.bid_id,
+              });
             }
+
             // }
           }}
         />

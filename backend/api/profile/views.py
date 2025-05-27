@@ -31,6 +31,11 @@ from master.models import Location
 import stripe, logging
 from django.db.models import Q
 from django.http import Http404
+import os
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
+BASE_API = os.getenv('BASE_API')
 
 
 from rest_framework import generics, permissions
@@ -318,9 +323,10 @@ class ProfileAPIView(APIView):
                         user.groups.add(group)
 
                         # Render the email body from the HTML template
-                        html_message = render_to_string('emails/index.html', {
+                        html_message = render_to_string('email_temp.html', {
                             'title': 'Your Account Has Been Created',
                             'otp': f'Hello {user.email}, your account has been created. Your password is {random_password}',
+                            'image': BASE_API+"/static/images/logo.svg"
                         })
 
                         try:

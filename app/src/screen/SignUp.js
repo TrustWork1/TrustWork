@@ -293,7 +293,7 @@ const SignUp = props => {
       <View style={styles.modalViewContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <HTMLTextComponent
-            htmlContent={ProfileReducer?.cmsResponse?.data?.[2]?.content}
+            htmlContent={ProfileReducer?.cmsResponse?.data?.[1]?.content}
           />
         </ScrollView>
       </View>

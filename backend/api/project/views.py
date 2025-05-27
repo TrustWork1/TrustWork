@@ -492,17 +492,17 @@ class ChangeProjectStatusView(APIView):
                 response=gateway.initialize_disbursement(escrow_id=escrow_id)
                 print(response)
                 Transactions.objects.create(escrow_id=escrow_id,status='in_progress',project=project,transaction_type="disbursement")
-            except:
+            except Exception as e:
                 print(f"Disbursement error: {e}")
         
         project.save()
         
         try:
-            sender_profile = Profile.objects.get(user=request.user).id
+            sender_profile = Profile.objects.get(user=request.user)
             # print("Sender",sender_profile)
             transaction = Transactions.objects.filter(project=project).order_by('-created_at').first()
             bid = transaction.bid
-            receiver_profile = bid.service_provider.id
+            receiver_profile = bid.service_provider
             # print("Receiver",receiver_profile)
             
             notification = Notification.objects.create(
@@ -514,11 +514,11 @@ class ChangeProjectStatusView(APIView):
                 project_id=project.id,
                 bid_id=bid.id
             )
-            project_data = ProjectSerializer(project).data
-            notification.send_to_token(extra_data={
-                "project": json.dumps(project_data),
-                "notification_type": "project_completed"
-            })
+            # project_data = ProjectSerializer(project).data
+            # notification.send_to_token(extra_data={
+            #     "project": json.dumps(project_data),
+            #     "notification_type": "project_completed"
+            # })
         except Exception as e:
             print(f"Notification error: {e}")
 

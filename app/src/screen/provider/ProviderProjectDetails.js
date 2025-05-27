@@ -31,6 +31,7 @@ import showErrorAlert from '../../utils/helpers/Toast';
 import NavigationService from '../../navigators/NavigationService';
 import css from '../../themes/css';
 import {createChatRoomRequest} from '../../redux/reducer/ChatReducer';
+import Loader from '../../utils/helpers/Loader';
 
 let status = '';
 let status1 = '';
@@ -631,13 +632,13 @@ const ProviderProjectDetails = props => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* <Loader
+      <Loader
         visible={
           ProjectReducer.status == 'Project/projectDetailsRequest' ||
           ProjectReducer.status == 'Project/getFeedBackRequest' ||
           ProjectReducer.status == 'Project/sendFeedBackRequest'
         }
-      /> */}
+      />
       <Header backIcon={Icons.BackIcon} headerTitle={'Project Details'} />
       <SafeAreaView style={styles.mainContainer}>
         <ScrollView

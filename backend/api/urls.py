@@ -8,7 +8,7 @@ from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQ
 from api.master.views import LocationApiView,JobCategoryApiView
 from api.project.views import ProjectList,ChangeProjectStatusView,ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
 from project_management.models import Project,Bid
-from api.project.mobile_views import MobileBidList, MobileProjectList, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
+from api.project.mobile_views import MobileBidList, MobileProjectList, BidApiView, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
 from api.referal_management.views import ReferalHandlerView, AppReferView
 from api.auth.views import GenerateOTPView, AuthVerifyOTPView, ChangePasswordView,ResendOtp
 from api.chat.views import SendNotificationView,NotificationListView,ChangeNotificationStatusView,NotificationReadStatus,ChatHandlerView,ChatListView # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent 
@@ -155,6 +155,7 @@ urlpatterns = [
     path('bid/status/change/<int:pk>/',BidDetail.as_view(),name='bid'),
     path("project/bid/<int:project_id>",ProjectBidApiView.as_view()),
     
+    path('bid-detail/<int:pk>/',BidApiView.as_view(),name='rejected-bid'),
     path('bid/filtered/', ClientActiveProjectsView.as_view(), name='filtered-project-list'),
     # path('admin/bid/filtered/', ClientProjectsAdminView.as_view(), name='filtered-project-list'),
 

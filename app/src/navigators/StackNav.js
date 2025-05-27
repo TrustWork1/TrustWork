@@ -16,6 +16,7 @@ import HelpSupport from '../screen/HelpSupport';
 import Notification from '../screen/Notification';
 import Payment from '../screen/Payment';
 import Chat from '../screen/provider/Chat';
+import BidDetails from '../screen/provider/BidDetails';
 import ManageService from '../screen/provider/ManageService';
 import PaymentHistory from '../screen/provider/PaymentHistory';
 import PaymentMethods from '../screen/provider/PaymentMethods';
@@ -101,7 +102,7 @@ const StackNav = props => {
               AboutUs,
               Referal,
               Payment,
-              Demo,
+              BidDetails,
             }).map(([name, component]) => {
               return (
                 <Stack.Screen key={name} name={name} component={component} />
@@ -165,6 +166,7 @@ const StackNav = props => {
               AboutUs,
               Referal,
               DocView,
+              BidDetails,
             }).map(([name, component]) => {
               return (
                 <Stack.Screen key={name} name={name} component={component} />

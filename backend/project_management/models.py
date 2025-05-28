@@ -79,12 +79,14 @@ def project_post_save_handler(sender, instance:Project, created, **kwargs):
     try:
         if created:
             sender_profile = instance.client
+
+            if instance.status == "myoffer":
+                # Do NOT handle notification for myoffer, write in views.py (CreateAndOfferProjectAPIView)
+                return
+            
             message = f"Project '{instance.project_title}' has been created by {sender_profile.user.full_name}."
             related_providers = Profile.objects.filter(job_category=instance.project_category).exclude(user=instance.client.user)
-            # related_providers = Project.objects.filter(service_provider=Bid.objects.filter(service_provider__id= instance.client.user.id).values_list('service_provider__id', flat=True))
-            # if instance.status=="myoffer":
-            #     related_providers=instance.bid.service_provider
-            # related_providers = related_providers
+
             for provider in related_providers:
                 try:
                     notification=Notification.objects.create(
@@ -100,10 +102,15 @@ def project_post_save_handler(sender, instance:Project, created, **kwargs):
                     notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"project_creation"})
                 except Exception as e:
                     pass
+            
             sender_data = ProfileSerializer(sender_profile).data
             sender_full_name = sender_data.get('full_name')
+    
     except Exception as e:
         pass
+        # import logging
+        # logger = logging.getLogger(__name__)
+        # logger.error("Signal error: %s", e)
         
         
 @receiver(post_save, sender=Bid)
@@ -112,15 +119,29 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
         if not created:
             if instance.status=="Accepted":
                 message=f"Bid for project -: {instance.project.project_title} has been Accepted."
-                notification=Notification.objects.create(
-                    sender=instance.project.client,
-                    receiver=instance.service_provider,
-                    title="Status of Bid has changed",
-                    message=message,
-                    object_type = "bid accepted",
-                    bid_id = instance.id,
-                    project_id = instance.project.id
-                )
+
+                if instance.project.status == "active":
+                    notification=Notification.objects.create(
+                        sender=instance.service_provider,
+                        receiver=instance.project.client,
+                        title="Status of Bid has changed",
+                        message=message,
+                        object_type = "bid accepted",
+                        bid_id = instance.id,
+                        project_id = instance.project.id
+                    )
+                
+                else:
+                    notification=Notification.objects.create(
+                        sender=instance.project.client,
+                        receiver=instance.service_provider,
+                        title="Status of Bid has changed",
+                        message=message,
+                        object_type = "bid accepted",
+                        bid_id = instance.id,
+                        project_id = instance.project.id
+                    )
+                
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"accepted"})

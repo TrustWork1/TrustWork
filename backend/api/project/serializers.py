@@ -427,7 +427,9 @@ class AdminProjectSerializer(serializers.ModelSerializer):
     
     def get_field_names(self, declared_fields, info):
         fields= super().get_field_names(declared_fields, info)
-        return fields.append("client")
+        # return fields.append("client")
+        fields.append("client")
+        return fields
     def get_email(self, obj):
         return obj.client.user.email
     

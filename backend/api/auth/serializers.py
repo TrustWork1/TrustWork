@@ -95,7 +95,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API+"/static/images/logo.svg"
+            'image': BASE_API
         })
 
         send_mail(
@@ -406,7 +406,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API+"/static/images/logo.svg"
+            'image': BASE_API
         })
         send_mail(
             subject=subject,

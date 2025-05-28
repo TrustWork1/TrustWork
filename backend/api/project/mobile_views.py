@@ -17,6 +17,7 @@ from .serializers import JobCategorySerializer
 from django.db.models import Q
 from rest_framework.parsers import MultiPartParser,JSONParser,FormParser
 from profile_management.models import BankDetails
+from chat_management.models import Notification
 
 class MobileProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -921,8 +922,13 @@ class CreateAndOfferProjectAPIView(APIView):
             project = serializer.save(client=client_profile,project_category=JobCategory.objects.get(id=project_data.get("project_category")), status="myoffer")#.exclude(status__in="completed")
             
             document=request.FILES['document']
+            if document:
+                project.document=document
             
-            Bid.objects.create(
+            project.can_send_bid = True
+            project.save()
+            
+            bid = Bid.objects.create(
                 project=project,
                 service_provider=provider,
                 bid_details="Direct offer from client",
@@ -931,10 +937,19 @@ class CreateAndOfferProjectAPIView(APIView):
                 time_line=str(project.project_timeline),
                 time_line_hour=str(project.project_hrs_week)
             )
-            if document:
-                project.document=document
-            project.can_send_bid = True
-            project.save()
+            
+            message = f"Offer Project '{project.project_title}' has been created by {client_profile.user.full_name}."
+            notification = Notification.objects.create(
+                sender=client_profile,
+                receiver=provider,
+                title="New Offer Project Created",
+                message=message,
+                object_type="project offered",
+                project_id=project.id,
+                bid_id=bid.id
+            )
+            project_data = ProjectSerializer(project, context={'request': request}).data
+            notification.send_to_token(extra_data={"project": json.dumps(project_data), "notification_type": "project_creation"})
 
             return Response(
                 {

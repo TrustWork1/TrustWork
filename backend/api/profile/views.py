@@ -326,7 +326,7 @@ class ProfileAPIView(APIView):
                         html_message = render_to_string('email_temp.html', {
                             'title': 'Your Account Has Been Created',
                             'otp': f'Hello {user.email}, your account has been created. Your password is {random_password}',
-                            'image': BASE_API+"/static/images/logo.svg"
+                            'image': BASE_API
                         })
 
                         try:

@@ -513,7 +513,7 @@ class QMSResponseApiView(APIView):
                 'subject': data.qms.query,
                 'query': data.qms.answer,
                 'answer': clean_answer,
-                'image': BASE_API+"/static/images/logo.svg"
+                'image': BASE_API
             })
 
             send_mail(

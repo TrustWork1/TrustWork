@@ -543,7 +543,7 @@ class GenerateOTPView(APIView):
         html_message = render_to_string('email_temp.html', {
             'title': 'Password Reset OTP',
             'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.',
-            'image': BASE_API+"/static/images/logo.svg"
+            'image': BASE_API
         })
         
         try:
@@ -742,7 +742,7 @@ def send_otp_email(email, otp):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API+"/static/images/logo.svg"
+            'image': BASE_API
         })
 
         send_mail(

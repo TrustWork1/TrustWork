@@ -627,12 +627,13 @@ class ProjectBidApiView(APIView):
                 Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
             elif action == "accept":
                 bid.status = 'Accepted'
-                bid.save()
+                
                 if bid.project.status=="myoffer":
                     bid.project.status="active"
-                    # Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
+                    Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
 
                     bid.project.save()
+                bid.save()
                 # bid.project.project_budget=bid.project_total_cost
                 # bid.project.save()
                 #ddd

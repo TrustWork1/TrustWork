@@ -3,12 +3,28 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from content_management.models.terms_condition_page_models import *
 from api.content_management_servies.serializers.terms_condition_page_serializers import *
 
 class TermsConditionsSectionView(APIView):
     permission_classes=[IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Terms Conditions Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={200: TermsConditionsSectionSerializer(many=True), 400: "Bad Request"},
+    )
     def get(self, request):
         section = TermsConditionsSection.objects.last()
         if not section:
@@ -17,6 +33,20 @@ class TermsConditionsSectionView(APIView):
         serializer = TermsConditionsSectionSerializer(section)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Terms Conditions Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=TermsConditionsSectionSerializer,
+        responses={200: TermsConditionsSectionSerializer(many=True), 400: "Bad Request"},
+    )
     def post(self, request):
         # Check if TermsConditionsSection already exists
         if TermsConditionsSection.objects.exists():
@@ -30,6 +60,20 @@ class TermsConditionsSectionView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        operation_description="Terms Conditions Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=TermsConditionsSectionSerializer,
+        responses={200: TermsConditionsSectionSerializer(many=True), 400: "Bad Request"},
+    )
     def put(self, request):
         feature_section = TermsConditionsSection.objects.first()
         if not feature_section:
@@ -44,6 +88,11 @@ class TermsConditionsSectionView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TermsConditionsView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Terms Conditions Page",
+        responses={200: "Privacy Policy Page Fetched successfully", 400: "Bad Request"},
+    )
     def get(self, request):
         response_data = {}
 

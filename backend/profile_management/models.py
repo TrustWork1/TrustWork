@@ -65,7 +65,8 @@ class PreviousWorks(AbstractModel):
 class ProfileMembership(AbstractModel):
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
     membership_plan = models.ForeignKey(MembershipPlans, on_delete=models.CASCADE)
-    start_date = models.DateField(default=timezone.now)
+    # start_date = models.DateField(default=timezone.now)
+    start_date = models.DateField(default=timezone.localdate)
     end_date = models.DateField(null=True, blank=True)
 
     def __str__(self):

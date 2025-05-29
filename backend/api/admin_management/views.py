@@ -546,7 +546,7 @@ class DashboardAnalyticsView(APIView):
         providers = CustomUser.objects.filter(user_type="provider").count()
         
         # Aggregate total project budget for active projects
-        total_transaction = Transactions.objects.filter(status="completed").annotate(
+        total_transaction = Transactions.objects.filter(status="completed", transaction_type="collection").annotate(
             cost=Cast('bid__project_total_cost', FloatField())
         ).aggregate(total=Sum('cost'))['total'] or 0
 

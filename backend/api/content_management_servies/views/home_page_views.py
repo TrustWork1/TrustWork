@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from content_management.models.home_page_models import *
 from api.content_management_servies.serializers.home_page_serializers import *
@@ -613,6 +615,11 @@ class PackagesSectionView(APIView):
 
 
 class HomePageView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Home Page",
+        responses={200: "Home Page Fetched successfully", 400: "Bad Request"},
+    )
     def get(self, request):
         response_data = {}
 

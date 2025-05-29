@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from content_management.models.home_page_models import DownloadSection
 from content_management.models.aboutus_page_models import *
@@ -16,6 +18,20 @@ BASE_API = os.getenv('BASE_API')
 
 class AboutUsSectionView(APIView):
     permission_classes=[IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="About-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={200: AboutUsSerializer(many=True), 400: "Bad Request"},
+    )
     def get(self, request):
         try:
             about_us = AboutUs.objects.last()
@@ -32,7 +48,21 @@ class AboutUsSectionView(APIView):
             return Response(data, status=status.HTTP_200_OK)
         except:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+    @swagger_auto_schema(
+        operation_description="About-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=AboutUsSerializer,
+        responses={200: AboutUsSerializer, 400: "Bad Request"},
+    )
     def post(self, request):
         # Check if AboutUs already has data
         if AboutUs.objects.exists():
@@ -50,6 +80,20 @@ class AboutUsSectionView(APIView):
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(
+        operation_description="About-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=AboutUsSerializer,
+        responses={200: AboutUsSerializer, 400: "Bad Request"},
+    )
     def put(self, request):
         try:
             about_us = AboutUs.objects.last()
@@ -72,6 +116,20 @@ class AboutUsSectionView(APIView):
 
 class TrustUsSectionView(APIView):
     permission_classes=[IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Why You Trush us in About-Us Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={200: WhyYouTrustUsSectionSerializer(many=True), 400: "Bad Request"},
+    )
     def get(self, request):
         try:
             trustus_section = WhyYouTrustUsSection.objects.last()
@@ -88,6 +146,20 @@ class TrustUsSectionView(APIView):
         except:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(
+        operation_description="Why You Trush us in About-Us Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=WhyYouTrustUsSectionSerializer,
+        responses={200: WhyYouTrustUsSectionSerializer, 400: "Bad Request"},
+    )
     def post(self, request):
         # Check if WhyYouTrustUsSection already exists
         if WhyYouTrustUsSection.objects.exists():
@@ -101,6 +173,20 @@ class TrustUsSectionView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        operation_description="Why You Trush us in About-Us Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=WhyYouTrustUsSectionSerializer,
+        responses={200: WhyYouTrustUsSectionSerializer, 400: "Bad Request"},
+    )
     def put(self, request):
         trustus_section = WhyYouTrustUsSection.objects.first()
         if not trustus_section:
@@ -117,6 +203,33 @@ class TrustUsSectionView(APIView):
 
 class TrustUsFeatureView(APIView):
     permission_classes=[IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Why You Trush us(Features) in About-Us Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name='id',
+                in_=openapi.IN_QUERY,
+                description="Why You Trush us Features ID",
+                type=openapi.TYPE_NUMBER,
+                required=False
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Success",
+            ),
+            404: "Feature not found",
+            400: "Bad Request"
+        }
+    )
     def get(self, request, pk=None):
         if pk:
             try:
@@ -172,6 +285,26 @@ class TrustUsFeatureView(APIView):
 
         return Response({"message": "Why-You-Trust-Us Feature updated successfully"}, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Why You Trush us(Features) in About-Us Page",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name='id',
+                in_=openapi.IN_QUERY,
+                description="Why You Trush us Features ID",
+                type=openapi.TYPE_NUMBER,
+                required=True
+            ),
+        ],
+        responses={200: "Why-You-Trust-Us Feature deleted successfully", 400: "Bad Request"},
+    )
     def delete(self, request, pk=None):
         try:
             feature = WhyYouTrustUsFeature.objects.get(id=pk)
@@ -181,6 +314,11 @@ class TrustUsFeatureView(APIView):
             return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class AboutUsView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="About-Us Page",
+        responses={200: "About-Us Page Fetched successfully", 400: "Bad Request"},
+    )
     def get(self, request):
         response_data = {}
 

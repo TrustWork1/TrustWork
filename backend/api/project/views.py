@@ -488,10 +488,23 @@ class ChangeProjectStatusView(APIView):
         if request.data.get("status")=="completed":
             try:
                 gateway=PaymentGatewayAPI()
-                escrow_id=Transactions.objects.get(project=project).escrow_id
-                response=gateway.initialize_disbursement(escrow_id=escrow_id)
-                print(response)
-                Transactions.objects.create(escrow_id=escrow_id,status='in_progress',project=project,transaction_type="disbursement")
+                latest_transaction = Transactions.objects.filter(project=project).order_by('-created_at').first()
+                escrow_id = latest_transaction.escrow_id if latest_transaction else None
+                # escrow_id=Transactions.objects.get(project=project).escrow_id
+
+                if escrow_id:
+                    response = gateway.initialize_disbursement(escrow_id=escrow_id)
+                    print(response)
+                    Transactions.objects.create(
+                        escrow_id=escrow_id,
+                        status='in_progress',
+                        project=project,
+                        bid=latest_transaction.bid,
+                        transaction_type="disbursement"
+                    )
+                else:
+                    print("No escrow_id found for the latest transaction.")
+                
             except Exception as e:
                 print(f"Disbursement error: {e}")
         

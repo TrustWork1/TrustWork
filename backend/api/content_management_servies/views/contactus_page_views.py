@@ -3,12 +3,28 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from content_management.models.contactus_page_models import *
 from api.content_management_servies.serializers.contactus_page_serializers import *
 
 class ContactUsDetailsView(APIView):
     permission_classes=[IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Contact-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={200: ContactUsSerializer(many=True), 400: "Bad Request"},
+    )
     def get(self, request):
         try:
             contact_us = ContactUs.objects.last()
@@ -23,6 +39,20 @@ class ContactUsDetailsView(APIView):
         except Exception as e:
             return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(
+        operation_description="Contact-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=ContactUsSerializer,
+        responses={200: ContactUsSerializer, 400: "Bad Request"},
+    )
     def post(self, request):
         if ContactUs.objects.exists():
             return Response({"error": "Contact Us Section already exists"}, status=status.HTTP_400_BAD_REQUEST)
@@ -34,6 +64,20 @@ class ContactUsDetailsView(APIView):
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        operation_description="Contact-Us Page Section",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=ContactUsSerializer,
+        responses={200: ContactUsSerializer, 400: "Bad Request"},
+    )
     def put(self, request):
         try:
             about_us = ContactUs.objects.last()
@@ -57,6 +101,26 @@ class ContactUsFormView(APIView):
             return [IsAuthenticated()]
         return [AllowAny()]
     
+    @swagger_auto_schema(
+        operation_description="Contact-Us Form",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name='id',
+                in_=openapi.IN_QUERY,
+                description="Contact-Us Form ID",
+                type=openapi.TYPE_NUMBER,
+                required=False
+            ),
+        ],
+        responses={200: ContactFormSerializer(many=True), 400: "Bad Request"},
+    )
     def get(self, request, pk=None):
         if pk:
             try:
@@ -70,6 +134,20 @@ class ContactUsFormView(APIView):
             serializer = ContactFormSerializer(contacts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Contact-Us Form",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        request_body=ContactFormSerializer,
+        responses={200: ContactFormSerializer(many=True), 400: "Bad Request"},
+    )
     def post(self, request):
         serializer = ContactFormSerializer(data=request.data)
         if serializer.is_valid():
@@ -91,6 +169,26 @@ class ContactUsFormView(APIView):
     #         return Response(serializer.data, status=status.HTTP_200_OK)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        operation_description="Contact-Us Form",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                name='id',
+                in_=openapi.IN_QUERY,
+                description="Contact-Us Form ID",
+                type=openapi.TYPE_NUMBER,
+                required=True
+            ),
+        ],
+        responses={200: "ContactForm deleted successfully", 400: "Bad Request"},
+    )
     def delete(self, request, pk=None):
         if not pk:
             return Response({"error": "ContactForm ID is required for deletion"}, status=status.HTTP_400_BAD_REQUEST)
@@ -102,6 +200,11 @@ class ContactUsFormView(APIView):
             return Response({"error": "ContactForm not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class ContactUsView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Contact-Us Page",
+        responses={200: "Contact-Us Page Fetched successfully", 400: "Bad Request"},
+    )
     def get(self, request):
         response_data = {}
 

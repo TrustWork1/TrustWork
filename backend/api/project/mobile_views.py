@@ -457,7 +457,7 @@ class MobileBidList(APIView):
     )
     def post(self, request):
         service_provider=Profile.objects.get(user=request.user)
-        check_bank_account = BankDetails.objects.filter(user_profile=service_provider.id).exists()
+        check_bank_account = BankDetails.objects.filter(user_profile=service_provider.id, status="active").exists()
         if not check_bank_account:
             return Response({
                 "status": "400",

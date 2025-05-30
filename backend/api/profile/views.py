@@ -952,11 +952,39 @@ class BankDetailsAPIView(APIView):
                         )
                         final_stripe_account_id = account.id
 
+                        account_link = stripe.AccountLink.create(
+                            account=final_stripe_account_id,
+                            refresh_url=f"{BASE_API}/reauth",
+                            return_url=f"{BASE_API}/onboarding-return",
+                            type="account_onboarding",
+                        )
+                        # print("Send this link to user:", account_link.url)
+                        
+                        verify_link = (
+                            "Please activate your bank account.<br>"
+                            "This is required for first-time setup.<br><br>"
+                            f"<a href='{account_link.url}'>Click here to verify your Stripe account</a>"
+                        )
+                        html_content = render_to_string('email_temp.html', {
+                            'title': 'Stripe Account Verification',
+                            'verify_link': verify_link,
+                            'image': BASE_API
+                        })
+
+                        send_mail(
+                            subject="Account Verification",
+                            message=f"{request.data['response']}",
+                            html_message = html_content,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[email],
+                        )
+
                     fingerprint = external_account.fingerprint
                     if BankDetails.objects.filter(user_profile=user_profile, bank_account_fingerprint=fingerprint).exists():
                         return Response({"error": "Bank account already exists."}, status=400)
                     
                     new_bank_details = BankDetails.objects.create(
+                        status="inactive",
                         user_profile=user_profile,
                         bank_name=data.get('bank_name'),
                         bank_account_number=external_account.last4,
@@ -1006,19 +1034,30 @@ class BankDetailsAPIView(APIView):
     
     def get(self, request, pk=None):
         try:
+            user_profile = Profile.objects.get(user__id=request.user.id).pk
+            bank_status_qs = BankDetails.objects.filter(user_profile_id=user_profile, payment_type="stripe")
+            stripe_account_id = bank_status_qs.first().stripe_account_id
+            stripe_account = stripe.Account.retrieve(stripe_account_id)
+            is_activated = (
+                # not stripe_account["requirements"]["currently_due"] and
+                # not stripe_account["requirements"]["eventually_due"] and
+                stripe_account["capabilities"].get("transfers") == "active"
+            )
+            bank_status_qs.update(status="active" if is_activated else "inactive")
+            print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
+
             if pk:
                 bank_details = BankDetails.objects.filter(id=pk).first()
                 return Response(BankDetailsSerializer(bank_details).data)
             else:
-                user_profile = Profile.objects.get(user__id=request.user.id)
-                user_profile = user_profile.pk
                 bank_details = BankDetails.objects.filter(user_profile_id=user_profile).order_by('-created_at')
-                
                 serializer = BankDetailsSerializer(bank_details, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
         
         except Profile.DoesNotExist:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        except stripe.error.StripeError as e:
+            return Response({"error": f"Stripe API error: {str(e)}"}, status=status.HTTP_502_BAD_GATEWAY)
         except BankDetails.DoesNotExist:
             return Response({"error": "Bank details not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

@@ -11,6 +11,7 @@ from drf_yasg import openapi
 from chat_management.models import Messages
 from profile_management.models import Profile
 from project_management.models import Project,Transactions
+from profile_management.models import BankDetails
 from rest_framework import generics
 from .serializers import BidSerializerProjectView
 from master.models import JobCategory
@@ -23,6 +24,9 @@ from django.db import IntegrityError
 from django.db import transaction
 from project_management.models import Notification
 import json
+import stripe
+from django.conf import settings
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
 class ProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -487,53 +491,78 @@ class ChangeProjectStatusView(APIView):
         project.status=request.data.get("status")
         if request.data.get("status")=="completed":
             try:
-                gateway=PaymentGatewayAPI()
-                latest_transaction = Transactions.objects.filter(project=project).order_by('-created_at').first()
+                latest_transaction = Transactions.objects.filter(project=project, transaction_type="collection").order_by('-created_at').first()
+                bid = latest_transaction.bid
                 escrow_id = latest_transaction.escrow_id if latest_transaction else None
-                # escrow_id=Transactions.objects.get(project=project).escrow_id
 
-                if escrow_id:
-                    response = gateway.initialize_disbursement(escrow_id=escrow_id)
-                    print(response)
+                receiver_profile = bid.service_provider
+                bank_details = BankDetails.objects.get(user_profile=receiver_profile, is_primary=True)
+                
+                if bank_details.payment_type == "stripe":
+                    total_amount_dollars = float(Bid.objects.get(id=bid.id, status="Accepted").project_total_cost)    # e.g., 6780.0
+                    amount_cents = int(total_amount_dollars * 100)      # e.g., 678000
+
+                    transfer = stripe.Transfer.create(
+                        amount=amount_cents,
+                        currency="usd",
+                        destination=bank_details.stripe_account_id,  # your connected account ID
+                    )
+                    payout = stripe.Payout.create(
+                        amount=amount_cents,
+                        currency="usd",
+                        stripe_account=bank_details.stripe_account_id,  # Connected account ID
+                    )
                     Transactions.objects.create(
-                        escrow_id=escrow_id,
-                        status='in_progress',
+                        escrow_id=payout.id,
+                        status='completed',
                         project=project,
-                        bid=latest_transaction.bid,
+                        bid=bid,
                         transaction_type="disbursement"
                     )
-                else:
-                    print("No escrow_id found for the latest transaction.")
+
+                elif bank_details.payment_type == "mtn":
+                    gateway=PaymentGatewayAPI()
+                    if escrow_id:
+                        response = gateway.initialize_disbursement(escrow_id=escrow_id)
+                        print("Payment response: ",response)
+                        Transactions.objects.create(
+                            escrow_id=escrow_id,
+                            status='in_progress',
+                            project=project,
+                            bid=bid,
+                            transaction_type="disbursement"
+                        )
+                    else:
+                        print("No escrow_id found for the latest transaction.")
+
+                sender_profile = Profile.objects.get(user=request.user)
+                # print("Sender",sender_profile)
+                # print("Receiver",receiver_profile)
+                # print("Full name",receiver_profile.user.full_name)
                 
+                notification = Notification.objects.create(
+                    sender=sender_profile,
+                    receiver=receiver_profile,
+                    title="Project Completed",
+                    message=f"The project '{project.project_title}' has been marked as completed.",
+                    object_type="project completed",
+                    project_id=project.id,
+                    bid_id=bid.id
+                )
+
+                Notification.objects.create(
+                    sender=sender_profile,
+                    receiver=receiver_profile,
+                    title="Payment Received",
+                    message=f"Total amount '{total_amount_dollars}' received from {receiver_profile.user.full_name}.",
+                    object_type="payment received",
+                    project_id=project.id,
+                    bid_id=bid.id
+                )
             except Exception as e:
                 print(f"Disbursement error: {e}")
         
         project.save()
-        
-        try:
-            sender_profile = Profile.objects.get(user=request.user)
-            # print("Sender",sender_profile)
-            transaction = Transactions.objects.filter(project=project).order_by('-created_at').first()
-            bid = transaction.bid
-            receiver_profile = bid.service_provider
-            # print("Receiver",receiver_profile)
-            
-            notification = Notification.objects.create(
-                sender=sender_profile,
-                receiver=receiver_profile,
-                title="Project Completed",
-                message=f"The project '{project.project_title}' has been marked as completed.",
-                object_type="project completed",
-                project_id=project.id,
-                bid_id=bid.id
-            )
-            # project_data = ProjectSerializer(project).data
-            # notification.send_to_token(extra_data={
-            #     "project": json.dumps(project_data),
-            #     "notification_type": "project_completed"
-            # })
-        except Exception as e:
-            print(f"Notification error: {e}")
 
         response = {
             "status" : 202,

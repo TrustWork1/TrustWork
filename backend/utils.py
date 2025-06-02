@@ -112,7 +112,7 @@ def send_otp_sms(phone_number, otp):
 
     conn = http.client.HTTPSConnection("api.sms.to")
     payload = json.dumps({
-        "message": f"Thank you for connecting with TrustWork. Your OTP is {otp}.",
+        "message": f"Thank you for connecting with TrustWork. Your OTP is {otp}. This is test message.",
         "to": phone_number,
         "bypass_optout": True,
         "sender_id": "Trustwork",
@@ -128,4 +128,4 @@ def send_otp_sms(phone_number, otp):
     data = res.read()
     print("PRINTING SMS: ",data.decode("utf-8"))
 
-# send_otp_sms("+237675708549", "6371")
+# send_otp_sms("+237694041826", "1234")

@@ -17,6 +17,7 @@ from drf_yasg import openapi
 from django.db.models import Q, Sum, FloatField
 from django.db.models.functions import Cast
 from datetime import datetime
+from django.utils import timezone
 from django.template.loader import render_to_string
 import re
 import os
@@ -515,15 +516,17 @@ class QMSResponseApiView(APIView):
                 'answer': clean_answer,
                 'image': BASE_API
             })
-
-            send_mail(
-                subject="Trustwork Support",
-                message=f"{request.data['response']}",
-                html_message = html_content,
-                # html_message=f"{request.data['response']}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[data.qms.user.user.email,"swapnil.chopra@webskitters.in"],
-        )
+            try:
+                send_mail(
+                    subject="Trustwork Support",
+                    message=f"{request.data['response']}",
+                    html_message = html_content,
+                    # html_message=f"{request.data['response']}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[data.qms.user.user.email,"swapnil.chopra@webskitters.in"],
+                )
+            except Exception as e:
+                print("Mail sending failed:", e)
             response={
                 "status" : 200,
                 "type" : "success",
@@ -531,7 +534,7 @@ class QMSResponseApiView(APIView):
                 "data":serializer.data
             }
             data.qms.status="inactive"
-            data.qms.answer_at=datetime.now()
+            data.qms.answer_at=timezone.now()
             data.qms.save()
             return Response(response,status=status.HTTP_201_CREATED)
 
@@ -556,3 +559,29 @@ class DashboardAnalyticsView(APIView):
             "providers": providers,
             "total_transaction": total_transaction
         }, status=status.HTTP_200_OK)
+
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from profile_management.models import BankDetails, Profile
+import stripe
+from django.shortcuts import redirect, get_object_or_404
+
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+
+# class OnboardingReturn(APIView):
+def onboarding_return(request):
+    return HttpResponse("✅ Stripe onboarding completed. You may now use your account.")
+
+def reauth_with_token(request, token):
+    bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe").order_by('-created_at').first()
+    if not bank or not bank.stripe_account_id:
+        return redirect("https://trustwork-dev.dedicateddevelopers.us/")
+    
+    account_link = stripe.AccountLink.create(
+        account=bank.stripe_account_id,
+        refresh_url=f"{BASE_API}/api/reauth/{token}/",
+        return_url="https://trustwork-dev.dedicateddevelopers.us/",
+        type="account_onboarding",
+    )
+
+    return redirect(account_link.url)

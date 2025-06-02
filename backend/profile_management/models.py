@@ -31,6 +31,7 @@ class BankDetails(AbstractModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     payment_type = models.CharField(max_length=25, null=True, blank=True)
+    onboarding_token = models.UUIDField(editable=False, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not BankDetails.objects.filter(user_profile=self.user_profile).exists():

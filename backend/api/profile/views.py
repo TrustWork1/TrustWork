@@ -31,11 +31,13 @@ from master.models import Location
 import stripe, logging
 from django.db.models import Q
 from django.http import Http404
+from uuid import uuid4
 import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
 BASE_API = os.getenv('BASE_API')
+MTN_DISBURSEMTS_SECRET_KEY = os.getenv('MTN_DISBURSEMTS_SECRET_KEY')
 
 
 from rest_framework import generics, permissions
@@ -892,6 +894,82 @@ def get_currency_code(country_code):
     else:
         return "Country not found"
 
+def mtn_account_check(phone_number):
+    import requests
+    try:
+        # === Step 0: Setup ===
+        uuidgen = str(uuid4())  # This is your client_id
+        subscription_key = MTN_DISBURSEMTS_SECRET_KEY
+
+        # === Step 1: Create API User ===
+        apiuser_url = "https://sandbox.momodeveloper.mtn.com/v1_0/apiuser"
+        payload = {
+            "providerCallbackHost": "http://127.0.0.1:8000/callback"
+        }
+        headers = {
+            'X-Reference-Id': uuidgen,
+            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': subscription_key
+        }
+
+        res1 = requests.post(apiuser_url, headers=headers, json=payload)
+        if res1.status_code != 201:
+            print("❌ Failed to create API user:", res1.text)
+            return {"error": "API user creation failed", "details": res1.text}
+
+        # === Step 2: Generate API Key ===
+        apikey_url = f"https://sandbox.momodeveloper.mtn.com/v1_0/apiuser/{uuidgen}/apikey"
+        res2 = requests.post(apikey_url, headers={'Ocp-Apim-Subscription-Key': subscription_key})
+        if res2.status_code != 201:
+            print("❌ Failed to generate API key:", res2.text)
+            return {"error": "API key generation failed", "details": res2.text}
+        client_secret = res2.json().get("apiKey")
+
+        # === Step 3: Get Access Token ===
+        token_url = "https://sandbox.momodeveloper.mtn.com/disbursement/token/"
+        basic_auth = requests.auth._basic_auth_str(uuidgen, client_secret)
+        token_headers = {
+            "Authorization": basic_auth,
+            "Ocp-Apim-Subscription-Key": subscription_key,
+        }
+
+        token_res = requests.post(token_url, headers=token_headers)
+        if token_res.status_code != 200:
+            print("❌ Failed to get access token:", token_res.text)
+            return {"error": "Access token fetch failed", "details": token_res.text}
+
+        access_token = token_res.json().get("access_token")
+
+        # === Step 4: Validate Account ===
+        validation_url = f"https://sandbox.momodeveloper.mtn.com/disbursement/v1_0/accountholder/msisdn/{phone_number}/basicuserinfo"
+        validation_headers = {
+            "Authorization": f"Bearer {access_token}",
+            "X-Target-Environment": "sandbox",
+            "Ocp-Apim-Subscription-Key": subscription_key
+        }
+
+        validation_res = requests.get(validation_url, headers=validation_headers)
+        if validation_res.status_code == 200:
+            validation_data = validation_res.json()
+            print("✅ MTN Account validation successful:", validation_data)
+        else:
+            validation_data = {
+                "status_code": validation_res.status_code,
+                "error": validation_res.text
+            }
+            print("⚠️ MTN Account validation failed:", validation_data)
+
+        return {
+            # "client_id": uuidgen,
+            # "client_secret": client_secret,
+            # "access_token": access_token,
+            "validation_result": validation_data
+        }
+
+    except Exception as e:
+        print("❌ MTN Error:", str(e))
+        return {"error": "Exception occurred", "details": str(e)}
+
 class BankDetailsAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -905,7 +983,7 @@ class BankDetailsAPIView(APIView):
             
             bank_account_number = data.get('bank_account_number', '')
             phone_extension = data.get('phone_extension', '')
-            payment_type = data.get('payment_type')
+            payment_type = data.get('payment_type', '')
             
             if payment_type.lower() == "stripe":
                 # Checking if a Stripe account already exists
@@ -951,33 +1029,37 @@ class BankDetailsAPIView(APIView):
                             external_account=bank_token.id
                         )
                         final_stripe_account_id = account.id
+                        uuidgen = str(uuid4())
 
                         account_link = stripe.AccountLink.create(
                             account=final_stripe_account_id,
-                            refresh_url=f"{BASE_API}/reauth",
-                            return_url=f"{BASE_API}/onboarding-return",
+                            refresh_url=f"{BASE_API}/api/reauth/{uuidgen}/",
+                            return_url="https://trustwork-dev.dedicateddevelopers.us/",
                             type="account_onboarding",
                         )
-                        # print("Send this link to user:", account_link.url)
+                        print("Send this link to user:", account_link.url)
                         
-                        verify_link = (
-                            "Please activate your bank account.<br>"
-                            "This is required for first-time setup.<br><br>"
-                            f"<a href='{account_link.url}'>Click here to verify your Stripe account</a>"
-                        )
+                        # verify_link = (
+                        #     "Please activate your bank account.<br>"
+                        #     "This is required for first-time setup.<br><br>"
+                        #     f"<a href='{account_link.url}'>Click here to verify your Stripe account</a>"
+                        # )
                         html_content = render_to_string('email_temp.html', {
                             'title': 'Stripe Account Verification',
-                            'verify_link': verify_link,
+                            'verify_link': f'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
+                            'url': account_link.url,
                             'image': BASE_API
                         })
-
-                        send_mail(
-                            subject="Account Verification",
-                            message=f"{request.data['response']}",
-                            html_message = html_content,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email],
-                        )
+                        try:
+                            send_mail(
+                                subject="Account Verification",
+                                message = "Please complete your Stripe account setup.",
+                                html_message = html_content,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[email],
+                            )
+                        except Exception as e:
+                            print("Mail sending failed:", e)
 
                     fingerprint = external_account.fingerprint
                     if BankDetails.objects.filter(user_profile=user_profile, bank_account_fingerprint=fingerprint).exists():
@@ -997,6 +1079,7 @@ class BankDetailsAPIView(APIView):
                         bank_account_fingerprint=fingerprint,
                         account_holder_name = username,
                         payment_type = payment_type,
+                        onboarding_token = uuidgen,
                     )
 
                     return Response({
@@ -1016,18 +1099,38 @@ class BankDetailsAPIView(APIView):
                 has_account = BankDetails.objects.filter(user_profile=user_profile, bank_account_number=full_account_number).exists()
                 if has_account:
                     return Response({"error": "This account already exists"}, status=status.HTTP_400_BAD_REQUEST)
-                
-                BankDetails.objects.create(
-                    user_profile=user_profile,
-                    bank_account_number=full_account_number,
-                    account_holder_name = username,
-                    payment_type = payment_type,
-                )
-                return Response({
-                    "status": 200,
-                    "type": "success",
-                    "message": "Bank account added successfully"
-                }, status=status.HTTP_200_OK)
+                try:
+                    mtn_data=mtn_account_check(full_account_number)
+
+                    if mtn_data and mtn_data.get("validation_result", {}).get("status_code") == 200:
+                        BankDetails.objects.create(
+                            user_profile=user_profile,
+                            bank_account_number=full_account_number,
+                            account_holder_name = username,
+                            payment_type = payment_type,
+                        )
+                        return Response({
+                            "status": 200,
+                            "message": "MTN account added successfully",
+                            "type": "success",
+                            "data": mtn_data
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "status": 400,
+                            "message": "Invalid MTN account",
+                            "type": "error",
+                            "data": mtn_data
+                        }, status=status.HTTP_404_NOT_FOUND)
+
+                except Exception as e:
+                    print("MTN Error: ", e)
+                    return Response({
+                        "status": 500,
+                        "type": "error",
+                        "message": str(e)
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1035,22 +1138,26 @@ class BankDetailsAPIView(APIView):
     def get(self, request, pk=None):
         try:
             user_profile = Profile.objects.get(user__id=request.user.id).pk
+            bank_details = BankDetails.objects.filter(user_profile_id=user_profile).order_by('-created_at')
+            if not bank_details:
+                return Response([], status=status.HTTP_200_OK)
             bank_status_qs = BankDetails.objects.filter(user_profile_id=user_profile, payment_type="stripe")
-            stripe_account_id = bank_status_qs.first().stripe_account_id
-            stripe_account = stripe.Account.retrieve(stripe_account_id)
-            is_activated = (
-                # not stripe_account["requirements"]["currently_due"] and
-                # not stripe_account["requirements"]["eventually_due"] and
-                stripe_account["capabilities"].get("transfers") == "active"
-            )
-            bank_status_qs.update(status="active" if is_activated else "inactive")
-            print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
+            if bank_status_qs:
+                stripe_account_id = bank_status_qs.first().stripe_account_id
+                stripe_account = stripe.Account.retrieve(stripe_account_id)
+                is_activated = (
+                    # not stripe_account["requirements"]["currently_due"] and
+                    # not stripe_account["requirements"]["eventually_due"] and
+                    stripe_account["capabilities"].get("transfers") == "active"
+                )
+                bank_status_qs.update(status="active" if is_activated else "inactive")
+                print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
 
             if pk:
                 bank_details = BankDetails.objects.filter(id=pk).first()
                 return Response(BankDetailsSerializer(bank_details).data)
-            else:
-                bank_details = BankDetails.objects.filter(user_profile_id=user_profile).order_by('-created_at')
+            
+            else:  
                 serializer = BankDetailsSerializer(bank_details, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
         

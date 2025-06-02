@@ -4,7 +4,7 @@ from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUp
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView
 from api.profile.views import BankDetailsAPIView,HandleWithdraw,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView
 # from api.bids.views import BidsApiView
-from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView
+from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, onboarding_return, reauth_with_token
 from api.master.views import LocationApiView,JobCategoryApiView
 from api.project.views import ProjectList,ChangeProjectStatusView,ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
 from project_management.models import Project,Bid
@@ -273,4 +273,6 @@ urlpatterns = [
     path('app-refer-content/', AppReferView.as_view(), name='app-refer'),
     path('app-refer-content/<int:pk>', AppReferView.as_view(), name='app-refer-detail'),
     
+    path('onboarding-return', onboarding_return, name='onboarding_return'),
+    path("reauth/<uuid:token>/", reauth_with_token, name="reauth_with_token"),
 ]

@@ -513,7 +513,7 @@ class ChangeProjectStatusView(APIView):
                         stripe_account=bank_details.stripe_account_id,  # Connected account ID
                     )
                     Transactions.objects.create(
-                        escrow_id=payout.id,
+                        stripe_id=payout.id,
                         status='completed',
                         project=project,
                         bid=bid,

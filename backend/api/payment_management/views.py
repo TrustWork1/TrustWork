@@ -94,7 +94,8 @@ class PendingPayment(APIView):
 
             # Get all transactions by user, ordered latest first
             transactions_qs = Transactions.objects.filter(
-                project__client__user=user
+                project__client__user=user,
+                transaction_type="collection"
             ).select_related('bid', 'project').order_by('-created_at', '-id')
 
             # Get latest transaction per (bid_id, project_id)
@@ -377,7 +378,11 @@ class PaymentHistoryApiView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         search_query=request.GET.get("search")
-        transactions=Transactions.objects.filter(bid__service_provider=request.user.profile).exclude(status__iexact=" ")
+        transactions=Transactions.objects.filter(
+            bid__service_provider=request.user.profile,
+            transaction_type="disbursement",
+            # status="completed"
+        ).exclude(status__iexact=" ")
         if search_query:
             transactions=transactions.filter(Q(project__project_title__icontains=search_query)|Q(project__client__user__full_name__icontains=search_query))
             

@@ -64,6 +64,8 @@ class Transactions(AbstractModel):
     status=models.CharField(max_length=100)
     transaction_type=models.CharField(null=True,max_length=100,choices=[("collection","collection"),("disbursement","disbursement")],default="collection")
     project=models.ForeignKey(Project,on_delete=models.PROTECT,null=True)
+    stripe_id=models.CharField(max_length=255, blank=True,null=True)
+
 from django.db.models.signals import post_save,post_delete
 from django.dispatch import receiver
 from project_management.models import Bid,Project,Feedback

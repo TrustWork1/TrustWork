@@ -12,9 +12,14 @@ from django.conf import settings
 import json
 import stripe
 import requests
-from profile_management.models import Subscriptions
+from profile_management.models import Subscriptions, BankDetails, Profile
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+import os
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
+ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
@@ -32,12 +37,35 @@ class EscrowCollectionWebhook(APIView):
         t.project.status="ongoing"
         t.project.save()
         t.save()
+
+        url=f"{ESCROW_BASE_API}/stripe/stripe_payment_status/"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "escrow_id": str(t.escrow_id),
+        }
+        response = requests.post(url, json=data, headers=headers)
         
-        client_notification=Notification.objects.create(reciever=t.bid.project.client,title="Payment Successfull",message=f"Payment for project {t.bid.project.title} is successfull")
-        client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
+        client_notification=Notification.objects.create(
+            sender=t.bid.project.client,
+            receiver=t.bid.project.client,
+            title="Payment Successfull",
+            message=f"Payment for project {t.bid.project.project_title} is successfull",
+            object_type="payment completed",
+            project_id=t.bid.project.id,
+            bid_id=t.bid.id
+        )
         
-        provider_notification=Notification.objects.create(reciever=t.bid.service_provider,title="Payment Successfull",message=f"Payment for bid on project {t.bid.project.title} is successfull")
-        client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
+        # provider_notification=Notification.objects.create(
+        #     sender=t.bid.project.client,
+        #     receiver=t.bid.service_provider,
+        #     title="Payment Successfull",
+        #     message=f"Payment for bid on project {t.bid.project.project_title} is successfull",
+        #     object_type="payment completed",
+        #     project_id=t.bid.project.id,
+        #     bid_id=t.bid.id
+        # )
+        # client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
+        # provider_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
         
         return Response({})
     
@@ -82,7 +110,8 @@ class EscrowDisbursementWebhook(APIView):
         except:
             pass
         return Response({})
-    
+
+
 import uuid, hashlib
 def convert_id_to_uuid(original_id):
     sha256_hash = hashlib.sha256(original_id.encode()).hexdigest()
@@ -108,7 +137,7 @@ class ProcessStripeSession(APIView):
     #     payment = Transactions.objects.filter(bid_id=bid_id) # project_id=project_id, bid_id=bid_id,
     #     try:
             
-    #         project_b_url = "https://trustwork-escrow.dedicateddevelopers.us/webhooks/stripe/process-session/" # stripe/api/process-stripe-session/   /stripe/process-session/"
+    #         project_b_url = f"{ESCROW_BASE_API}/webhooks/stripe/process-session/" # stripe/api/process-stripe-session/   /stripe/process-session/"
     #     # project_b_url = "http://127.0.0.1:8000/webhooks/stripe/process-session/" # /stripe/process-session/"
     #         payload = {'session_id': session_id, 'bid_id':bid_id}
     #         response = requests.post(project_b_url, json=payload)
@@ -144,7 +173,7 @@ class ProcessStripeSession(APIView):
 
         try:
             # Send request to external project
-            project_b_url = "https://trustwork-escrow.dedicateddevelopers.us/webhooks/stripe/process-session/"
+            project_b_url = f"{ESCROW_BASE_API}/webhooks/stripe/process-session/"
             payload = {'session_id': session_id, 'bid_id': bid_id}
             response = requests.post(project_b_url, json=payload)
             response_data = response.json()
@@ -200,8 +229,6 @@ class ProcessStripeSession(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GooglePlayWebhookView(APIView):
-    # https://trustwork-api.dedicateddevelopers.us/api/webhooks/google-play/
-
     def post(self, request):
         import base64
 
@@ -229,7 +256,6 @@ class GooglePlayWebhookView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AppStoreWebhookView(APIView):
-    # https://trustwork-api.dedicateddevelopers.us/api/webhooks/app-store/
     def post(self, request):
         import jwt
 

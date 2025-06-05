@@ -14,7 +14,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
 class AboutUsSectionView(APIView):
     permission_classes=[IsAuthenticated]
@@ -41,9 +41,9 @@ class AboutUsSectionView(APIView):
             serializer = AboutUsSerializer(about_us)
             data = serializer.data
             if about_us.image1:
-                data['image1'] = BASE_API+about_us.image1.url
+                data['image1'] = TRUSTWORK_BASE_API+about_us.image1.url
             if about_us.image2:
-                data['image2'] = BASE_API+about_us.image2.url
+                data['image2'] = TRUSTWORK_BASE_API+about_us.image2.url
             
             return Response(data, status=status.HTTP_200_OK)
         except:
@@ -139,9 +139,9 @@ class TrustUsSectionView(APIView):
             serializer = WhyYouTrustUsSectionSerializer(trustus_section)
             data = serializer.data
             if trustus_section.section_image:
-                data['section_image'] = BASE_API+trustus_section.section_image.url
+                data['section_image'] = TRUSTWORK_BASE_API+trustus_section.section_image.url
             if trustus_section.image:
-                data['image'] = BASE_API+trustus_section.image.url
+                data['image'] = TRUSTWORK_BASE_API+trustus_section.image.url
             return Response(data, status=status.HTTP_200_OK)
         except:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -238,7 +238,7 @@ class TrustUsFeatureView(APIView):
                     "id": feature.id,
                     "title": feature.title,
                     "description": feature.description,
-                    "icon": BASE_API+feature.icon.url if feature.icon else None
+                    "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                 }
             except WhyYouTrustUsFeature.DoesNotExist:
                 return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -249,7 +249,7 @@ class TrustUsFeatureView(APIView):
                     "id": feature.id,
                     "title": feature.title,
                     "description": feature.description,
-                    "icon": BASE_API+feature.icon.url if feature.icon else None
+                    "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                 }
                 for feature in features
             ]
@@ -331,8 +331,8 @@ class AboutUsView(APIView):
                 "section_description": about_us.section_description,
                 "title": about_us.title,
                 "description": about_us.description,
-                "image1": BASE_API+about_us.image1.url if about_us.image1 else None,
-                "image2": BASE_API+about_us.image2.url if about_us.image2 else None
+                "image1": TRUSTWORK_BASE_API+about_us.image1.url if about_us.image1 else None,
+                "image2": TRUSTWORK_BASE_API+about_us.image2.url if about_us.image2 else None
             }
         
         # Why You Trust Us Header
@@ -343,17 +343,17 @@ class AboutUsView(APIView):
                 "id": trustus_section.id,
                 "section_header": trustus_section.section_header,
                 "section_description": trustus_section.section_description,
-                "section_image": BASE_API+trustus_section.section_image.url if trustus_section.section_image else None,
+                "section_image": TRUSTWORK_BASE_API+trustus_section.section_image.url if trustus_section.section_image else None,
                 "features": [
                     {
                         "id": feature.id,
                         "title": feature.title,
                         "description": feature.description,
-                        "icon": BASE_API+feature.icon.url if feature.icon else None
+                        "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                     }
                     for feature in features
                 ],
-                "image": BASE_API+trustus_section.image.url if trustus_section.image else None,
+                "image": TRUSTWORK_BASE_API+trustus_section.image.url if trustus_section.image else None,
                 "mission_title": trustus_section.mission_title,
                 "mission_description": trustus_section.mission_description,
                 "vision_title": trustus_section.vision_title,
@@ -369,6 +369,6 @@ class AboutUsView(APIView):
                 "description": download_section.description,
                 "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
                 "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None,
-                "image": BASE_API+download_section.image.url if download_section.image else None,
+                "image": TRUSTWORK_BASE_API+download_section.image.url if download_section.image else None,
             }
         return Response(response_data, status=status.HTTP_200_OK)

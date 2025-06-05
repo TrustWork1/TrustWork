@@ -36,7 +36,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 MTN_DISBURSEMTS_SECRET_KEY = os.getenv('MTN_DISBURSEMTS_SECRET_KEY')
 
 
@@ -56,13 +56,18 @@ class ProfileAPIViewSearch(APIView):
         search_query = request.query_params.get('search', '')
         print(request.user.user_type)
         print(user_type)
+        profiles = Profile.objects.filter(user__user_type__icontains=user_type.strip())
         if search_query:
-            profiles = Profile.objects.filter(user__user_type__icontains=user_type.strip()).filter(Q(user__full_name__icontains=search_query)|Q(user__email__icontains=search_query))
-        else:
-            profiles = Profile.objects.all()[:10]
-
-        serializer = ProfileSerializer(profiles, many=True)
-        return Response(serializer.data)
+            profiles = profiles.filter(
+                Q(user__full_name__icontains=search_query)|
+                Q(user__email__icontains=search_query))
+        
+        paginator = CustomPagination()
+        profiles = profiles.order_by("-id", "-updated_at")
+        paginated_profiles = paginator.paginate_queryset(profiles, request)
+        
+        serializer = ProfileSerializer(paginated_profiles, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class ProfileSelfView(APIView):
@@ -189,15 +194,13 @@ class ProfileAPIView(APIView):
             if user_type:
                 profiles = profiles.filter(user__user_type=user_type)
             
-            phone = request.query_params.get('search', None)
-            if phone:
-                profiles = Profile.objects.filter(phone__icontains=phone) 
-            email = request.query_params.get('search', None)
-            if email:
-                profiles = Profile.objects.filter(user__email__icontains=email) 
-            full_name = request.query_params.get('search', None)
-            if full_name:
-                profiles = profiles|Profile.objects.filter(user__full_name__icontains=full_name)
+            search = request.query_params.get('search')
+            if search:
+                profiles = profiles.filter(
+                    Q(phone__icontains=search) |
+                    Q(user__email__icontains=search) |
+                    Q(user__full_name__icontains=search)
+                )
             paginator = CustomPagination()
             profiles = profiles.order_by("-id", "-updated_at")
             paginated_profiles = paginator.paginate_queryset(profiles, request)
@@ -328,7 +331,7 @@ class ProfileAPIView(APIView):
                         html_message = render_to_string('email_temp.html', {
                             'title': 'Your Account Has Been Created',
                             'otp': f'Hello {user.email}, your account has been created. Your password is {random_password}',
-                            'image': BASE_API
+                            'image': TRUSTWORK_BASE_API
                         })
 
                         try:
@@ -1033,7 +1036,7 @@ class BankDetailsAPIView(APIView):
 
                         account_link = stripe.AccountLink.create(
                             account=final_stripe_account_id,
-                            refresh_url=f"{BASE_API}/api/reauth/{uuidgen}/",
+                            refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{uuidgen}/",
                             return_url="https://trustwork-dev.dedicateddevelopers.us/",
                             type="account_onboarding",
                         )
@@ -1048,7 +1051,7 @@ class BankDetailsAPIView(APIView):
                             'title': 'Stripe Account Verification',
                             'verify_link': f'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
                             'url': account_link.url,
-                            'image': BASE_API
+                            'image': TRUSTWORK_BASE_API
                         })
                         try:
                             send_mail(
@@ -1085,7 +1088,7 @@ class BankDetailsAPIView(APIView):
                     return Response({
                         "status": 200,
                         "type": "success",
-                        "message": "Bank account added successfully",
+                        "message": "Check your email for activate.",
                         "bank_details": BankDetailsSerializer(new_bank_details).data
                     }, status=status.HTTP_200_OK)
 
@@ -1102,26 +1105,27 @@ class BankDetailsAPIView(APIView):
                 try:
                     mtn_data=mtn_account_check(full_account_number)
 
-                    if mtn_data and mtn_data.get("validation_result", {}).get("status_code") == 200:
-                        BankDetails.objects.create(
-                            user_profile=user_profile,
-                            bank_account_number=full_account_number,
-                            account_holder_name = username,
-                            payment_type = payment_type,
-                        )
-                        return Response({
-                            "status": 200,
-                            "message": "MTN account added successfully",
-                            "type": "success",
-                            "data": mtn_data
-                        }, status=status.HTTP_200_OK)
-                    else:
-                        return Response({
-                            "status": 400,
-                            "message": "Invalid MTN account",
-                            "type": "error",
-                            "data": mtn_data
-                        }, status=status.HTTP_404_NOT_FOUND)
+                    # if mtn_data and mtn_data.get("validation_result", {}).get("status_code") == 200:
+                    #     pass
+                    BankDetails.objects.create(
+                        user_profile=user_profile,
+                        bank_account_number=full_account_number,
+                        account_holder_name = username,
+                        payment_type = payment_type,
+                    )
+                    return Response({
+                        "status": 200,
+                        "message": "MTN account added successfully",
+                        "type": "success",
+                        # "data": mtn_data
+                    }, status=status.HTTP_200_OK)
+                    # else:
+                    #     return Response({
+                    #         "status": 400,
+                    #         "message": "Invalid MTN account",
+                    #         "type": "error",
+                    #         "data": mtn_data
+                    #     }, status=status.HTTP_404_NOT_FOUND)
 
                 except Exception as e:
                     print("MTN Error: ", e)
@@ -1186,7 +1190,11 @@ class BankDetailsAPIView(APIView):
                 if total_bank.count() > 1:
                     return Response({"error": "You cannot delete the default/primary account"}, status=400)
             
+            if bank_details.payment_type == "mtn":
+                bank_details.delete()
+
             if bank_details.payment_type == "stripe":
+                total_bank = total_bank.filter(payment_type="stripe")
                 # If it's the only bank, delete the whole Stripe account
                 if total_bank.count() == 1:
                     try:
@@ -1204,7 +1212,7 @@ class BankDetailsAPIView(APIView):
                 except stripe.error.StripeError as e:
                     return Response({"error": f"Stripe error: {e.user_message}"}, status=400)
             
-            bank_details.delete()
+                bank_details.delete()
             return Response({"message": "Bank account deleted successfully"}, status=200)
         
         except Http404:

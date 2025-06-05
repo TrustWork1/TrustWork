@@ -37,7 +37,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
 
 class RegisterView(APIView):
@@ -235,7 +235,26 @@ class LoginView(APIView):
                 return Response({'error': 'User Not verified'}, status=status.HTTP_400_BAD_REQUEST)
                 
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        error_messages = serializer.errors
+
+        # Extract first error message
+        if isinstance(error_messages, dict):
+            first_error_key = next(iter(error_messages))
+            first_error_value = error_messages[first_error_key]
+            if isinstance(first_error_value, list):
+                error_message = first_error_value[0]
+            else:
+                error_message = first_error_value
+        else:
+            error_message = "Invalid data"
+
+        return Response({
+            "status": "400",
+            "message": "Failed",
+            "type": "error",
+            "error": error_message
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -543,7 +562,7 @@ class GenerateOTPView(APIView):
         html_message = render_to_string('email_temp.html', {
             'title': 'Password Reset OTP',
             'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.',
-            'image': BASE_API
+            'image': TRUSTWORK_BASE_API
         })
         
         try:
@@ -742,7 +761,7 @@ def send_otp_email(email, otp):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API
+            'image': TRUSTWORK_BASE_API
         })
 
         send_mail(

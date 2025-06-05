@@ -6,7 +6,7 @@ from api.profile.views import BankDetailsAPIView,HandleWithdraw,ProfileDetailUpd
 # from api.bids.views import BidsApiView
 from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, onboarding_return, reauth_with_token
 from api.master.views import LocationApiView,JobCategoryApiView
-from api.project.views import ProjectList,ChangeProjectStatusView,ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
+from api.project.views import ProjectList,ChangeProjectStatusView, StripeDisbursementStatus, ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
 from project_management.models import Project,Bid
 from api.project.mobile_views import MobileBidList, MobileProjectList, BidApiView, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
 from api.referal_management.views import ReferalHandlerView, AppReferView
@@ -145,6 +145,7 @@ urlpatterns = [
     path('project/edit/<int:pk>/',ProjectDetail.as_view(),name='project'),
     path('project/delete/<int:pk>/',ProjectDetail.as_view(),name='project'),
     path('project/status/change/<int:pk>/',ChangeProjectStatusView.as_view(),name='project'),
+    path('stripe-payment-status/',StripeDisbursementStatus.as_view(),name='project'),
     path('admin/project/details/<int:pk>/',AdminProjectDetail.as_view(),name='project'),
     
     path('bid/list/',BidList.as_view(),name='bid'),

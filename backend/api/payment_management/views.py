@@ -29,11 +29,12 @@ from django.conf import settings
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 from django.http import JsonResponse
 from django.db.models import Q
+import environ
+env = environ.Env()
+environ.Env.read_env(".env")
 
-
-BASE_URL='https://trustwork-escrow.dedicateddevelopers.us'
-LOCAL_BASE_URL="http://127.0.0.1:8000"
-BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL", "http://localhost:8001")
+ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
+BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL")
 
 # Dev Cred
 
@@ -134,7 +135,7 @@ class TransectionView(APIView):
     def get(self, request, format=None, pk=None):
         try:
             # transaction = Transactions.objects.select_related('bid', 'bid__project').all()
-            transaction = Transactions.objects.all()
+            transaction = Transactions.objects.all().exclude(Q(status="pending") & Q(transaction_type="collection"))
             paginator = CustomPagination()
             paginated_projects = paginator.paginate_queryset(transaction, request)
             transaction_serializer = TransectionSerializer(paginated_projects, many=True)
@@ -148,7 +149,7 @@ class TransectionProjectView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, pk=None):
         try:
-            transaction = Transactions.objects.filter(project__id=pk)
+            transaction = Transactions.objects.filter(project__id=pk).exclude(Q(status="pending") & Q(transaction_type="collection"))
             paginator = CustomPagination()
             paginated_projects = paginator.paginate_queryset(transaction, request)
             transaction_serializer = TransectionSerializer(paginated_projects, many=True)
@@ -242,16 +243,16 @@ class CreateCheckoutSessionView(APIView):
     #                     'quantity': 1,
     #                 }],
     #                 mode='payment',
-    #                 # success_url="https://trustwork-escrow.dedicateddevelopers.us/stripe/api/process-stripe-session/payment-success/",
+    #                 # success_url=f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/payment-success/",
     #                 success_url="http://127.0.0.1:8000/stripe/api/process-stripe-session/payment-success/",
-    #                 # cancel_url="https://trustwork-escrow.dedicateddevelopers.us/stripe/api/process-stripe-session/payment-failed/",
+    #                 # cancel_url=f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/payment-failed/",
     #                 cancel_url="http://127.0.0.1:8000/stripe/api/process-stripe-session/payment-failed/",
     #                 metadata={'user_id': user_id} 
     #             )
     #             print("session", session)
 
 
-    #             # project_b_url = "https://trustwork-escrow.dedicateddevelopers.us/stripe/api/process-stripe-session/"
+    #             # project_b_url = f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/"
     #             project_b_url = "http://127.0.0.1:8001/stripe/api/process-stripe-session/"
     #             payload = {'session_id': session.id, 'user_id': user_id, 'unit_amount': amount, 'currency': currency}
     #             response = requests.post(project_b_url, json=payload)
@@ -274,7 +275,7 @@ class CheckPaymentStatus(APIView):
         print(data)
         # user_id = request.user.id
         session_id = data.get('session_id')
-        project_b_url = f"https://trustwork-escrow.dedicateddevelopers.us/stripe/api/payment-status-view/{session_id}/"
+        project_b_url = f"{ESCROW_BASE_API}/stripe/api/payment-status-view/{session_id}/"
         # project_b_url = f"http://127.0.0.1:8001/stripe/api/payment-status-view/{session_id}/"
         
         response = requests.get(project_b_url)
@@ -315,7 +316,7 @@ class TriggerPayoutView(APIView):
                     # if bid_details.id == user_id:
                     #     bid_details.status = "Accepted"
                     #     payout_amount = bid_details.payout_amount
-                    # project_b_url = "https://trustwork-escrow.dedicateddevelopers.us/stripe/api/release-escrow-payment/"
+                    # project_b_url = f"{ESCROW_BASE_API}/stripe/api/release-escrow-payment/"
                     project_b_url = "http://127.0.0.1:8000/stripe/api/stripe-bank-payout-check/"
                     payload = {
                         "payment_intent_id": payment_intent_id,

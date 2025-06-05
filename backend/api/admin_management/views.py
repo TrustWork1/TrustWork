@@ -24,7 +24,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
 
 # CMS SearchView 
@@ -514,7 +514,7 @@ class QMSResponseApiView(APIView):
                 'subject': data.qms.query,
                 'query': data.qms.answer,
                 'answer': clean_answer,
-                'image': BASE_API
+                'image': TRUSTWORK_BASE_API
             })
             try:
                 send_mail(
@@ -579,7 +579,7 @@ def reauth_with_token(request, token):
     
     account_link = stripe.AccountLink.create(
         account=bank.stripe_account_id,
-        refresh_url=f"{BASE_API}/api/reauth/{token}/",
+        refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{token}/",
         return_url="https://trustwork-dev.dedicateddevelopers.us/",
         type="account_onboarding",
     )

@@ -19,7 +19,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -95,7 +95,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API
+            'image': TRUSTWORK_BASE_API
         })
 
         send_mail(
@@ -165,12 +165,24 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=False)
-    phone = serializers.CharField(required=False)
-    password = serializers.CharField()
+    email = serializers.EmailField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(required=True, allow_blank=True)
     fcmtoken = serializers.CharField(required=False, allow_blank=True)
     devicetype = serializers.CharField(required=False, allow_blank=True)
 
+    def validate(self, data):
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        password = data.get('password', '').strip()
+
+        if not email and not phone:
+            raise serializers.ValidationError("Either email or phone is required.")
+
+        if not password:
+            raise serializers.ValidationError("Password is required.")
+
+        return data
 
 User = get_user_model()
 
@@ -406,7 +418,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
-            'image': BASE_API
+            'image': TRUSTWORK_BASE_API
         })
         send_mail(
             subject=subject,

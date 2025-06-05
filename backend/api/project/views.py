@@ -497,31 +497,21 @@ class ChangeProjectStatusView(APIView):
 
                 receiver_profile = bid.service_provider
                 bank_details = BankDetails.objects.get(user_profile=receiver_profile, is_primary=True)
-                
-                if bank_details.payment_type == "stripe":
-                    total_amount_dollars = float(Bid.objects.get(id=bid.id, status="Accepted").project_total_cost)    # e.g., 6780.0
-                    amount_cents = int(total_amount_dollars * 100)      # e.g., 678000
+                gateway=PaymentGatewayAPI()
 
-                    transfer = stripe.Transfer.create(
-                        amount=amount_cents,
-                        currency="usd",
-                        destination=bank_details.stripe_account_id,  # your connected account ID
-                    )
-                    payout = stripe.Payout.create(
-                        amount=amount_cents,
-                        currency="usd",
-                        stripe_account=bank_details.stripe_account_id,  # Connected account ID
-                    )
+                if bank_details.payment_type == "stripe":
+                    stripe_account_id=bank_details.stripe_account_id
+                    response = gateway.disbursement_stripe_payment(escrow_id=escrow_id, stripe_account_id=stripe_account_id)
+                    
                     Transactions.objects.create(
-                        stripe_id=payout.id,
-                        status='completed',
+                        escrow_id=escrow_id,
+                        status='in_progress',
                         project=project,
                         bid=bid,
                         transaction_type="disbursement"
                     )
 
                 elif bank_details.payment_type == "mtn":
-                    gateway=PaymentGatewayAPI()
                     if escrow_id:
                         response = gateway.initialize_disbursement(escrow_id=escrow_id)
                         print("Payment response: ",response)
@@ -550,15 +540,6 @@ class ChangeProjectStatusView(APIView):
                     bid_id=bid.id
                 )
 
-                Notification.objects.create(
-                    sender=sender_profile,
-                    receiver=receiver_profile,
-                    title="Payment Received",
-                    message=f"Total amount '{total_amount_dollars}' received from {receiver_profile.user.full_name}.",
-                    object_type="payment received",
-                    project_id=project.id,
-                    bid_id=bid.id
-                )
             except Exception as e:
                 print(f"Disbursement error: {e}")
         
@@ -570,7 +551,26 @@ class ChangeProjectStatusView(APIView):
             "message" : "Project status changed successfully"
         }
         return Response(response,status=status.HTTP_202_ACCEPTED)
-    
+
+class StripeDisbursementStatus(APIView):
+    def put(self,request):
+        try:
+            escrow_id = request.data.get("escrow_id", "")
+            payment_status = request.data.get("payment_status", "")
+            transaction=Transactions.objects.get(escrow_id=escrow_id, status="in_progress", transaction_type="disbursement")
+            if payment_status == "paid":
+                transaction.status="completed"
+            else:
+                transaction.status="failed"
+            transaction.save()
+
+            return Response({"message": "Transaction updated successfully."}, status=status.HTTP_200_OK)
+        except Transactions.DoesNotExist:
+            return Response({"error": "Transaction not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Disbursement error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ProjectBidApiView(APIView):
     permission_classes=[IsAuthenticated]
 

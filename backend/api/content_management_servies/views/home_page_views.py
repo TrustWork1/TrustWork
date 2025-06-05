@@ -14,7 +14,7 @@ import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
-BASE_API = os.getenv('BASE_API')
+TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
 class AppInfoView(APIView):
     permission_classes=[IsAuthenticated]
@@ -31,7 +31,7 @@ class AppInfoView(APIView):
             "description": app_info.description,
             "playstore_link": app_info.app_download.playstore_link if app_info.app_download else None,
             "appstore_link": app_info.app_download.appstore_link if app_info.app_download else None,
-            "image": BASE_API+app_info.image.url if app_info.image else None,
+            "image": TRUSTWORK_BASE_API+app_info.image.url if app_info.image else None,
         }
 
         return Response(data, status=status.HTTP_200_OK)
@@ -143,7 +143,7 @@ class FeaturesView(APIView):
                     "id": feature.id,
                     "title": feature.title,
                     "description": feature.description,
-                    "icon": BASE_API+feature.icon.url if feature.icon else None
+                    "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                 }
                 return Response(data, status=status.HTTP_200_OK)
             except Feature.DoesNotExist:
@@ -155,7 +155,7 @@ class FeaturesView(APIView):
                     "id": feature.id,
                     "title": feature.title,
                     "description": feature.description,
-                    "icon": BASE_API+feature.icon.url if feature.icon else None
+                    "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                 }
                 for feature in features
             ]
@@ -213,7 +213,7 @@ class HowItWorksSectionView(APIView):
         serializer = HowItWorksSectionSerializer(howitworks_section)
         data = serializer.data
         if howitworks_section.image:
-            data['image'] = BASE_API+howitworks_section.image.url
+            data['image'] = TRUSTWORK_BASE_API+howitworks_section.image.url
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -252,7 +252,7 @@ class HowItWorksView(APIView):
                     "id": step.id,
                     "title": step.title,
                     "description": step.description,
-                    "icon": BASE_API+step.icon.url if step.icon else None
+                    "icon": TRUSTWORK_BASE_API+step.icon.url if step.icon else None
                 }
             except HowItWorksStep.DoesNotExist:
                 return Response({"error": "Step not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -263,7 +263,7 @@ class HowItWorksView(APIView):
                     "id": step.id,
                     "title": step.title,
                     "description": step.description,
-                    "icon": BASE_API+step.icon.url if step.icon else None
+                    "icon": TRUSTWORK_BASE_API+step.icon.url if step.icon else None
                 }
                 for step in steps
             ]
@@ -320,7 +320,7 @@ class ReferralSectionView(APIView):
             serializer = ReferralSectionSerializer(referral)
             data = serializer.data
             if referral.image:
-                data['image'] = BASE_API+referral.image.url
+                data['image'] = TRUSTWORK_BASE_API+referral.image.url
             return Response(data, status=status.HTTP_200_OK)
         except:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -370,7 +370,7 @@ class DownloadSectionView(APIView):
             "description": download_section.description,
             "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
             "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None,
-            "image": BASE_API+download_section.image.url if download_section.image else None,
+            "image": TRUSTWORK_BASE_API+download_section.image.url if download_section.image else None,
         }
         return Response(data, status=status.HTTP_200_OK)
 
@@ -633,7 +633,7 @@ class HomePageView(APIView):
                 "description": app_info.description,
                 "playstore_link": app_info.app_download.playstore_link if app_info.app_download else None,
                 "appstore_link": app_info.app_download.appstore_link if app_info.app_download else None,
-                "image": BASE_API+app_info.image.url if app_info.image else None,
+                "image": TRUSTWORK_BASE_API+app_info.image.url if app_info.image else None,
             }
 
         # Feature Section
@@ -649,7 +649,7 @@ class HomePageView(APIView):
                         "id": feature.id,
                         "title": feature.title,
                         "description": feature.description,
-                        "icon": BASE_API+feature.icon.url if feature.icon else None
+                        "icon": TRUSTWORK_BASE_API+feature.icon.url if feature.icon else None
                     }
                     for feature in features
                 ]
@@ -663,13 +663,13 @@ class HomePageView(APIView):
                 "id": howitworks_section.id,
                 "header": howitworks_section.header,
                 "description": howitworks_section.description,
-                "image": BASE_API+howitworks_section.image.url if howitworks_section.image else None,
+                "image": TRUSTWORK_BASE_API+howitworks_section.image.url if howitworks_section.image else None,
                 "steps": [
                     {
                         "id": step.id,
                         "title": step.title,
                         "description": step.description,
-                        "icon": BASE_API+step.icon.url if step.icon else None
+                        "icon": TRUSTWORK_BASE_API+step.icon.url if step.icon else None
                     }
                     for step in steps
                 ]
@@ -707,7 +707,7 @@ class HomePageView(APIView):
         referral = ReferralSection.objects.last()
         if referral:
             referral_data = ReferralSectionSerializer(referral).data
-            referral_data['image'] = BASE_API+referral.image.url if referral.image else None
+            referral_data['image'] = TRUSTWORK_BASE_API+referral.image.url if referral.image else None
             response_data["referral_section"] = referral_data
 
         # Download Section
@@ -719,6 +719,6 @@ class HomePageView(APIView):
                 "description": download_section.description,
                 "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
                 "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None,
-                "image": BASE_API+download_section.image.url if download_section.image else None,
+                "image": TRUSTWORK_BASE_API+download_section.image.url if download_section.image else None,
             }
         return Response(response_data, status=status.HTTP_200_OK)

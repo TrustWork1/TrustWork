@@ -11,7 +11,10 @@ import { Button, CardContent, TextField } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import LoadingComp from 'src/pages/components/LoadingComp/LoadingComp'
 import { fetchAppFeatureCmsContent, updateAppFeatureCmsContent } from 'src/services/functions/home-cms.api'
-import { appFeatureContentValidationSchema, AppFeatureContentValidationSchemaType } from 'src/validation/homeCms.validation'
+import {
+  appFeatureContentValidationSchema,
+  AppFeatureContentValidationSchemaType
+} from 'src/validation/homeCms.validation'
 import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
 import toast from 'react-hot-toast'
 
@@ -26,11 +29,11 @@ const AppFeatureContent = () => {
     return data?.data ?? undefined
   }, [data?.data])
 
-  console.log('cmsData', cmsData )
+  console.log('cmsData', cmsData)
 
   const initialDatas = {
     title: '',
-    description: '',
+    description: ''
   }
 
   const {
@@ -49,7 +52,7 @@ const AppFeatureContent = () => {
   useEffect(() => {
     reset({
       header: cmsData?.header || '',
-      description: cmsData?.description || '',
+      description: cmsData?.description || ''
     })
   }, [data?.data])
 
@@ -74,7 +77,6 @@ const AppFeatureContent = () => {
     mutate(formData)
   }
 
-
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={12}>
@@ -87,12 +89,11 @@ const AppFeatureContent = () => {
             ) : (
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-
                   <Grid item xs={12}>
                     <Controller
                       name='header'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Header'
@@ -108,7 +109,7 @@ const AppFeatureContent = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline

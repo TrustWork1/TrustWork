@@ -77,7 +77,6 @@ const ButtonStyled = styled(Button)<ButtonProps & { component?: ElementType; htm
   }
 }))
 
-
 const SidebarAddEdit = (props: SidebarAddEditType) => {
   // ** Props
   const { open, toggle, mode, id } = props
@@ -114,7 +113,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
       setValue('description', props.fullRowDetails.description)
       setValue('price', props.fullRowDetails.price)
       setValue('billing_cycle', props.fullRowDetails.billing_cycle)
-      
+
       // Clear default features and set from data
       if (props.fullRowDetails.features && props.fullRowDetails.features.length > 0) {
         setValue('features', props.fullRowDetails.features)
@@ -147,28 +146,27 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
   // ** Form submission handler
   const onSubmit = async (data: PackageData) => {
     try {
-      const formData = new FormData();
-      formData.append('plan_name', data.plan_name);
-      formData.append('description', data.description);
-      formData.append('price', data.price);
-      formData.append('billing_cycle', data.billing_cycle);
-      
-      formData.append('features', JSON.stringify(data.features));
-      
+      const formData = new FormData()
+      formData.append('plan_name', data.plan_name)
+      formData.append('description', data.description)
+      formData.append('price', data.price)
+      formData.append('billing_cycle', data.billing_cycle)
+
+      formData.append('features', JSON.stringify(data.features))
+
       if (mode === 'edit') {
-        await updateMutator.mutateAsync(formData);
+        await updateMutator.mutateAsync(formData)
       } else {
-        await storeMutator.mutateAsync(formData);
+        await storeMutator.mutateAsync(formData)
       }
-      
+
       // Reset form and close modal
-      toggle();
-      reset();
+      toggle()
+      reset()
     } catch (e) {
-      console.error('Error saving data', e);
+      console.error('Error saving data', e)
     }
   }
-  
 
   const handleClose = () => {
     toggle()
@@ -313,16 +311,16 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
             <Grid item md={12} sx={{ px: 3, mb: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant='h6'>Features</Typography>
-                <Button 
-                  variant='contained' 
-                  color='primary' 
+                <Button
+                  variant='contained'
+                  color='primary'
                   startIcon={<Icon icon='tabler:plus' />}
                   onClick={addFeature}
                 >
                   Add Feature
                 </Button>
               </Box>
-              
+
               {fields.map((field, index) => (
                 <Box key={field.id} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -333,7 +331,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
                       </MuiIconButton>
                     )}
                   </Box>
-                  
+
                   <Controller
                     name={`features.${index}.features`}
                     control={control}
@@ -350,7 +348,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
                       />
                     )}
                   />
-                  
+
                   {/* <Controller
                     name={`features.${index}.is_active`}
                     control={control}

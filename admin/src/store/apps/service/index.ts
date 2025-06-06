@@ -55,7 +55,7 @@ export const deleteService = createAsyncThunk(
     try {
       const response = await axios.delete('/apps/services/delete', { data: id })
       dispatch(fetchServices(getState().appServices.params))
-      
+
       return response.data
     } catch (error) {
       return Promise.reject(error)

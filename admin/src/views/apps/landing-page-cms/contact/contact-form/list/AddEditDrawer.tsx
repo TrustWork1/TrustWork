@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable lines-around-comment */
 // ** React Imports
@@ -86,25 +85,25 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
               <ValueTypography>{fullRowDetails.full_name || 'N/A'}</ValueTypography>
               <Divider />
             </Grid>
-            
+
             <Grid item xs={12} sx={{ mb: 4 }}>
               <LabelTypography>Email</LabelTypography>
               <ValueTypography>{fullRowDetails.email || 'N/A'}</ValueTypography>
               <Divider />
             </Grid>
-            
+
             <Grid item xs={12} sx={{ mb: 4 }}>
               <LabelTypography>Subject</LabelTypography>
               <ValueTypography>{fullRowDetails.subject || 'N/A'}</ValueTypography>
               <Divider />
             </Grid>
-            
+
             <Grid item xs={12}>
               <LabelTypography>Message</LabelTypography>
-              <Box 
-                sx={{ 
-                  p: 3, 
-                  borderRadius: 1, 
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 1,
                   bgcolor: 'action.hover',
                   maxHeight: '350px',
                   overflowY: 'auto'

@@ -53,7 +53,6 @@ export type IHomeCmsModel = {
   }
   AppFeaturesPayload: FormData
 
-
   PackagesListDetails: {
     plans: IHomeCmsModel['Plans'][]
   }

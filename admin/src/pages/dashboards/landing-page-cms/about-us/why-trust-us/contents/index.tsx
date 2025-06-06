@@ -12,8 +12,15 @@ import { Button, CardContent, TextField } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import CustomDropzone from 'src/@core/components/react-drop-zone'
 import LoadingComp from 'src/pages/components/LoadingComp/LoadingComp'
-import { fetchHowItWorksCmsContent, updateAppInfoCmsList, updateHowItWorksCmsContent } from 'src/services/functions/home-cms.api'
-import { howItWorksContentValidationSchema, HowItWorksContentValidationSchemaType } from 'src/validation/homeCms.validation'
+import {
+  fetchHowItWorksCmsContent,
+  updateAppInfoCmsList,
+  updateHowItWorksCmsContent
+} from 'src/services/functions/home-cms.api'
+import {
+  howItWorksContentValidationSchema,
+  HowItWorksContentValidationSchemaType
+} from 'src/validation/homeCms.validation'
 import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
 import toast from 'react-hot-toast'
 import { IAboutCmsModel } from '@/type/apps/aboutCmsTypes'
@@ -43,7 +50,7 @@ const WhyTrustUsContents = () => {
     vision_title: '',
     vision_description: '',
     image: undefined,
-    section_image: undefined,
+    section_image: undefined
   }
 
   const {
@@ -140,7 +147,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='section_header'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Section Header'
@@ -156,7 +163,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='section_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -189,7 +196,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='mission_title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Mission Title'
@@ -205,7 +212,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='mission_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -223,7 +230,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='vision_title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Vision Title'
@@ -239,7 +246,7 @@ const WhyTrustUsContents = () => {
                     <Controller
                       name='vision_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline

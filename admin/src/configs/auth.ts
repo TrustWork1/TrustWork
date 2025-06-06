@@ -6,13 +6,11 @@ export default {
   forgotPasswordEndpoint: `${BASE_URL}/admin/forgot-password/`,
   resetPasswordEndpoint: `${BASE_URL}/admin/reset-password/`,
 
-
   details: `${BASE_URL}/profile/details/admin/`,
   // details: `${BASE_URL}/profile/details`,
   update: `${BASE_URL}/profile/edit`,
   changePassword: `${BASE_URL}/profile/change_password`,
   logout: `${BASE_URL}/logout`,
-
 
   rememberMe: 'rememberMe',
   sessionData: 'userData',

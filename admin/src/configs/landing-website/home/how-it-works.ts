@@ -5,5 +5,5 @@ export default {
   save: `${BASE_URL}/app-howitworks/`,
   update: `${BASE_URL}/app-howitworks/`,
   delete: `${BASE_URL}/app-howitworks/`,
-  content: `${BASE_URL}/app-howitworks-cms/`,
+  content: `${BASE_URL}/app-howitworks-cms/`
 }

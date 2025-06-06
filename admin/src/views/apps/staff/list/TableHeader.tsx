@@ -27,7 +27,7 @@ interface TableHeaderStaffProps {
 const TableHeader = (props: TableHeaderStaffProps) => {
   // ** Props
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { handleFilter, toggle, value, data, selectedRows,clearFilter } = props
+  const { handleFilter, toggle, value, data, selectedRows, clearFilter } = props
 
   console.log('selectedRows', selectedRows)
 

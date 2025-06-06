@@ -114,7 +114,7 @@ const ReferralSection = () => {
                     <Controller
                       name='title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Title'
@@ -130,7 +130,7 @@ const ReferralSection = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -148,7 +148,7 @@ const ReferralSection = () => {
                     <Controller
                       name='button_title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Button Title'
@@ -164,7 +164,7 @@ const ReferralSection = () => {
                     <Controller
                       name='button_link'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Button Link'

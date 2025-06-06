@@ -86,11 +86,13 @@ const renderProvider = (row: TProviderType) => {
 const RowOptions = ({
   id,
   toggleMode,
+  isEditDisabled,
   handleStatusChangeClick
 }: {
   id: number | string
   toggleMode: () => void
   handleStatusChangeClick: (id: number | string) => void
+  isEditDisabled?: boolean
 }) => {
   // ** State
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -155,15 +157,17 @@ const RowOptions = ({
           <Icon icon='tabler:eye' fontSize={20} />
           View
         </MenuItem> */}
-        <MenuItem onClick={() => (toggleMode(), setAnchorEl(null))} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='tabler:edit' fontSize={20} />
-          Edit
-        </MenuItem>
+        {!isEditDisabled ? (
+          <MenuItem onClick={() => (toggleMode(), setAnchorEl(null))} sx={{ '& svg': { mr: 2 } }}>
+            <Icon icon='tabler:edit' fontSize={20} />
+            Edit
+          </MenuItem>
+        ) : null}
         {/* <MenuItem onClick={() => handleDeleteClick(id)} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='tabler:trash' fontSize={20} />
           Delete
         </MenuItem> */}
-        <MenuItem
+        {/* <MenuItem
           onClick={() => {
             handleStatusChangeClick(id)
             handleRowOptionsClose()
@@ -172,7 +176,7 @@ const RowOptions = ({
         >
           <Icon icon='tabler:toggle-right' fontSize={20} />
           Change Status
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem component={Link} href={`/dashboards/projects/${id}/details`} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='tabler:external-link' fontSize={20} />
           Bidding Details
@@ -409,13 +413,23 @@ const ProviderList = () => {
       sortable: false,
       field: 'actions',
       headerName: 'Actions',
-      renderCell: ({ row }: CellType) => (
-        <RowOptions
-          id={row.id}
-          toggleMode={() => (setMode('edit'), setAddProjectOpen(true), setProject(row.id))}
-          handleStatusChangeClick={handleStatusChangeClick}
-        />
-      )
+      renderCell: ({ row }: CellType) => {
+        const restrictedStatuses = ['ongoing', 'inactive', 'completed']
+        const isEditDisabled = restrictedStatuses.includes(row.status?.toLowerCase())
+
+        return (
+          <RowOptions
+            isEditDisabled={isEditDisabled}
+            id={row.id}
+            toggleMode={() => {
+              setMode('edit')
+              setAddProjectOpen(true)
+              setProject(row.id)
+            }}
+            handleStatusChangeClick={handleStatusChangeClick}
+          />
+        )
+      }
     }
   ]
 

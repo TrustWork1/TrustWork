@@ -114,7 +114,7 @@ const DownloadAppSection = () => {
                     <Controller
                       name='title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Title'
@@ -130,7 +130,7 @@ const DownloadAppSection = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -148,7 +148,7 @@ const DownloadAppSection = () => {
                     <Controller
                       name='playstore_link'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Play Store Link'
@@ -164,7 +164,7 @@ const DownloadAppSection = () => {
                     <Controller
                       name='appstore_link'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='App Store Link'

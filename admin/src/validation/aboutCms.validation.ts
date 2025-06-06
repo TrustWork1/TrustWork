@@ -37,7 +37,6 @@ export const aboutInfoValidationSchema = yup.object({
 
 export type AboutInfoValidationSchemaType = yup.InferType<typeof aboutInfoValidationSchema>
 
-
 export const whyTrustUsValidationSchema = yup.object({
   section_header: yup
     .string()

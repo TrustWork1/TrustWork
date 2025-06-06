@@ -5,5 +5,5 @@ export default {
   list: `${BASE_URL}/why-you-trustus/`,
   save: `${BASE_URL}/why-you-trustus/`,
   update: `${BASE_URL}/why-you-trustus/`,
-  delete: `${BASE_URL}/why-you-trustus/`,
+  delete: `${BASE_URL}/why-you-trustus/`
 }

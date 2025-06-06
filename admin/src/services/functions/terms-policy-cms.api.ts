@@ -33,7 +33,6 @@ export const updateTermsAndConditionCmsContent = async (data: ITermsAndPrivacyCm
   return res.data
 }
 
-
 export const fetchPrivacyPolicyCmsContent = async () => {
   const res = await axiosInstance.get<ITermsAndPrivacyCmsModel['TermsAndPrivacyResponse']>(termsPolicy.policy, {
     headers: {

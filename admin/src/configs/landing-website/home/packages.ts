@@ -5,5 +5,5 @@ export default {
   save: `${BASE_URL}/app-packages/`,
   update: `${BASE_URL}/app-packages/`,
   delete: `${BASE_URL}/app-packages/`,
-  content: `${BASE_URL}/app-packages-cms/`,
+  content: `${BASE_URL}/app-packages-cms/`
 }

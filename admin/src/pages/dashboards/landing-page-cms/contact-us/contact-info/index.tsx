@@ -49,7 +49,7 @@ const ContactInfoContent = () => {
     longitude: '',
     latitude: '',
     get_in_touch_title: '',
-    get_in_touch_description: '',
+    get_in_touch_description: ''
   }
 
   const {
@@ -67,24 +67,23 @@ const ContactInfoContent = () => {
 
   useEffect(() => {
     reset({
-        section_header: cmsData?.section_header || '',
-        section_description: cmsData?.section_description || '',
-        title: cmsData?.title || '',
-        description: cmsData?.description || '',
-        call_center_number: cmsData?.call_center_number || '',
-        email: cmsData?.email || '',
-        location: cmsData?.location || '',
-        facebook_url: cmsData?.facebook_url || '',
-        x_url: cmsData?.x_url || '',
-        linkedin_url: cmsData?.linkedin_url || '',
-        youtube_url: cmsData?.youtube_url || '',
-        map_url: cmsData?.map_url || '',
-        longitude: cmsData?.longitude || '',
-        latitude: cmsData?.latitude || '',
-        get_in_touch_title: cmsData?.get_in_touch_title || '',
-        get_in_touch_description: cmsData?.get_in_touch_description || '',
+      section_header: cmsData?.section_header || '',
+      section_description: cmsData?.section_description || '',
+      title: cmsData?.title || '',
+      description: cmsData?.description || '',
+      call_center_number: cmsData?.call_center_number || '',
+      email: cmsData?.email || '',
+      location: cmsData?.location || '',
+      facebook_url: cmsData?.facebook_url || '',
+      x_url: cmsData?.x_url || '',
+      linkedin_url: cmsData?.linkedin_url || '',
+      youtube_url: cmsData?.youtube_url || '',
+      map_url: cmsData?.map_url || '',
+      longitude: cmsData?.longitude || '',
+      latitude: cmsData?.latitude || '',
+      get_in_touch_title: cmsData?.get_in_touch_title || '',
+      get_in_touch_description: cmsData?.get_in_touch_description || ''
     })
-
   }, [data?.data])
 
   const { mutate, isPending } = useMutation({
@@ -134,12 +133,11 @@ const ContactInfoContent = () => {
             ) : (
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-
                   <Grid item xs={12}>
                     <Controller
                       name='section_header'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Section Header'
@@ -155,7 +153,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='section_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -173,7 +171,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Title'
@@ -189,7 +187,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -207,7 +205,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='call_center_number'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Call Center Number'
@@ -223,7 +221,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='email'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Email'
@@ -239,7 +237,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='location'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Location'
@@ -255,7 +253,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='facebook_url'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Facebook URL'
@@ -271,7 +269,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='x_url'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='X-Portal URL'
@@ -287,7 +285,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='linkedin_url'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='LinkedIn URL'
@@ -303,7 +301,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='youtube_url'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Youtube URL'
@@ -319,7 +317,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='map_url'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Google Map URL'
@@ -335,7 +333,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='longitude'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Longitude'
@@ -351,7 +349,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='latitude'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Latitude'
@@ -367,7 +365,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='get_in_touch_title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Get In Touch Title'
@@ -383,7 +381,7 @@ const ContactInfoContent = () => {
                     <Controller
                       name='get_in_touch_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline

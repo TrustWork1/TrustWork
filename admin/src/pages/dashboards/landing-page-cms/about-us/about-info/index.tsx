@@ -56,12 +56,12 @@ const AboutInfoContent = () => {
 
   useEffect(() => {
     reset({
-        section_header: cmsData?.section_header || '',
-        section_description: cmsData?.section_description || '',
-        title: cmsData?.title || '',
-        description: cmsData?.description || '',
-        image1: cmsData?.image1 || undefined,
-        image2: cmsData?.image2 || undefined
+      section_header: cmsData?.section_header || '',
+      section_description: cmsData?.section_description || '',
+      title: cmsData?.title || '',
+      description: cmsData?.description || '',
+      image1: cmsData?.image1 || undefined,
+      image2: cmsData?.image2 || undefined
     })
     setImageOnePreview(cmsData?.image1 ?? undefined)
     setImageTwoPreview(cmsData?.image2 ?? undefined)
@@ -115,7 +115,6 @@ const AboutInfoContent = () => {
     setValue('image2', undefined as any)
   }
 
-
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={12}>
@@ -132,7 +131,7 @@ const AboutInfoContent = () => {
                     <Controller
                       name='section_header'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Section Header'
@@ -148,7 +147,7 @@ const AboutInfoContent = () => {
                     <Controller
                       name='section_description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -166,7 +165,7 @@ const AboutInfoContent = () => {
                     <Controller
                       name='title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Title'
@@ -182,7 +181,7 @@ const AboutInfoContent = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline

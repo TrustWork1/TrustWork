@@ -157,7 +157,6 @@ export const deleteHowItWorksStepsCmsList = async (id: string | number) => {
   return res.data
 }
 
-
 export const fetchReferralCmsContent = async () => {
   const res = await axiosInstance.get<IHomeCmsModel['ReferralContentResponse']>(referral.content, {
     headers: {
@@ -177,7 +176,6 @@ export const updateReferralCmsContent = async (data: IHomeCmsModel['ReferralCont
 
   return res.data
 }
-
 
 export const fetchDownloadCmsContent = async () => {
   const res = await axiosInstance.get<IHomeCmsModel['DownloadContentResponse']>(download.content, {

@@ -19,6 +19,8 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import OutboundOutlinedIcon from '@mui/icons-material/OutboundOutlined'
+import MoveToInboxOutlinedIcon from '@mui/icons-material/MoveToInboxOutlined'
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
@@ -325,6 +327,45 @@ const TransactionList = () => {
         )
       }
     },
+    {
+      flex: 0.15,
+      minWidth: 140,
+      field: 'transaction_type',
+      headerName: 'Payment Status',
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: ({ row }: CellType) => {
+        const { transaction_type } = row
+
+        // Dynamic label and color
+        const isDisbursement = transaction_type === 'disbursement'
+        const label = isDisbursement ? 'Payment Sent' : 'Payment Received'
+        const color = isDisbursement ? 'error' : 'success'
+        const Icon = isDisbursement ? OutboundOutlinedIcon : MoveToInboxOutlinedIcon
+
+        return (
+          <CustomChip
+            rounded
+            skin='light'
+            size='small'
+            color={color}
+            icon={<Icon sx={{ fontSize: 18 }} />}
+            label={label}
+            sx={{
+              textTransform: 'capitalize',
+              fontWeight: 500,
+              pl: 1,
+              pr: 1.5,
+              '& .MuiChip-icon': {
+                marginLeft: 0,
+                marginRight: '6px'
+              }
+            }}
+          />
+        )
+      }
+    },
+
     {
       flex: 0.1,
       minWidth: 100,

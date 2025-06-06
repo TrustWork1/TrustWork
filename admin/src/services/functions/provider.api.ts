@@ -20,11 +20,14 @@ export const fetchProviders = async (
     filters: filterQuery || []
   }
 
-  const res = await axiosInstance.get(`${provider.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`, {
-    headers: {
-      'Content-Type': 'application/json'
+  const res = await axiosInstance.get(
+    `${provider.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`,
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  })
+  )
 
   return res.data
 }

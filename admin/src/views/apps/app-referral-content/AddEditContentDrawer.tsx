@@ -30,19 +30,19 @@ import Image from 'next/image'
 import { IMAGE_ACCEPT } from 'src/configs/constant'
 import { globalSuccess } from 'src/lib/functions/_helpers.lib'
 import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
-import { RowData } from 'src/pages/dashboards/landing-page-cms/home/app-features/list'
-import {
-  saveAppFeaturesCmsList,
-  saveHowItWorksStepsCmsList,
-  updateAppFeaturesCmsList,
-  updateHowItWorksStepsCmsList
-} from 'src/services/functions/home-cms.api'
+import { saveAppFeaturesCmsList, updateAppFeaturesCmsList } from 'src/services/functions/home-cms.api'
 import CustomButtonPrimary from 'src/ui/Icons/CustomButtons/CustomButtonPrimary'
 import {
   appFeatureCreateValidationSchema,
   appFeatureUpdateValidationSchema
 } from 'src/validation/home-app-feature.validation'
-import { saveWhyTrustUsPointsList, updateWhyTrustUsPointsList } from 'src/services/functions/about-cms.api'
+import { RowData } from 'src/pages/dashboards/app-referral-content/list'
+import { IMAGE_BASE_URL } from 'src/configs/landing-website/home/app-referrals'
+import { saveAppReferralCmsList, updateAppReferralCmsList } from 'src/services/functions/app-referral.api'
+import {
+  appReferralCreateValidationSchema,
+  appReferralUpdateValidationSchema
+} from 'src/validation/app-referral-content.validation'
 
 // ** Types Imports
 
@@ -55,8 +55,7 @@ interface SidebarAddEditType {
 }
 
 interface TCategory {
-  feature_title: string
-  feature_description: string
+  content: string
   imageUrl: string
   image?: Blob
 }
@@ -69,10 +68,9 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const defaultValues: TCategory = {
-  feature_title: '',
-  feature_description: '',
-  imageUrl: ''
-  // image: null
+  content: '',
+  imageUrl: '',
+  image: undefined
 }
 
 const ButtonStyled = styled(Button)<ButtonProps & { component?: ElementType; htmlFor?: string }>(({ theme }) => ({
@@ -82,13 +80,13 @@ const ButtonStyled = styled(Button)<ButtonProps & { component?: ElementType; htm
   }
 }))
 
-const SidebarAddEdit = (props: SidebarAddEditType) => {
+const AddEditDrawerContent = (props: SidebarAddEditType) => {
   const [uploadProfileImage, setUploadProfileImage] = useState<Blob | null>(null)
 
   // ** Props
   const { open, toggle, mode, id } = props
 
-  const validationSchema = mode === 'edit' ? appFeatureUpdateValidationSchema : appFeatureCreateValidationSchema
+  const validationSchema = mode === 'edit' ? appReferralUpdateValidationSchema : appReferralCreateValidationSchema
 
   const {
     reset,
@@ -109,14 +107,11 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
   // ** React Query Client
   const queryClient = useQueryClient()
 
-  // ================================================================
-  // ================================================================
-
   // ** Populate the form fields when data is available
   useEffect(() => {
     if (props.fullRowDetails && mode === 'edit') {
-      setValue('feature_title', props.fullRowDetails.title)
-      setValue('feature_description', props.fullRowDetails.description)
+      // setValue('feature_title', props.fullRowDetails.title)
+      setValue('content', props.fullRowDetails.content)
       setValue('imageUrl', props.fullRowDetails?.icon)
     } else if (mode === 'add') {
       reset(defaultValues)
@@ -127,21 +122,21 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
 
   // ** Mutation for updating feature
   const updateMutator = useMutation({
-    mutationKey: [listOfUniqueKeys.aboutUs.whyTrustUs.update, id],
-    mutationFn: (formData: FormData) => updateWhyTrustUsPointsList(id as string, formData),
+    mutationKey: [listOfUniqueKeys.home.appReferrals.update, id],
+    mutationFn: (formData: FormData) => updateAppReferralCmsList(id as string, formData),
     onSuccess: response => {
       globalSuccess(response?.message)
-      queryClient.invalidateQueries({ queryKey: [listOfUniqueKeys.aboutUs.whyTrustUs.list] })
+      queryClient.invalidateQueries({ queryKey: [listOfUniqueKeys.home.appReferrals.list] })
     }
   })
 
   // ** Mutation for storing new feature
   const storeMutator = useMutation({
-    mutationKey: [[listOfUniqueKeys.aboutUs.whyTrustUs.save]],
-    mutationFn: (formData: FormData) => saveWhyTrustUsPointsList(formData),
+    mutationKey: [[listOfUniqueKeys.home.appReferrals.save]],
+    mutationFn: (formData: FormData) => saveAppReferralCmsList(formData),
     onSuccess: response => {
       globalSuccess(response?.message)
-      queryClient.invalidateQueries({ queryKey: [listOfUniqueKeys.aboutUs.whyTrustUs.list] })
+      queryClient.invalidateQueries({ queryKey: [listOfUniqueKeys.home.appReferrals.list] })
     }
   })
 
@@ -153,15 +148,14 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     try {
       if (mode === 'edit') {
         const formData = new FormData()
-        formData?.append('title', data?.feature_title)
-        formData?.append('description', data?.feature_description)
+        // formData?.append('title', data?.feature_title)
+        formData?.append('content', data?.content)
         data?.image && formData?.append('icon', data?.image)
 
         await updateMutator.mutateAsync(formData)
       } else {
         const formData = new FormData()
-        formData?.append('title', data?.feature_title)
-        formData?.append('description', data?.feature_description)
+        formData?.append('content', data?.content)
         data?.image && formData?.append('icon', data?.image)
         await storeMutator.mutateAsync(formData)
       }
@@ -175,10 +169,24 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     }
   }
 
+  const clearFileInput = () => {
+    const fileInput = document.getElementById('account-settings-upload-image') as HTMLInputElement
+
+    if (fileInput) {
+      // Reset the file input value
+      fileInput.value = ''
+
+      // Reset the form state
+      setUploadProfileImage(null)
+      setValue('image', undefined)
+    }
+  }
+
   const handleClose = () => {
     toggle()
     reset()
     setUploadProfileImage(null)
+    clearFileInput()
   }
 
   const handleProfileImageFile = useCallback(
@@ -204,7 +212,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 500, sm: 600 } } }}
     >
       <Header>
-        <Typography variant='h5'>{props.mode === 'add' ? 'Add ' : 'Edit '}Point</Typography>
+        <Typography variant='h5'>{props.mode === 'add' ? 'Add ' : 'Edit '}Content</Typography>
         <IconButton
           size='small'
           onClick={handleClose}
@@ -227,54 +235,31 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
 
           // onSubmit={handleSubmit(onSubmit)}
         >
-          <Grid container>
-            {/* Plan name */}
-            <Grid item md={12} sx={{ px: 3, mb: 3 }}>
-              <Controller
-                name='feature_title'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <CustomTextField
-                    className='project_border_none'
-                    value={value}
-                    onChange={onChange}
-                    fullWidth
-                    sx={{ mb: 4 }}
-                    label='Point Title*'
-                    placeholder='Enter the point title'
-                    error={Boolean(errors.feature_title)}
-                    {...(errors.feature_title && { helperText: errors.feature_title.message })}
-                  />
-                )}
-              />
-            </Grid>
+          {/* Plan benefits */}
+          <Grid item md={12} sx={{ px: 3, mb: 3 }}>
+            <label className='project_title'>Description*</label>
 
-            {/* Plan benefits */}
-            <Grid item md={12} sx={{ px: 3, mb: 3 }}>
-              <label className='project_title'>Point Description*</label>
-
-              <Controller
-                name='feature_description'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    className='project_description project_border_none'
-                    multiline
-                    maxRows={4}
-                    variant='filled'
-                    id='textarea-filled-controlled'
-                    value={value}
-                    onChange={onChange}
-                    fullWidth
-                    sx={{ mb: 4 }}
-                    placeholder='Enter the point description'
-                    error={Boolean(errors.feature_description)}
-                    {...(errors.feature_description && { helperText: errors.feature_description.message })}
-                  />
-                )}
-              />
-            </Grid>
+            <Controller
+              name='content'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  className='project_description project_border_none'
+                  multiline
+                  maxRows={4}
+                  variant='filled'
+                  id='textarea-filled-controlled'
+                  value={value}
+                  onChange={onChange}
+                  fullWidth
+                  sx={{ mb: 4 }}
+                  placeholder='Enter the description'
+                  error={Boolean(errors.content)}
+                  {...(errors.content && { helperText: errors.content.message })}
+                />
+              )}
+            />
           </Grid>
 
           <Grid item md={12} sx={{ px: 3, mb: 3 }}>
@@ -283,7 +268,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
                 {uploadProfileImage === null ? (
                   props.fullRowDetails?.icon ? (
                     <Image
-                      src={`${props.fullRowDetails?.icon}`}
+                      src={`${IMAGE_BASE_URL}${props.fullRowDetails?.icon}`}
                       alt={`${props.fullRowDetails?.icon}`}
                       width={150}
                       height={150}
@@ -364,4 +349,4 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
   )
 }
 
-export default SidebarAddEdit
+export default AddEditDrawerContent

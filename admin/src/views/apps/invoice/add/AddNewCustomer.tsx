@@ -49,18 +49,12 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   name: yup.string().required(),
-  email: yup
-    .string()
-    .trim()
-    .lowercase()
-    .required()
-    .email(validationConfig.error.email.format)
-    .label('Email'),
-    // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
-    //   if (!value) return false
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
+  // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
+  //   if (!value) return false
 
-    //   return !!value && regex.emailRegex.test(value)
-    // }),
+  //   return !!value && regex.emailRegex.test(value)
+  // }),
   company: yup.string().required(),
   contact: yup.string().min(10).max(10).required(),
   address: yup.string().max(120).required()

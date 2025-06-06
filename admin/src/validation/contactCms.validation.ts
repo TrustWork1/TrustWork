@@ -31,16 +31,8 @@ export const contactInfoValidationSchema = yup.object({
     .test('no-leading-space', 'Description cannot start with a space', value => {
       return value ? !value.startsWith(' ') : true
     }),
-  call_center_number: yup
-      .string()
-      .trim()
-      .required('Call Center Number is required'),
-  email: yup
-      .string()
-      .trim()
-      .lowercase()
-      .required()
-      .email(validationConfig.error.email.format),
+  call_center_number: yup.string().trim().required('Call Center Number is required'),
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format),
   location: yup
     .string()
     .trim()
@@ -53,14 +45,8 @@ export const contactInfoValidationSchema = yup.object({
   linkedin_url: yup.string().trim().required('LinkedIn Link is required').url('Must be a valid URL'),
   youtube_url: yup.string().trim().required('Youtube Link is required').url('Must be a valid URL'),
   map_url: yup.string().trim().required('Map Link is required'),
-  longitude: yup
-    .string()
-    .trim()
-    .required('Longitude is required'),
-  latitude: yup
-    .string()
-    .trim()
-    .required('Latitude is required'),
+  longitude: yup.string().trim().required('Longitude is required'),
+  latitude: yup.string().trim().required('Latitude is required'),
   get_in_touch_title: yup
     .string()
     .trim()
@@ -74,7 +60,7 @@ export const contactInfoValidationSchema = yup.object({
     .required('Get In Touch description is required')
     .test('no-leading-space', 'Description cannot start with a space', value => {
       return value ? !value.startsWith(' ') : true
-    }),
+    })
 })
 
 export type ContactInfoValidationSchemaType = yup.InferType<typeof contactInfoValidationSchema>

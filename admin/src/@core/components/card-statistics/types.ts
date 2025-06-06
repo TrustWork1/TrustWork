@@ -25,7 +25,7 @@ export type CardStatsHorizontalProps = {
 }
 
 export type CardStatsWithAreaChartProps = {
-  stats?:string
+  stats?: string
   title: string
   avatarIcon: string
   sx?: SxProps<Theme>
@@ -34,7 +34,7 @@ export type CardStatsWithAreaChartProps = {
   avatarColor?: ThemeColor
   avatarIconSize?: number | string
   chartSeries: ApexOptions['series']
-  cardData? : {title:string, value:number}[]
+  cardData?: { title: string; value: number }[]
 }
 
 export type CardStatsVerticalProps = {

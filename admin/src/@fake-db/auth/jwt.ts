@@ -157,7 +157,7 @@ mock.onGet('/auth/me').reply(config => {
       const userId = decoded.id
 
       // ** Get user that matches id in token
-      const userData = JSON.parse(JSON.stringify(users.find((u) => u.id === userId)))
+      const userData = JSON.parse(JSON.stringify(users.find(u => u.id === userId)))
 
       delete userData.password
 

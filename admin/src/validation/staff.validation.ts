@@ -6,13 +6,7 @@ export const validationSchema = (mode: 'add' | 'edit') =>
   yup.object().shape({
     staff_id: mode === 'edit' ? yup.string().required('Staff ID is required') : yup.string().optional(),
     full_name: yup.string().required('Full Name is required'),
-    email: yup
-      .string()
-      .trim()
-      .lowercase()
-      .required()
-      .email(validationConfig.error.email.format)
-      .label('Email'),
+    email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
     // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
     //   if (!value) return false
 
@@ -42,12 +36,12 @@ export const validationSchema = (mode: 'add' | 'edit') =>
     staff_complieation:
       mode === 'add'
         ? yup.array().of(
-          yup.object().shape({
-            staffcompliance_id: yup.string().required(),
-            document_type_id: yup.string().required('Document Type is required'),
-            file: yup.mixed().required('File is required'),
-            isVerified: yup.boolean().required('Verification status is required')
-          })
-        )
+            yup.object().shape({
+              staffcompliance_id: yup.string().required(),
+              document_type_id: yup.string().required('Document Type is required'),
+              file: yup.mixed().required('File is required'),
+              isVerified: yup.boolean().required('Verification status is required')
+            })
+          )
         : yup.array().optional()
   })

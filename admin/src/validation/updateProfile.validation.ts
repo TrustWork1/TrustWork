@@ -25,13 +25,7 @@ export const updateProfileSchema = yup.object().shape({
     .label('Full Name')
     .min(3, 'Name must be at least 3 characters')
     .max(25, 'Name must be at most 25 characters'),
-  email: yup
-    .string()
-    .trim()
-    .lowercase()
-    .required()
-    .email(validationConfig.error.email.format)
-    .label('Email'),
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
   // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
   //   if (!value) return false
 

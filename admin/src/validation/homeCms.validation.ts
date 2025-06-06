@@ -73,7 +73,6 @@ export const featuresInfoValidationSchema = yup.object({
 
 // export type AppFeaturesValidationSchemaType = yup.InferType<typeof featuresInfoValidationSchema>
 
-
 export const appFeatureContentValidationSchema = yup.object({
   header: yup
     .string()
@@ -89,11 +88,10 @@ export const appFeatureContentValidationSchema = yup.object({
     .required('Description is required')
     .test('no-leading-space', 'Description cannot start with a space', value => {
       return value ? !value.startsWith(' ') : true
-    }),
+    })
 })
 
 export type AppFeatureContentValidationSchemaType = yup.InferType<typeof appFeatureContentValidationSchema>
-
 
 export const howItWorksContentValidationSchema = yup.object({
   header: yup
@@ -112,20 +110,19 @@ export const howItWorksContentValidationSchema = yup.object({
       return value ? !value.startsWith(' ') : true
     }),
 
-  image: yup.mixed().required('Image is required'),
+  image: yup.mixed().required('Image is required')
 })
 
 export type HowItWorksContentValidationSchemaType = yup.InferType<typeof howItWorksContentValidationSchema>
 
-
 export const referralContentValidationSchema = yup.object({
   title: yup
-  .string()
-  .trim()
-  .required('Title is required')
-  .test('no-leading-space', 'Title cannot start with a space', value => {
-    return value ? !value.startsWith(' ') : true
-  }),
+    .string()
+    .trim()
+    .required('Title is required')
+    .test('no-leading-space', 'Title cannot start with a space', value => {
+      return value ? !value.startsWith(' ') : true
+    }),
 
   description: yup
     .string()
@@ -143,7 +140,6 @@ export const referralContentValidationSchema = yup.object({
 })
 
 export type ReferralContentValidationSchemaType = yup.InferType<typeof referralContentValidationSchema>
-
 
 export const downloadAppValidationSchema = yup.object({
   title: yup

@@ -117,7 +117,7 @@ const AppInfoList = () => {
                     <Controller
                       name='tagline'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Tagline'
@@ -133,7 +133,7 @@ const AppInfoList = () => {
                     <Controller
                       name='title'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Title'
@@ -149,7 +149,7 @@ const AppInfoList = () => {
                     <Controller
                       name='description'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           multiline
@@ -167,7 +167,7 @@ const AppInfoList = () => {
                     <Controller
                       name='playstore_link'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='Play Store Link'
@@ -183,7 +183,7 @@ const AppInfoList = () => {
                     <Controller
                       name='appstore_link'
                       control={control}
-                      render={({ field }: { field: { value: string;}}) => (
+                      render={({ field }: { field: { value: string } }) => (
                         <TextField
                           fullWidth
                           label='App Store Link'

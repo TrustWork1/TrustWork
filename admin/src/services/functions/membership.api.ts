@@ -1,9 +1,8 @@
 import axiosInstance from '../interceptors/auth.interceptor'
-import { IMembershipListResponse, } from 'src/interface/api.interface'
-import { GridFilterItem } from '@mui/x-data-grid';
-import membership from 'src/configs/membership';
-import { TMembershipAddParam } from 'src/types/apps/membership.type';
-
+import { IMembershipListResponse } from 'src/interface/api.interface'
+import { GridFilterItem } from '@mui/x-data-grid'
+import membership from 'src/configs/membership'
+import { TMembershipAddParam } from 'src/types/apps/membership.type'
 
 export const fetchMembership = async (
   value?: string,
@@ -23,11 +22,14 @@ export const fetchMembership = async (
     filters: filterQuery || []
   }
 
-  const res = await axiosInstance.get<IMembershipListResponse>(`${membership.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`, {
-    headers: {
-      'Content-Type': 'application/json'
+  const res = await axiosInstance.get<IMembershipListResponse>(
+    `${membership.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`,
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  })
+  )
 
   return res.data
 }
@@ -85,4 +87,3 @@ export const updateMembershipStatus = async (data: { id: string | number; status
 
   return res.data
 }
-

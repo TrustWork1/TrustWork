@@ -8,5 +8,3 @@ export default {
   delete: `${BASE_URL}/admin/client/delete`,
   updateStatus: `${BASE_URL}/admin/client/status/change`
 }
-
-

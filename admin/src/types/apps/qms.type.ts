@@ -1,4 +1,4 @@
-import { TClientType } from "./client"
+import { TClientType } from './client'
 
 export type TQMSEach = {
   id: number

@@ -780,12 +780,21 @@ class BidSerializerProjectView(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
 
+class TransactionProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['id', 'project_title', 'project_budget', 'status', 'city', 'state', 'country']
 
+class TransactionBidSerializer(serializers.ModelSerializer):
+    service_provider_name = serializers.CharField(source='service_provider.full_name', read_only=True)
+    class Meta:
+        model = Bid
+        fields = ['id', 'bid_details', 'quotation_details', 'project_total_cost', 'time_line', 'time_line_hour', 'is_accepted', 'service_provider_name']
 
 
 class TransectionSerializer(serializers.ModelSerializer):
-    project = ProjectSerializer(read_only=True)
-    bid = BidSerializer(read_only=True)
+    project = TransactionProjectSerializer(read_only=True)
+    bid = TransactionBidSerializer(read_only=True)
     transection_amount = serializers.ReadOnlyField(source='bid.project_total_cost')
     created_at = serializers.SerializerMethodField()
     class Meta:

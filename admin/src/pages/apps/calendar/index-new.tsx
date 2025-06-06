@@ -1,4 +1,4 @@
-import Calendar from "src/@core/components/calendar"
+import Calendar from 'src/@core/components/calendar'
 
 const rows = [
   {

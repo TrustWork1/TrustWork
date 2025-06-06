@@ -15,6 +15,7 @@ interface TableHeaderAddFeaturesProps {
   toggle: () => void
   handleFilter: (val: string) => void
   clearFilter: () => void
+  btnText?: string
 }
 
 const TableHeaderAddFeatures = (props: TableHeaderAddFeaturesProps) => {
@@ -44,7 +45,7 @@ const TableHeaderAddFeatures = (props: TableHeaderAddFeaturesProps) => {
       <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <Button onClick={toggle} variant='contained' sx={{ '& svg': { mr: 2 } }}>
           <Icon fontSize='1.125rem' icon='tabler:plus' />
-          Add New Feature
+          {props.btnText ? props.btnText : 'Add New Feature'}
         </Button>
       </Box>
     </Box>

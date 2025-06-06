@@ -249,12 +249,31 @@ const navigation = (): VerticalNavItemsType => {
           subject: 'landing-page-cms-home-referral',
           action: 'manage'
         },
+
         {
           title: 'Download App',
           path: '/dashboards/landing-page-cms/home/download-app',
           subject: 'landing-page-cms-home-download-app',
           action: 'manage'
-        },
+        }
+      ]
+    },
+    {
+      sectionTitle: 'App Content Management'
+    },
+    {
+      title: 'App Management',
+      icon: 'tabler:category',
+      subject: 'landing-page-cms-home',
+      action: 'manage',
+      children: [
+        {
+          title: 'App Referral Content',
+          path: '/dashboards/app-referral-content/list/',
+
+          subject: 'landing-page-cms-home-app-referral-content',
+          action: 'manage'
+        }
       ]
     },
     {
@@ -274,7 +293,7 @@ const navigation = (): VerticalNavItemsType => {
           path: '/dashboards/landing-page-cms/about-us/why-trust-us',
           subject: 'landing-page-cms-aboutus-why-trust-us',
           action: 'manage'
-        },
+        }
       ]
     },
     {
@@ -294,7 +313,7 @@ const navigation = (): VerticalNavItemsType => {
           path: '/dashboards/landing-page-cms/contact-us/contact-form-list',
           subject: 'landing-page-cms-contactus-contact-info',
           action: 'manage'
-        },
+        }
       ]
     },
     {
@@ -302,15 +321,15 @@ const navigation = (): VerticalNavItemsType => {
       icon: 'tabler:category',
       path: '/dashboards/landing-page-cms/terms',
       subject: 'landing-page-cms-terms',
-      action: 'manage',
+      action: 'manage'
     },
     {
       title: 'Privacy Policy',
       icon: 'tabler:category',
       path: '/dashboards/landing-page-cms/policy',
       subject: 'landing-page-cms-privacy',
-      action: 'manage',
-    },
+      action: 'manage'
+    }
   ]
 }
 

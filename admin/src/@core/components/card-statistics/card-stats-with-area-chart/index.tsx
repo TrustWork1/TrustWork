@@ -27,7 +27,7 @@ const CardStatsWithAreaChart = (props: CardStatsWithAreaChartProps) => {
     chartColor = 'primary',
     avatarColor = 'primary',
     avatarIconSize = '1.625rem',
-    cardData,
+    cardData
   } = props
 
   // ** Hook
@@ -93,31 +93,30 @@ const CardStatsWithAreaChart = (props: CardStatsWithAreaChartProps) => {
 
   return (
     <Card sx={{ ...sx }}>
-       <CardHeader
+      <CardHeader
         sx={{ pb: 0 }}
         title={title}
         action={
           <OptionsMenu
-            options={['Today', 'Yesterday ', 'Last Week' ,'Current Month', "Last Month"]}
+            options={['Today', 'Yesterday ', 'Last Week', 'Current Month', 'Last Month']}
             iconButtonProps={{ size: 'small', sx: { color: 'text.disabled' } }}
           />
         }
       />
-      <CardContent sx={{ pb: 0, display: 'flex', flexDirection: 'flex', alignItems: "flex-start" }}>
+      <CardContent sx={{ pb: 0, display: 'flex', flexDirection: 'flex', alignItems: 'flex-start' }}>
         <CustomAvatar skin='light' color={avatarColor} sx={{ mb: 2.5, width: avatarSize, height: avatarSize }}>
           <Icon icon={avatarIcon} fontSize={avatarIconSize} />
         </CustomAvatar>
-        <Box sx={{display:'flex', alignItems:"flex-start" ,flexDirection:'column',width:'100%', ml:4}}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', width: '100%', ml: 4 }}>
           <Box>
-
-
-        { cardData && cardData.map((data)=>(
-           <Typography key={data.title} variant='body2'>{data.title} : {data.value}</Typography>
-        ))}
+            {cardData &&
+              cardData.map(data => (
+                <Typography key={data.title} variant='body2'>
+                  {data.title} : {data.value}
+                </Typography>
+              ))}
           </Box>
-
         </Box>
-
       </CardContent>
       {/* <ReactApexcharts type='area' height={110} options={options} series={chartSeries} /> */}
     </Card>

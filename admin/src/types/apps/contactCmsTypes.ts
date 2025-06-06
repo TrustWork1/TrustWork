@@ -22,16 +22,14 @@ export type IContactCmsModel = {
   }
 
   ContactFormListData: {
-    id: 1,
-    full_name: "mr. tester",
-    email: "demo@gmail.com",
-    subject: "Query1",
-    message: "Testing"
+    id: 1
+    full_name: 'mr. tester'
+    email: 'demo@gmail.com'
+    subject: 'Query1'
+    message: 'Testing'
   }[]
 
-
   ContactInfoContentPayload: FormData
-  
 
   ContactInfoContentResponse: BaseApiResponse & { data: IContactCmsModel['ContactInfoContent'] }
   ContactFormListResponse: BaseApiResponse & { data: IContactCmsModel['ContactFormListData'] }

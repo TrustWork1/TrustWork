@@ -31,7 +31,12 @@ import { IMAGE_ACCEPT } from 'src/configs/constant'
 import { globalSuccess } from 'src/lib/functions/_helpers.lib'
 import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
 import { RowData } from 'src/pages/dashboards/landing-page-cms/home/app-features/list'
-import { saveAppFeaturesCmsList, saveHowItWorksStepsCmsList, updateAppFeaturesCmsList, updateHowItWorksStepsCmsList } from 'src/services/functions/home-cms.api'
+import {
+  saveAppFeaturesCmsList,
+  saveHowItWorksStepsCmsList,
+  updateAppFeaturesCmsList,
+  updateHowItWorksStepsCmsList
+} from 'src/services/functions/home-cms.api'
 import CustomButtonPrimary from 'src/ui/Icons/CustomButtons/CustomButtonPrimary'
 import {
   appFeatureCreateValidationSchema,

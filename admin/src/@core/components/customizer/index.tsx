@@ -97,7 +97,7 @@ const Customizer = () => {
     saveSettings({ ...settings, [field]: value })
   }
 
- const Scrollbar = PerfectScrollbar as any
+  const Scrollbar = PerfectScrollbar as any
 
   return (
     <div className='customizer'>

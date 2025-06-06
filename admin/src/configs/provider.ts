@@ -8,5 +8,3 @@ export default {
   delete: `${BASE_URL}/admin/provider/delete`,
   updateStatus: `${BASE_URL}/admin/provider/status/change`
 }
-
-

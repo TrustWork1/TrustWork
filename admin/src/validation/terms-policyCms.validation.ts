@@ -23,8 +23,7 @@ export const termsPolicyValidationSchema = yup.object({
     .required('Content is required')
     .test('no-leading-space', 'Content cannot start with a space', value => {
       return value ? !value.startsWith(' ') : true
-    }),
+    })
 })
 
 export type TermsPolicyValidationSchemaType = yup.InferType<typeof termsPolicyValidationSchema>
-

@@ -47,12 +47,12 @@ const ContentWrapper = styled('main')(({ theme }) => ({
 
 const VerticalLayout = (props: LayoutProps) => {
   // ** Props
-  const {  settings, children, scrollToTop, footerProps, contentHeightFixed, verticalLayoutProps } = props
+  const { settings, children, scrollToTop, footerProps, contentHeightFixed, verticalLayoutProps } = props
 
   // ** Vars
   const { skin, navHidden, contentWidth } = settings
   const navigationBorderWidth = skin === 'bordered' ? 1 : 0
-  const { navigationSize,  collapsedNavigationSize } = themeConfig
+  const { navigationSize, collapsedNavigationSize } = themeConfig
   const navWidth = navigationSize
   const collapsedNavWidth = collapsedNavigationSize
 

@@ -9,15 +9,11 @@ export const resetPasswordSchema = yup.object().shape({
     .min(8, validationConfig?.error?.passwordLength)
     .max(15, validationConfig?.error?.passwordLength)
     .matches(regex.password, validationConfig?.error?.passwordFormat)
-    .label("Password"),
+    .label('Password'),
 
   confirm_password: yup
     .string()
     .required()
-    .oneOf(
-      [yup.ref("new_password")],
-      validationConfig?.error?.passowrdConfirmMtch
-    )
-    .label("Confirm Password")
-
+    .oneOf([yup.ref('new_password')], validationConfig?.error?.passowrdConfirmMtch)
+    .label('Confirm Password')
 })

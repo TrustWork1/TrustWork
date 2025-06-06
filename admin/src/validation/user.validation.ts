@@ -4,13 +4,7 @@ import validationConfig from './validationConfig'
 import regex from 'src/regex'
 
 export const craeteUserSchema = yup.object().shape({
-  email: yup
-    .string()
-    .trim()
-    .lowercase()
-    .required()
-    .email(validationConfig.error.email.format)
-    .label('Email'),
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
   // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
   //   if (!value) return false
 

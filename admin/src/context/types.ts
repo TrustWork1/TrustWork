@@ -42,10 +42,6 @@ export type UserDataType = {
   zip_code: string
   country: string
 
-
-
-
-
   total_referal_amount: string
   total_referal_count: string
   is_user_active: boolean

@@ -84,8 +84,7 @@ const RolesCards = () => {
     } else {
       arr.push(id)
       setSelectedCheckbox([...arr])
-      console.log('selectedCheckbox',selectedCheckbox);
-
+      console.log('selectedCheckbox', selectedCheckbox)
     }
   }
 

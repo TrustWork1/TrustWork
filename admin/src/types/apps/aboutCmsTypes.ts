@@ -30,11 +30,9 @@ export type IAboutCmsModel = {
     icon: string
   }[]
 
-
   AboutInfoContentPayload: FormData
   WhyTrustUsContentPayload: FormData
   WhyTrustUsPointsPayload: FormData
-  
 
   AboutInfoContentResponse: BaseApiResponse & { data: IAboutCmsModel['AboutInfoContent'] }
   WhyTrustUsContentResponse: BaseApiResponse & { data: IAboutCmsModel['WhyTrustUsContent'] }

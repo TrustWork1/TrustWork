@@ -12,7 +12,6 @@ import { GridFilterItem } from '@mui/x-data-grid'
 //   return res.data
 // }
 
-
 export const fetchClients = async (
   value?: string,
   paginationModel: { page: number; pageSize: number } = { page: 1, pageSize: 10 },
@@ -31,11 +30,14 @@ export const fetchClients = async (
     filters: filterQuery || []
   }
 
-  const res = await axiosInstance.get(`${client.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`, {
-    headers: {
-      'Content-Type': 'application/json'
+  const res = await axiosInstance.get(
+    `${client.list}?page=${payload?.page}&limit=${payload?.perpage}&search=${payload.search}`,
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  })
+  )
 
   return res.data
 }

@@ -11,6 +11,6 @@ export default {
   biding: {
     list: `${BASE_URL}/project/bid`,
     details: `${BASE_URL}/bid/details`,
-    updateStatus: `${BASE_URL}/bid/status/change`,
+    updateStatus: `${BASE_URL}/bid/status/change`
   }
 }

@@ -9,7 +9,6 @@ export type ITermsAndPrivacyCmsModel = {
   }
   TermsAndPrivacyPayload: FormData
 
-
   TermsAndPrivacyResponse: BaseApiResponse & { data: ITermsAndPrivacyCmsModel['TermsAndPrivacyData'] }
   SaveTermsAndPrivacyResponse: BaseApiResponse & { data: ITermsAndPrivacyCmsModel['TermsAndPrivacyData'] }
   UpdateTermsAndPrivacyResponse: BaseApiResponse & { data: ITermsAndPrivacyCmsModel['TermsAndPrivacyData'] }

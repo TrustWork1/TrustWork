@@ -2,13 +2,12 @@ import axiosInstance from 'src/services/interceptors/auth.interceptor'
 import user from 'src/configs/user'
 
 export const fetchUsers = async (value: string, paginationModel: { page: number; pageSize: number }) => {
-  
   const payload = {
     search: value,
 
     // status: 'Active',
     perpage: paginationModel.pageSize,
-    page: paginationModel.page,
+    page: paginationModel.page
 
     // sort_field: 'string',
     // sort_order: 'desc'

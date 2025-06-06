@@ -1,3 +1,5 @@
+import appReferrals from 'src/configs/landing-website/home/app-referrals'
+
 export const listOfUniqueKeys = {
   home: {
     appInfo: {
@@ -9,6 +11,13 @@ export const listOfUniqueKeys = {
       update: 'put-app-features-list',
       save: 'put-app-features-list',
       delete: 'put-app-features-list'
+    },
+
+    appReferrals: {
+      list: 'app-referrals-list',
+      update: 'put-app-referrals-list',
+      save: 'put-app-referrals-list',
+      delete: 'put-app-referrals-list'
     },
     howItworks: {
       contentFetch: 'get-how-it-works-content',

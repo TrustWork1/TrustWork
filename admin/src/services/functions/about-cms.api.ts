@@ -34,7 +34,6 @@ export const updateAboutInfoCmsList = async (data: IAboutCmsModel['AboutInfoCont
   return res.data
 }
 
-
 export const fetchWhyTrustUsCmsList = async () => {
   const res = await axiosInstance.get<IAboutCmsModel['WhyTrustUsContentResponse']>(whyTrustUs.content, {
     headers: {
@@ -65,7 +64,6 @@ export const updateWhyTrustUsCmsList = async (data: IAboutCmsModel['WhyTrustUsCo
 
   return res.data
 }
-
 
 export const fetchWhyTrustUsPointsList = async () => {
   const res = await axiosInstance.get<IAboutCmsModel['WhyTrustUsPointsListResponse']>(whyTrustUs.list, {

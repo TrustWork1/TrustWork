@@ -569,11 +569,7 @@ const ProviderBiddingDetails = () => {
       <Grid item xs={12}>
         <Card>
           <Box sx={{ mt: 2, mb: 2, paddingLeft: 2 }}>
-            <Button
-              variant='contained'
-              startIcon={<Icon icon={'tabler:arrow-left'} />}
-              onClick={() => router.push('/dashboards/projects/list/')}
-            >
+            <Button variant='contained' startIcon={<Icon icon={'tabler:arrow-left'} />} onClick={() => router.back()}>
               Back
             </Button>
           </Box>

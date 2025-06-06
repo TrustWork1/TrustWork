@@ -6,5 +6,5 @@ export default {
   store: `${BASE_URL}/membership-plans/`,
   update: `${BASE_URL}/membership-plans`,
   delete: `${BASE_URL}/membership-plans`,
-  updateStatus: `${BASE_URL}/membership-plans`,
+  updateStatus: `${BASE_URL}/membership-plans`
 }

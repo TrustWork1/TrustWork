@@ -23,7 +23,7 @@ export const fetchReplyQmsById = async (id: string | number) => {
   return res.data
 }
 
-export const updateReplyQms = async (data: { qms: string; response: string; }) => {
+export const updateReplyQms = async (data: { qms: string; response: string }) => {
   const url = `${qmsConfig.updateReply}/`
   const res = await axiosInstance.post(url, data, {
     headers: {

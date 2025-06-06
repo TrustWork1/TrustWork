@@ -13,13 +13,7 @@ export const createSchema = yup.object().shape({
     .required('Last name is required')
     .min(3, 'Last name must be at least 3 characters')
     .max(15, 'Last name must be at least 15 characters'),
-  email: yup
-    .string()
-    .trim()
-    .lowercase()
-    .required()
-    .email(validationConfig.error.email.format)
-    .label('Email'),
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
   // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
   //   if (!value) return false
 
@@ -55,13 +49,7 @@ export const updateSchema = yup.object().shape({
     .required('Last name is required')
     .min(3, 'Last name must be at least 3 characters')
     .max(15, 'Last name must be at least 15 characters'),
-  email: yup
-    .string()
-    .trim()
-    .lowercase()
-    .required()
-    .email(validationConfig.error.email.format)
-    .label('Email'),
+  email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),
   // .test('preventParticularDomain', validationConfig.error.email.domainValidation, (value: string) => {
   //   if (!value) return false
 

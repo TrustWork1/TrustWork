@@ -14,7 +14,7 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridOverlay, useGridApiContext } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -76,7 +76,26 @@ const renderProvider = (row: TProviderType) => {
     )
   }
 }
+// ** renders if empty data shows
 
+function CustomNoRowsOverlay() {
+  return (
+    <GridOverlay>
+      <Box
+        sx={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16
+        }}
+      >
+        <Typography>No records found</Typography>
+      </Box>
+    </GridOverlay>
+  )
+}
 const RowOptions = ({
   id,
   toggleMode,
@@ -428,6 +447,8 @@ const ProviderList = () => {
 
   const toggleAddEditDrawer = () => setAddProviderOpen(!addProviderOpen)
 
+  console.log(providers, 'provoidres ')
+
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={12}>
@@ -440,20 +461,37 @@ const ProviderList = () => {
             toggle={() => (toggleAddEditDrawer(), setMode('add'), setProvider(''))}
             clearFilter={() => setValue('')}
           />
-          <StyledDataGrid
-            autoHeight
-            rowHeight={62}
-            getRowId={row => row.id}
-            rows={providers}
-            columns={columns}
-            loading={providerListLoading}
-            paginationMode='server'
-            rowCount={totalRecords}
-            disableRowSelectionOnClick
-            pageSizeOptions={[10, 25, 50]}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-          />
+
+          {/* Conditional check for no data */}
+          {!providerListLoading && providers.length === 0 ? (
+            <Box
+              display='flex'
+              flexDirection='column'
+              alignItems='center'
+              justifyContent='center'
+              sx={{ py: 10, color: 'text.secondary' }}
+            >
+              <Typography variant='h6' fontWeight={500}>
+                No records found
+              </Typography>
+              <Typography variant='body2'>Try changing filters or add a new provider to get started.</Typography>
+            </Box>
+          ) : (
+            <StyledDataGrid
+              autoHeight
+              rowHeight={62}
+              getRowId={row => row.id}
+              rows={providers}
+              columns={columns}
+              loading={providerListLoading}
+              paginationMode='server'
+              rowCount={totalRecords}
+              disableRowSelectionOnClick
+              pageSizeOptions={[10, 25, 50]}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
+            />
+          )}
         </Card>
       </Grid>
 

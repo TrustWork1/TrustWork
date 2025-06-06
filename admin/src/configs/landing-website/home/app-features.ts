@@ -5,5 +5,5 @@ export default {
   save: `${BASE_URL}/app-features/`,
   update: `${BASE_URL}/app-features/`,
   delete: `${BASE_URL}/app-features/`,
-  content: `${BASE_URL}/app-features-cms/`,
+  content: `${BASE_URL}/app-features-cms/`
 }

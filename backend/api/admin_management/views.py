@@ -568,12 +568,12 @@ from django.shortcuts import redirect, get_object_or_404
 
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
-# class OnboardingReturn(APIView):
+# class OnboardingReturn
 def onboarding_return(request):
-    return HttpResponse("✅ Stripe onboarding completed. You may now use your account.")
+    return redirect("https://trustwork-dev.dedicateddevelopers.us/")
 
 def reauth_with_token(request, token):
-    bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe").order_by('-created_at').first()
+    bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe", status="inactive").order_by('-created_at').first()
     if not bank or not bank.stripe_account_id:
         return redirect("https://trustwork-dev.dedicateddevelopers.us/")
     

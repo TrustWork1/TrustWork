@@ -1008,61 +1008,61 @@ class BankDetailsAPIView(APIView):
                         },
                     )
                     
-                    if stripe_account_id:
-                        # Use existing Stripe account
-                        external_account = stripe.Account.create_external_account(
-                            stripe_account_id,
-                            external_account=bank_token.id
-                        )
-                        final_stripe_account_id = stripe_account_id
-                    else:
+                    # if stripe_account_id:
+                    #     # Use existing Stripe account
+                    #     external_account = stripe.Account.create_external_account(
+                    #         stripe_account_id,
+                    #         external_account=bank_token.id
+                    #     )
+                    #     final_stripe_account_id = stripe_account_id
+                    # else:
                         # Create new Stripe account
-                        account = stripe.Account.create(
-                            type = 'express',   # custom or express
-                            country = country,
-                            email = email,
-                            business_type = "individual",
-                            capabilities = {
-                                "card_payments": {"requested": True},
-                                "transfers": {"requested": True}
-                            },
-                        )
-                        external_account = stripe.Account.create_external_account(
-                            account.id,
-                            external_account=bank_token.id
-                        )
-                        final_stripe_account_id = account.id
-                        uuidgen = str(uuid4())
+                    account = stripe.Account.create(
+                        type = 'express',   # custom or express
+                        country = country,
+                        email = email,
+                        business_type = "individual",
+                        capabilities = {
+                            "card_payments": {"requested": True},
+                            "transfers": {"requested": True}
+                        },
+                    )
+                    external_account = stripe.Account.create_external_account(
+                        account.id,
+                        external_account=bank_token.id
+                    )
+                    final_stripe_account_id = account.id
+                    uuidgen = str(uuid4())
 
-                        account_link = stripe.AccountLink.create(
-                            account=final_stripe_account_id,
-                            refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{uuidgen}/",
-                            return_url="https://trustwork-dev.dedicateddevelopers.us/",
-                            type="account_onboarding",
+                    account_link = stripe.AccountLink.create(
+                        account=final_stripe_account_id,
+                        refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{uuidgen}/",
+                        return_url="https://trustwork-dev.dedicateddevelopers.us/",
+                        type="account_onboarding",
+                    )
+                    print("Send this link to user:", account_link.url)
+                    
+                    # verify_link = (
+                    #     "Please activate your bank account.<br>"
+                    #     "This is required for first-time setup.<br><br>"
+                    #     f"<a href='{account_link.url}'>Click here to verify your Stripe account</a>"
+                    # )
+                    html_content = render_to_string('email_temp.html', {
+                        'title': 'Stripe Account Verification',
+                        'verify_link': f'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
+                        'url': account_link.url,
+                        'image': TRUSTWORK_BASE_API
+                    })
+                    try:
+                        send_mail(
+                            subject="Account Verification",
+                            message = "Please complete your Stripe account setup.",
+                            html_message = html_content,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[email],
                         )
-                        print("Send this link to user:", account_link.url)
-                        
-                        # verify_link = (
-                        #     "Please activate your bank account.<br>"
-                        #     "This is required for first-time setup.<br><br>"
-                        #     f"<a href='{account_link.url}'>Click here to verify your Stripe account</a>"
-                        # )
-                        html_content = render_to_string('email_temp.html', {
-                            'title': 'Stripe Account Verification',
-                            'verify_link': f'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
-                            'url': account_link.url,
-                            'image': TRUSTWORK_BASE_API
-                        })
-                        try:
-                            send_mail(
-                                subject="Account Verification",
-                                message = "Please complete your Stripe account setup.",
-                                html_message = html_content,
-                                from_email=settings.DEFAULT_FROM_EMAIL,
-                                recipient_list=[email],
-                            )
-                        except Exception as e:
-                            print("Mail sending failed:", e)
+                    except Exception as e:
+                        print("Mail sending failed:", e)
 
                     fingerprint = external_account.fingerprint
                     if BankDetails.objects.filter(user_profile=user_profile, bank_account_fingerprint=fingerprint).exists():
@@ -1232,15 +1232,15 @@ class PrimaryBankView(APIView):
         # Fetch the bank detail the user wants to make primary
         bank_detail = get_object_or_404(BankDetails, pk=pk, user_profile=user_profile)
 
-        if bank_detail.payment_type == "stripe":
-            try:
-                stripe.Account.modify_external_account(
-                    bank_detail.stripe_account_id,
-                    bank_detail.stripe_bank_account_id,
-                    default_for_currency=True
-                )
-            except stripe.error.StripeError as e:
-                return Response({"error": f"Stripe error: {e.user_message}"}, status=400)
+        # if bank_detail.payment_type == "stripe":
+        #     try:
+        #         stripe.Account.modify_external_account(
+        #             bank_detail.stripe_account_id,
+        #             bank_detail.stripe_bank_account_id,
+        #             default_for_currency=True
+        #         )
+        #     except stripe.error.StripeError as e:
+        #         return Response({"error": f"Stripe error: {e.user_message}"}, status=400)
 
         # Unset existing primary bank (if any)
         BankDetails.objects.filter(user_profile=user_profile, is_primary=True).update(is_primary=False)

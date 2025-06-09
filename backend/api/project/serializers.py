@@ -781,9 +781,10 @@ class BidSerializerProjectView(serializers.ModelSerializer):
         fields = '__all__'
 
 class TransactionProjectSerializer(serializers.ModelSerializer):
+    client = ProfileSerializer(read_only=True)
     class Meta:
         model = Project
-        fields = ['id', 'project_title', 'project_budget', 'status', 'city', 'state', 'country']
+        fields = ['id', 'project_title', 'project_budget', 'status', 'city', 'state', 'country', 'client']
 
 class TransactionBidSerializer(serializers.ModelSerializer):
     service_provider_name = serializers.CharField(source='service_provider.full_name', read_only=True)

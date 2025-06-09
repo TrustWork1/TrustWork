@@ -37,13 +37,6 @@ class EscrowCollectionWebhook(APIView):
         t.project.status="ongoing"
         t.project.save()
         t.save()
-
-        url=f"{ESCROW_BASE_API}/stripe/stripe_payment_status/"
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "escrow_id": str(t.escrow_id),
-        }
-        response = requests.post(url, json=data, headers=headers)
         
         client_notification=Notification.objects.create(
             sender=t.bid.project.client,
@@ -219,6 +212,8 @@ class ProcessStripeSession(APIView):
         payment.save()
 
         # Update project and bid status
+        all_bid=Bid.objects.filter(project=project_details).exclude(id=bid_id)
+        all_bid.update(status="Rejected", is_accepted=False)
         bid_details.status = "Accepted"
         project_details.status = "ongoing"
         bid_details.save()

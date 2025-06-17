@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "639772854261",
+    "project_id": "trustwork-9819e",
+    "storage_bucket": "trustwork-9819e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:639772854261:android:65cc0a8b2eba81039602bc",
+        "android_client_info": {
+          "package_name": "com.webskitters.trustwork"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKAkB2cNIa3Ndzk7Ji2MDuwlnQCcqPU-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,1813 @@
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Bad Request: /
+[26/Sep/2024 12:06:19] "GET / HTTP/1.0" 400 67965
+Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+[26/Sep/2024 12:06:19] "GET /favicon.ico HTTP/1.0" 400 67913
+Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Bad Request: /
+[26/Sep/2024 12:10:07] "GET / HTTP/1.0" 400 67965
+Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'trustwork-api.dedicateddevelopers.us'. You may need to add 'trustwork-api.dedicateddevelopers.us' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+[26/Sep/2024 12:10:07] "GET /favicon.ico HTTP/1.0" 400 67913
+/home/developer/codebase/trustwork-backend/profile_management/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 26, 2024 - 11:01:10
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /
+[26/Sep/2024 13:31:30] "GET / HTTP/1.0" 404 2183
+Not Found: /favicon.ico
+[26/Sep/2024 13:31:30] "GET /favicon.ico HTTP/1.0" 404 2234
+Not Found: /
+[26/Sep/2024 13:51:23] "GET / HTTP/1.0" 404 2183
+Not Found: /favicon.ico
+[26/Sep/2024 13:51:23] "GET /favicon.ico HTTP/1.0" 404 2234
+[26/Sep/2024 13:51:28] "GET /admin HTTP/1.0" 301 0
+[26/Sep/2024 13:51:28] "GET /admin/ HTTP/1.0" 302 0
+[26/Sep/2024 13:51:28] "GET /admin/login/?next=/admin/ HTTP/1.0" 200 4178
+[26/Sep/2024 13:51:28] "GET /static/admin/css/nav_sidebar.css HTTP/1.0" 200 2694
+[26/Sep/2024 13:51:28] "GET /static/admin/css/dark_mode.css HTTP/1.0" 200 2929
+[26/Sep/2024 13:51:28] "GET /static/admin/css/login.css HTTP/1.0" 200 958
+[26/Sep/2024 13:51:28] "GET /static/admin/css/base.css HTTP/1.0" 200 21310
+[26/Sep/2024 13:51:28] "GET /static/admin/css/responsive.css HTTP/1.0" 200 18559
+[26/Sep/2024 13:51:28] "GET /static/admin/js/theme.js HTTP/1.0" 200 1943
+[26/Sep/2024 13:51:28] "GET /static/admin/js/nav_sidebar.js HTTP/1.0" 200 3063
+Not Found: /api
+[26/Sep/2024 13:51:32] "GET /api HTTP/1.0" 404 2210
+Not Found: /api/
+[26/Sep/2024 13:51:35] "GET /api/ HTTP/1.0" 404 5450
+[26/Sep/2024 13:51:50] "GET /api/bank-details HTTP/1.0" 301 0
+Unauthorized: /api/bank-details/
+[26/Sep/2024 13:51:50] "GET /api/bank-details/ HTTP/1.0" 401 5118
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.0" 200 121457
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/css/prettify.css HTTP/1.0" 200 817
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/css/default.css HTTP/1.0" 200 1152
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.0" 200 3426
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/ajax-form.js HTTP/1.0" 200 3796
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.0" 200 87533
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/csrf.js HTTP/1.0" 200 1793
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/default.js HTTP/1.0" 200 1268
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/prettify-min.js HTTP/1.0" 200 13632
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/load-ajax-form.js HTTP/1.0" 200 59
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.0" 200 39680
+[26/Sep/2024 13:51:50] "GET /static/rest_framework/img/grid.png HTTP/1.0" 200 1458
+Unauthorized: /api/bank-details/
+[26/Sep/2024 13:51:56] "GET /api/bank-details/ HTTP/1.0" 401 5118
+Unauthorized: /api/bank-details/
+[26/Sep/2024 13:51:57] "GET /api/bank-details/ HTTP/1.0" 401 5118
+Not Found: /
+[27/Sep/2024 09:58:15] "GET / HTTP/1.0" 404 2183
+Not Found: /favicon.ico
+[27/Sep/2024 09:58:15] "GET /favicon.ico HTTP/1.0" 404 2234
+Not Found: /
+[27/Sep/2024 10:00:16] "GET / HTTP/1.0" 404 2183
+Not Found: /
+[27/Sep/2024 10:12:33] "GET / HTTP/1.0" 404 2183
+Not Found: /favicon.ico
+[27/Sep/2024 10:12:34] "GET /favicon.ico HTTP/1.0" 404 2234
+Not Found: /
+[27/Sep/2024 10:13:16] "GET / HTTP/1.0" 404 2183
+Bad Request: /api/verify-otp/
+[27/Sep/2024 10:17:20] "POST //api/verify-otp/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[27/Sep/2024 11:29:58] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[27/Sep/2024 11:30:49] "POST //api/login/ HTTP/1.0" 400 31
+Unauthorized: /api/logout/
+[27/Sep/2024 11:30:54] "POST //api/logout/ HTTP/1.0" 401 27
+Not Found: /
+[27/Sep/2024 13:43:39] "GET / HTTP/1.0" 404 2183
+Unauthorized: /api/bank-details/
+[27/Sep/2024 13:43:43] "GET /api/bank-details/ HTTP/1.0" 401 5118
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/css/prettify.css HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/css/default.css HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/ajax-form.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/prettify-min.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/default.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/csrf.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/js/load-ajax-form.js HTTP/1.0" 304 0
+[27/Sep/2024 13:43:43] "GET /static/rest_framework/img/grid.png HTTP/1.0" 304 0
+Unauthorized: /api/bank-details/
+[27/Sep/2024 13:43:54] "GET /api/bank-details/ HTTP/1.0" 401 27
+Unauthorized: /api/bank-details/
+[27/Sep/2024 14:11:14] "GET /api/bank-details/ HTTP/1.0" 401 5118
+[27/Sep/2024 14:16:29] code 400, message Bad request version ('À\x13À')
+[27/Sep/2024 14:16:29] You're accessing the development server over HTTPS, but it only supports HTTP.
+Not Found: /
+[27/Sep/2024 14:16:39] "GET / HTTP/1.1" 404 2165
+[27/Sep/2024 14:16:40,295] - Broken pipe from ('47.251.88.12', 27284)
+Not Found: /
+[27/Sep/2024 14:17:06] "GET / HTTP/1.1" 404 2165
+Not Found: /
+[27/Sep/2024 14:17:06] "GET / HTTP/1.1" 404 2184
+Bad Request: /api/login/
+[27/Sep/2024 15:02:39] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[27/Sep/2024 15:02:45] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[27/Sep/2024 15:04:13] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[30/Sep/2024 05:38:27] "POST //api/login/ HTTP/1.0" 400 76
+Bad Request: /api/login/
+[30/Sep/2024 05:38:33] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[30/Sep/2024 05:38:41] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[30/Sep/2024 05:38:48] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[30/Sep/2024 12:45:20] "POST //api/login/ HTTP/1.0" 400 31
+Bad Request: /api/login/
+[30/Sep/2024 12:45:55] "POST /api/login/ HTTP/1.0" 400 31
+Not Found: /api/{endpoint}
+[30/Sep/2024 12:52:15] "GET /api/%7Bendpoint%7D HTTP/1.0" 404 5484
+[30/Sep/2024 13:09:16] "POST //api/login/ HTTP/1.0" 200 52
+[30/Sep/2024 13:09:53] "POST /api/login/ HTTP/1.0" 200 52
+Not Found: /api/admin/login
+[30/Sep/2024 13:14:51] "GET /api/admin/login HTTP/1.0" 404 5483
+Not Found: /api/admin/user/login
+[30/Sep/2024 13:28:12] "OPTIONS /api/admin/user/login HTTP/1.0" 404 5502
+Not Found: /api/admin/user/login
+[30/Sep/2024 13:28:23] "OPTIONS /api/admin/user/login HTTP/1.0" 404 5502
+Not Found: /api/admin/login
+[30/Sep/2024 13:30:23] "OPTIONS /api/admin/login HTTP/1.0" 404 5487
+[30/Sep/2024 13:30:37] "OPTIONS /api/login HTTP/1.0" 301 0
+[30/Sep/2024 13:32:39] "GET /api/login HTTP/1.0" 301 0
+Method Not Allowed: /api/login/
+[30/Sep/2024 13:32:39] "GET /api/login/ HTTP/1.0" 405 40
+Watching for file changes with StatReloader
+/home/developer/codebase/trustwork-backend/api/profile/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 30, 2024 - 13:48:17
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/__init__.py", line 394, in execute
+    autoreload.check_errors(django.setup)()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1324, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'corsheaders'
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/__init__.py", line 394, in execute
+    autoreload.check_errors(django.setup)()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1324, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'corsheaders'
+Watching for file changes with StatReloader
+[30/Sep/2024 13:50:03] "POST /api/login/ HTTP/1.0" 200 504
+[30/Sep/2024 13:51:26] "POST /api/login/ HTTP/1.0" 200 545
+[30/Sep/2024 13:53:01] "POST /api/admin/login/ HTTP/1.0" 200 545
+[30/Sep/2024 14:02:25] "OPTIONS /api/admin/login HTTP/1.0" 200 0
+Internal Server Error: /api/admin/login
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/admin/login/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[30/Sep/2024 14:02:25] "POST /api/admin/login HTTP/1.0" 500 69742
+[30/Sep/2024 14:03:34] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[30/Sep/2024 14:03:35] "POST /api/admin/login/ HTTP/1.0" 200 504
+[30/Sep/2024 14:04:37] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[30/Sep/2024 14:04:37] "POST /api/admin/login/ HTTP/1.0" 200 545
+Bad Request: /api/login/
+[30/Sep/2024 14:07:24] "POST //api/login/ HTTP/1.0" 400 31
+[30/Sep/2024 14:07:26] "POST /api/admin/login/ HTTP/1.0" 200 545
+[30/Sep/2024 14:07:30] "POST /api/admin/login/ HTTP/1.0" 200 545
+Bad Request: /api/login/
+[30/Sep/2024 14:07:56] "POST //api/login/ HTTP/1.0" 400 31
+/home/developer/codebase/trustwork-backend/api/auth/serializers.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 30, 2024 - 13:49:47
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+{'email': 'admin@webskitters.in', 'password': 'admin'}
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+{'email': 'admin@webskitters.in', 'password': 'admin'}
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+{'email': 'swapnil.chopra@webskitters.in', 'password': 'admin'}
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+{'email': 'sarthak@demo.com', 'password': 'admin'}
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+[30/Sep/2024 14:12:23] "POST /api/admin/login/ HTTP/1.0" 200 431
+Bad Request: /api/admin/login/
+[30/Sep/2024 14:12:39] "POST //api/admin/login/ HTTP/1.0" 400 31
+[30/Sep/2024 14:12:51] "POST //api/admin/login/ HTTP/1.0" 200 458
+[30/Sep/2024 14:14:28] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[30/Sep/2024 14:14:28] "POST /api/admin/login/ HTTP/1.0" 200 458
+[30/Sep/2024 14:19:53] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[30/Sep/2024 14:19:53] "POST /api/admin/login/ HTTP/1.0" 200 458
+[30/Sep/2024 14:46:22] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[30/Sep/2024 14:46:22] "POST /api/admin/login/ HTTP/1.0" 200 458
+Bad Request: /api/login/
+[01/Oct/2024 10:42:12] "POST //api/login/ HTTP/1.0" 400 31
+Unauthorized: /api/login/
+[01/Oct/2024 10:42:37] "POST //api/login/ HTTP/1.0" 401 27
+Unauthorized: /api/login/
+[01/Oct/2024 10:42:50] "POST //api/login/ HTTP/1.0" 401 27
+Unauthorized: /api/login/
+[01/Oct/2024 10:43:21] "POST //api/login/ HTTP/1.0" 401 27
+Watching for file changes with StatReloader
+/home/developer/codebase/trustwork-backend/core/settings.py changed, reloading.
+/home/developer/codebase/trustwork-backend/core/settings.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Error: That port is already in use.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+[01/Oct/2024 13:12:16] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[01/Oct/2024 13:12:16] "POST /api/admin/login/ HTTP/1.0" 200 393
+[01/Oct/2024 13:12:28] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[01/Oct/2024 13:12:28] "POST /api/admin/login/ HTTP/1.0" 200 458
+[01/Oct/2024 13:13:48] "GET /api/cms HTTP/1.0" 301 0
+Unauthorized: /api/cms/
+[01/Oct/2024 13:13:48] "GET /api/cms/ HTTP/1.0" 401 27
+[01/Oct/2024 13:14:37] "POST /api/admin/login/ HTTP/1.0" 200 458
+[01/Oct/2024 13:15:02] "GET /api/cms HTTP/1.0" 301 0
+Internal Server Error: /api/cms/
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/codebase/trustwork-backend/api/admin_management/views.py", line 12, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+                    ^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 714, in to_representation
+    self.child.to_representation(item) for item in iterable
+                                                   ^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+[01/Oct/2024 13:15:02] "GET /api/cms/ HTTP/1.0" 500 163283
+[01/Oct/2024 13:16:18] "GET /api/cms HTTP/1.0" 301 0
+Internal Server Error: /api/cms/
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/codebase/trustwork-backend/api/admin_management/views.py", line 12, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+                    ^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 714, in to_representation
+    self.child.to_representation(item) for item in iterable
+                                                   ^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+[01/Oct/2024 13:16:18] "GET /api/cms/ HTTP/1.0" 500 163241
+[01/Oct/2024 13:16:25] "GET /api/cms HTTP/1.0" 301 0
+Internal Server Error: /api/cms/
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/codebase/trustwork-backend/api/admin_management/views.py", line 12, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+                    ^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 714, in to_representation
+    self.child.to_representation(item) for item in iterable
+                                                   ^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+[01/Oct/2024 13:16:25] "GET /api/cms/ HTTP/1.0" 500 163101
+Watching for file changes with StatReloader
+[01/Oct/2024 13:16:39] "GET /api/cms HTTP/1.0" 301 0
+Internal Server Error: /api/cms/
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/codebase/trustwork-backend/api/admin_management/views.py", line 12, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+                    ^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/serializers.py", line 714, in to_representation
+    self.child.to_representation(item) for item in iterable
+                                                   ^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "adminsite_management_cms" does not exist
+LINE 1: ...ontent", "adminsite_management_cms"."status" FROM "adminsite...
+                                                             ^
+
+[01/Oct/2024 13:16:39] "GET /api/cms/ HTTP/1.0" 500 163283
+[01/Oct/2024 13:19:47] "GET /api/cms HTTP/1.0" 301 0
+[01/Oct/2024 13:19:47] "GET /api/cms/ HTTP/1.0" 200 2
+Unauthorized: /api/cms/
+[01/Oct/2024 13:21:48] "POST /api/cms/ HTTP/1.0" 401 27
+[01/Oct/2024 13:21:58] "POST /api/admin/login/ HTTP/1.0" 200 458
+Bad Request: /api/cms/
+[01/Oct/2024 13:22:11] "POST /api/cms/ HTTP/1.0" 400 44
+[01/Oct/2024 13:22:24] "POST /api/cms/ HTTP/1.0" 201 86
+[01/Oct/2024 13:22:43] "POST /api/cms/ HTTP/1.0" 201 98
+[01/Oct/2024 13:22:56] "POST /api/cms/ HTTP/1.0" 201 74
+[01/Oct/2024 13:22:57] "OPTIONS /api/admin/shifttime/list HTTP/1.0" 200 0
+[01/Oct/2024 13:22:58] "OPTIONS /api/admin/shifttime/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:00] "OPTIONS /api/admin/shifttime/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:07] "POST /api/cms/ HTTP/1.0" 201 78
+[01/Oct/2024 13:23:17] "OPTIONS /api/admin/shifttime/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:27] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:28] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:30] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:34] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:38] "GET /api/cms HTTP/1.0" 301 0
+[01/Oct/2024 13:23:38] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:23:47] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:48] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:50] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:23:54] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:24:32] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:24:33] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:24:35] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:24:39] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:24:40] "POST /api/cms/ HTTP/1.0" 400 44
+[01/Oct/2024 13:24:57] "GET /api/cms HTTP/1.0" 301 0
+[01/Oct/2024 13:24:57] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:25:36] "OPTIONS /api/admin/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:25:37] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:25:39] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:25:43] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:46] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:47] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:49] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:53] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:58] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:25:59] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:26:01] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:26:05] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:27:12] "OPTIONS /api/cms HTTP/1.0" 200 0
+[01/Oct/2024 13:28:07] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:28:09] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:28:13] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:28:17] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:28:18] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:20] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:21] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:23] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:27] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:44] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:45] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:47] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:28:51] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:29:09] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:29:32] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:29:33] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:29:35] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:29:39] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+/home/developer/codebase/trustwork-backend/core/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 13:16:36
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+[01/Oct/2024 13:34:32] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:34:33] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:34:35] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Watching for file changes with StatReloader
+[01/Oct/2024 13:34:57] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:34:58] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:35:00] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:35:07] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:35:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:35:10] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:35:14] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Watching for file changes with StatReloader
+/home/developer/codebase/trustwork-backend/core/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 13:38:34
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+[01/Oct/2024 13:40:01] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:02] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:04] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Watching for file changes with StatReloader
+[01/Oct/2024 13:40:27] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:29] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:31] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:33] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:34] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:37] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:40:41] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:42:39] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:42:40] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:42:42] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:42:46] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:43:23] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:43:24] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:43:26] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:43:30] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:24] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:25] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:27] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:31] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:58] "OPTIONS /api/admin/login/ HTTP/1.0" 200 0
+[01/Oct/2024 13:46:59] "POST /api/admin/login/ HTTP/1.0" 200 458
+[01/Oct/2024 13:46:59] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:47:00] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:47:02] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:47:07] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:41] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:41] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:42] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:44] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:48] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:51] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:52] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:54] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:51:58] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:53:32] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:53:34] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:53:38] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:54:38] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:54:39] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:54:41] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:54:45] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:55:00] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:55:00] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:55:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:08] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:08] "POST /api/cms/ HTTP/1.0" 400 112
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:10] "POST /api/cms/ HTTP/1.0" 400 112
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:10] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:14] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:14] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:20] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:20] "POST /api/cms/ HTTP/1.0" 400 112
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:21] "POST /api/cms/ HTTP/1.0" 400 112
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:23] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:27] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:27] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:56] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:56] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:56] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+Bad Request: /api/cms/
+[01/Oct/2024 13:55:56] "POST /api/cms/ HTTP/1.0" 400 112
+[01/Oct/2024 13:55:57] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:55:57] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:56:21] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:56:21] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:56:21] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:56:21] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:57:52] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:57:52] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:52] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:52] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:53] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:54] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:56] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:57:56] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:00] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 13:58:00] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:00] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:00] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:13] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:13] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:14] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:16] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:20] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:20] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:36] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:36] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:36] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 13:58:36] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 13:58:37] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:58:37] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:58:37] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:58:37] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 13:58:46] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 13:58:46] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:06] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:06] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:14] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:14] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:38] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:38] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:39] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:39] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:40] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:41] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:45] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:45] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:45] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:00:45] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:00:46] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:01:04] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:01:04] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:01:06] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:01:09] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:01:15] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:01:15] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:04:31] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:04:31] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:12:12] "GET /admin/ HTTP/1.0" 302 0
+[01/Oct/2024 14:12:12] "GET /admin/login/?next=/admin/ HTTP/1.0" 200 4178
+[01/Oct/2024 14:12:12] "GET /static/admin/css/dark_mode.css HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/css/base.css HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/css/responsive.css HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/css/nav_sidebar.css HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/css/login.css HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/js/nav_sidebar.js HTTP/1.0" 304 0
+[01/Oct/2024 14:12:12] "GET /static/admin/js/theme.js HTTP/1.0" 304 0
+Not Found: /favicon.ico
+[01/Oct/2024 14:12:12] "GET /favicon.ico HTTP/1.0" 404 2234
+/home/developer/codebase/trustwork-backend/core/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 13:40:22
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+{'email': 'admin2@webskitters.in', 'password': 'admin'}
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+[01/Oct/2024 14:14:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:14:08] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:08] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:14:08] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:09] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:09] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:10] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:10] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:25] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:14:25] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:14:25] "OPTIONS /api/cms/ HTTP/1.0" 200 0
+[01/Oct/2024 14:14:25] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:15:20] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:15:20] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:15:21] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:15:23] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:15:27] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:15:27] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:16:01] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:01] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:02] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:04] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:16:08] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:08] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:16:38] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:38] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:39] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:41] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:16:45] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:16:45] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:17:20] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:17:20] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:17:21] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:17:23] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:17:27] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:17:27] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:21:14] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:21:14] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:21:15] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:21:17] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:21:21] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:21:21] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:21:47] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:21:51] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:27:48] "GET /api/cms/ HTTP/1.0" 200 341
+[01/Oct/2024 14:29:16] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:16] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:17] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:19] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:20] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:29:22] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:22] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:23] "GET /api/cms/list HTTP/1.0" 404 7355
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:25] "GET /api/cms/list HTTP/1.0" 404 7355
+[01/Oct/2024 14:29:29] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+Not Found: /api/cms/list
+[01/Oct/2024 14:29:29] "GET /api/cms/list HTTP/1.0" 404 7355
+/home/developer/codebase/trustwork-backend/api/admin_management/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 14:13:22
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /api/cms/
+[01/Oct/2024 14:37:56] "GET /api/cms/ HTTP/1.0" 404 8535
+/home/developer/codebase/trustwork-backend/api/urls.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 14:35:54
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 133, in inner_run
+    self.check(display_num_errors=True)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/base.py", line 485, in check
+    all_issues = checks.run_checks(
+                 ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/developer/codebase/trustwork-backend/core/urls.py", line 22, in <module>
+    path("api/",include("api.urls"))
+                ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 991, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1129, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1059, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/developer/codebase/trustwork-backend/api/urls.py", line 40
+    """
+    ^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 133, in inner_run
+    self.check(display_num_errors=True)
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/management/base.py", line 485, in check
+    all_issues = checks.run_checks(
+                 ^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/developer/codebase/trustwork-backend/core/urls.py", line 22, in <module>
+    path("api/",include("api.urls"))
+                ^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 991, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1129, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1059, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/developer/codebase/trustwork-backend/api/urls.py", line 40
+    """
+    ^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?
+/home/developer/codebase/trustwork-backend/api/urls.py changed, reloading.
+Performing system checks...
+
+/home/developer/codebase/trustwork-backend/api/urls.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Error: That port is already in use.
+[01/Oct/2024 14:41:32] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:41:32] "GET /api/cms/list HTTP/1.0" 301 0
+[01/Oct/2024 14:41:32] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.CMS'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:41:32] "GET /api/cms/list/ HTTP/1.0" 200 463
+Watching for file changes with StatReloader
+Not Found: /api/cms/
+[01/Oct/2024 14:41:59] "GET /api/cms/ HTTP/1.0" 404 8529
+Not Found: /api/cms/
+[01/Oct/2024 14:42:02] "GET /api/cms/ HTTP/1.0" 404 8529
+[01/Oct/2024 14:42:07] "GET /api/cms/list HTTP/1.0" 301 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.CMS'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:42:07] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:42:38] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:42:39] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:42:39] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:42:41] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:42:41] "GET /api/cms/list HTTP/1.0" 301 0
+[01/Oct/2024 14:42:41] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:42:41] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:44:57] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:44:57] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:44:57] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:45:06] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:45:06] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:45:06] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:45:10] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:45:10] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:45:10] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:03] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:03] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:03] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:03] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:03] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:03] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:06] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:06] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:11] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:11] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:11] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:11] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:11] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:11] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:54] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:54] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:46:54] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:54] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:46:54] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:46:54] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:47:00] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:47:00] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:47:00] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:47:00] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:47:00] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:47:00] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:49:13] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:49:13] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:49:13] "GET /api/cms/list/ HTTP/1.0" 200 463
+[01/Oct/2024 14:50:52] "GET /api/faq/list HTTP/1.0" 301 0
+Unauthorized: /api/faq/list/
+[01/Oct/2024 14:50:52] "GET /api/faq/list/ HTTP/1.0" 401 27
+[01/Oct/2024 14:50:58] "GET /api/faq/list HTTP/1.0" 301 0
+Unauthorized: /api/faq/list/
+[01/Oct/2024 14:50:58] "GET /api/faq/list/ HTTP/1.0" 401 27
+[01/Oct/2024 14:52:24] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:24] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:25] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:27] "POST /api/faq/list HTTP/1.0" 500 71208
+[01/Oct/2024 14:52:31] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:31] "POST /api/faq/list HTTP/1.0" 500 71208
+[01/Oct/2024 14:52:38] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:38] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:39] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:41] "POST /api/faq/list HTTP/1.0" 500 71208
+[01/Oct/2024 14:52:45] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:45] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:46] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:47] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:49] "POST /api/faq/list HTTP/1.0" 500 71208
+[01/Oct/2024 14:52:53] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:53] "POST /api/faq/list HTTP/1.0" 500 71208
+Internal Server Error: /api/faq/list
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/list/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 14:52:56] "POST /api/faq/list HTTP/1.0" 500 71208
+[01/Oct/2024 14:52:57] "GET /api/faq/list HTTP/1.0" 301 0
+[01/Oct/2024 14:52:57] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.FAQ'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:52:57] "GET /api/faq/list/ HTTP/1.0" 200 124
+/home/developer/codebase/trustwork-backend/adminsite_management/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 01, 2024 - 14:41:44
+Django version 4.2.16, using settings 'core.settings'
+Starting development server at http://0.0.0.0:8024/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+[01/Oct/2024 14:53:10] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 14:53:10] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.FAQ'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:53:10] "GET /api/faq/list/ HTTP/1.0" 200 124
+Watching for file changes with StatReloader
+[01/Oct/2024 14:53:43] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:53:43] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.CMS'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:53:43] "GET /api/cms/list/ HTTP/1.0" 200 471
+[01/Oct/2024 14:53:54] "GET /api/cms/list HTTP/1.0" 301 0
+[01/Oct/2024 14:53:54] "GET /api/cms/list/ HTTP/1.0" 200 471
+[01/Oct/2024 14:55:33] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:55:33] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:55:33] "GET /api/cms/list/ HTTP/1.0" 200 479
+[01/Oct/2024 14:58:05] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 14:58:05] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'adminsite_management.models.FAQ'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[01/Oct/2024 14:58:05] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 14:58:17] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 14:58:17] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:58:17] "GET /api/cms/list/ HTTP/1.0" 200 479
+[01/Oct/2024 14:59:19] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 14:59:19] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 14:59:19] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:01:12] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:01:12] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:01:12] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:03:02] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:03:02] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:03:02] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:12:07] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:12:07] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:12:07] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:12:53] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:12:53] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:12:53] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:14:50] "OPTIONS /api/faq/add HTTP/1.0" 200 0
+Internal Server Error: /api/faq/add
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/add/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 15:14:50] "POST /api/faq/add HTTP/1.0" 500 71192
+[01/Oct/2024 15:16:01] "OPTIONS /api/faq/add HTTP/1.0" 200 0
+Internal Server Error: /api/faq/add
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/add/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 15:16:01] "POST /api/faq/add HTTP/1.0" 500 71192
+[01/Oct/2024 15:16:36] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:16:36] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:16:36] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:16:38] "OPTIONS /api/faq/add/ HTTP/1.0" 200 0
+Bad Request: /api/faq/add/
+[01/Oct/2024 15:16:38] "POST /api/faq/add/ HTTP/1.0" 400 117
+[01/Oct/2024 15:17:02] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:17:02] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:17:02] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:17:08] "OPTIONS /api/faq/add/ HTTP/1.0" 200 0
+Bad Request: /api/faq/add/
+[01/Oct/2024 15:17:08] "POST /api/faq/add/ HTTP/1.0" 400 125
+[01/Oct/2024 15:17:52] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:17:52] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:17:52] "GET /api/faq/list/ HTTP/1.0" 200 124
+[01/Oct/2024 15:17:59] "OPTIONS /api/faq/add/ HTTP/1.0" 200 0
+[01/Oct/2024 15:17:59] "POST /api/faq/add/ HTTP/1.0" 201 151
+[01/Oct/2024 15:17:59] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:17:59] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:17:59] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:18:52] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:18:52] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:18:52] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:19:18] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:19:18] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:19:18] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:19:43] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:19:43] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:19:43] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:19:44] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:19:48] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:19:49] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:19:49] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:19:58] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:19:58] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:19:58] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:20:06] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:20:06] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:20:06] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:20:15] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:20:15] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:20:15] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:20:16] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:20:19] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:20:51] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:20:51] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:20:51] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:00] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:00] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:00] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:04] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:08] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:08] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:08] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:12] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:16] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:16] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:16] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:19] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:21] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:29] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:29] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:30] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:39] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:39] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:39] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:43] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:52] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:21:52] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:21:52] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:21:56] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:22:16] "OPTIONS /api/cms/list HTTP/1.0" 200 0
+[01/Oct/2024 15:22:16] "OPTIONS /api/cms/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:22:16] "GET /api/cms/list/ HTTP/1.0" 200 479
+[01/Oct/2024 15:22:20] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:22:20] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:22:20] "GET /api/faq/list/ HTTP/1.0" 200 192
+[01/Oct/2024 15:22:28] "OPTIONS /api/faq/status/change HTTP/1.0" 200 0
+Not Found: /api/faq/status/change
+[01/Oct/2024 15:22:28] "POST /api/faq/status/change HTTP/1.0" 404 8569
+[01/Oct/2024 15:22:40] "OPTIONS /api/faq/add/ HTTP/1.0" 200 0
+[01/Oct/2024 15:22:40] "POST /api/faq/add/ HTTP/1.0" 201 165
+[01/Oct/2024 15:22:40] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:22:40] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:22:40] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:22:56] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:22:56] "GET /api/faq/details/1 HTTP/1.0" 301 0
+[01/Oct/2024 15:22:56] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:22:56] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:23:03] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:23:03] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:23:03] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:00] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:24:00] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:24:00] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:24:00] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:24:00] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:00] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:01] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:01] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:03] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:03] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:06] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:24:06] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:24:06] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:24:06] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:24:06] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:06] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:09] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:20] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:24:20] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:24:20] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:24] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:24:56] "OPTIONS /api/faq/edit HTTP/1.0" 200 0
+Not Found: /api/faq/edit
+[01/Oct/2024 15:24:56] "POST /api/faq/edit HTTP/1.0" 404 8542
+[01/Oct/2024 15:25:19] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:25:19] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:25:19] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:25:19] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:25:19] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:25:19] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:25:28] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:25:28] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:25:28] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:25:28] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:25:28] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:25:28] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+Not Found: /api/faq/update/2/
+[01/Oct/2024 15:25:52] "PUT /api/faq/update/2/ HTTP/1.0" 404 8556
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:12] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:12] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:26:12] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:41] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:41] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:26:41] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:46] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:46] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:26:46] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:26:53] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:53] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:26:53] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:57] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:26:57] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:26:57] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:00] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:00] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:27:00] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:06] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:06] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:27:06] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:08] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:08] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:27:08] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/list HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "OPTIONS /api/faq/list/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:20] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:20] "GET /api/faq/list/ HTTP/1.0" 200 275
+[01/Oct/2024 15:27:20] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:37] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:37] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:37] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:37] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:37] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:37] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:41] "OPTIONS /api/faq/edit/undefined HTTP/1.0" 200 0
+[01/Oct/2024 15:27:41] "OPTIONS /api/faq/edit/undefined HTTP/1.0" 200 0
+Not Found: /api/faq/edit/undefined
+Not Found: /api/faq/edit/undefined
+[01/Oct/2024 15:27:41] "PUT /api/faq/edit/undefined HTTP/1.0" 404 8571
+[01/Oct/2024 15:27:41] "PUT /api/faq/edit/undefined HTTP/1.0" 404 8571
+[01/Oct/2024 15:27:41] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:41] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/edit/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/details/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/edit/1 HTTP/1.0" 200 0
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+[01/Oct/2024 15:27:43] "OPTIONS /api/faq/details/1/ HTTP/1.0" 200 0
+Internal Server Error: /api/faq/edit/1
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via PUT, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining PUT data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/edit/1/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 15:27:43] "PUT /api/faq/edit/1 HTTP/1.0" 500 71218
+Internal Server Error: /api/faq/edit/1
+Traceback (most recent call last):
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/developer/.cache/pypoetry/virtualenvs/trustwork-backend-2mODVhko-py3.12/lib/python3.12/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via PUT, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining PUT data. Change your form to point to trustwork-api.dedicateddevelopers.us/api/faq/edit/1/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+[01/Oct/2024 15:27:43] "PUT /api/faq/edit/1 HTTP/1.0" 500 71218
+[01/Oct/2024 15:27:43] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+[01/Oct/2024 15:27:44] "GET /api/faq/details/1/ HTTP/1.0" 200 68
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /
+[01/Oct/2024 15:49:31] "GET / HTTP/1.0" 404 2183
+Not Found: /favicon.ico
+[01/Oct/2024 15:49:31] "GET /favicon.ico HTTP/1.0" 404 2234

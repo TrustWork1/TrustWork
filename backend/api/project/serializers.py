@@ -756,7 +756,7 @@ class BidSerializerProjectView(serializers.ModelSerializer):
         except:
             return True
     def get_bid(self, obj):
-        bid = obj.bid #.filter(status='Accepted') #.all()
+        bid = obj.bid.filter(status='Accepted') #.all()
         return BidSerializer(bid, many=True).data
     
     # project=ProjectSerializer(read_only=True)

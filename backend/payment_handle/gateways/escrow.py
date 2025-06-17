@@ -105,6 +105,19 @@ class PaymentGatewayAPI:
         except requests.exceptions.RequestException as e:
             print(f"Error during disbursement initialization: {e}")
             return None
+        
+    def mtn_account_status(self, account_number):
+        url = f"{self.base_url}/mtn-momo/mtn_account_status/"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "account_number": account_number
+        }
+        try:
+            response = requests.get(url, json=data, headers=headers)
+            return response.json()  # Return JSON response
+        except requests.exceptions.RequestException as e:
+            print(f"Error during account status: {e}")
+            return None
 
 # Example Usage
 if __name__ == "__main__":

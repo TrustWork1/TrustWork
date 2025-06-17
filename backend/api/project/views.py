@@ -492,6 +492,12 @@ class ChangeProjectStatusView(APIView):
         if request.data.get("status")=="completed":
             try:
                 latest_transaction = Transactions.objects.filter(project=project, transaction_type="collection").order_by('-created_at').first()
+                if not latest_transaction:
+                    return Response({
+                        "type" : "error",
+                        "message": "No collection transaction found for this project."
+                    }, status=status.HTTP_404_NOT_FOUND)
+                
                 bid = latest_transaction.bid
                 escrow_id = latest_transaction.escrow_id if latest_transaction else None
 
@@ -539,9 +545,19 @@ class ChangeProjectStatusView(APIView):
                     project_id=project.id,
                     bid_id=bid.id
                 )
-
+            
+            except BankDetails.DoesNotExist:
+                return Response({
+                    "type" : "error",
+                    "message": "Bank details not found of the service provider."
+                }, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 print(f"Disbursement error: {e}")
+                return Response({
+                    "type" : "error",
+                    "message": "An unexpected error occurred.",
+                    "details": str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         project.save()
 
@@ -1069,12 +1085,21 @@ class ServiceProviderListView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         search_query = request.query_params.get('search', '')
         status2 = request.query_params.get("status")
+        user_profile = Profile.objects.get(user=request.user)
         if status2=="active":
-            bids = Bid.objects.filter(service_provider=Profile.objects.get(user=request.user)).exclude(project__status__iexact="Completed").exclude(project__status__iexact="myoffer").exclude(project__status__iexact="Rejected") # .include(project__status__iexact="ongoing"), status=status2)
+            bids = Bid.objects.filter(service_provider=user_profile).exclude(
+                Q(project__status__iexact="Completed") |
+                Q(project__status__iexact="myoffer") |
+                Q(status__iexact="Rejected")
+            )
         if status2=="completed":
-            bids = Bid.objects.filter(service_provider=Profile.objects.get(user=request.user), status__iexact="Accepted").exclude(project__status__iexact="Ongoing").exclude(project__status__iexact="myoffer").exclude(project__status__iexact="Rejected")
+            bids = Bid.objects.filter(service_provider=user_profile, status__iexact="Accepted").exclude(
+                Q(project__status__iexact="ongoing") |
+                Q(project__status__iexact="myoffer") |
+                Q(status__iexact="Rejected")
+            )
         try:  
-            queryset = Project.objects.filter(bid__in=bids).exclude(status__iexact='active').distinct()
+            queryset = Project.objects.filter(bid__in=bids).exclude(status__iexact='active').exclude(status__iexact='inactive').distinct()
         except:
             pass
         if search_query:

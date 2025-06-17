@@ -473,7 +473,7 @@ class MobileBidList(APIView):
             bid.project.bid_count += 1
             bid.project.save()
             bid.bid_sent = False
-            bid.is_accepted = True
+            bid.is_accepted = False
             bid.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

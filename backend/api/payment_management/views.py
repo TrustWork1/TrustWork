@@ -168,7 +168,7 @@ class CreateCheckoutSessionView(APIView):
         try:
             data = request.data
             # amount = data.get('amount', 1000)
-            currency = data.get('currency', 'usd')
+            currency = data.get('currency', 'eur')
             user_id = request.user.id
             # project_id = request.data.get(project_id, "")
             bid_id = request.data.get('bid_id', "")
@@ -194,7 +194,7 @@ class CreateCheckoutSessionView(APIView):
                     "user_id":bid.service_provider.id,
 
                 }
-                response=gateway.initialize_stripe_payment(bid.project_total_cost,'usd',client_details,provider_details,bid.project.id)
+                response=gateway.initialize_stripe_payment(bid.project_total_cost,'eur',client_details,provider_details,bid.project.id)
                 print(response)
                 # payload = {'session_id': session.id, 'user_id': user_id, 'unit_amount': amount, 'currency': currency, 'project_id': project_id, 'bid_id': bid_id}
                 try:
@@ -322,7 +322,7 @@ class TriggerPayoutView(APIView):
                         "payment_intent_id": payment_intent_id,
                         "provider_account_id": bid_id,
                         "amount": payout_amount,
-                        "currency": "usd",
+                        "currency": "eur",
                         'escrow_id': str(escrow_id),
                         "bid_id": bid_id,
                         "project_id": project_id,

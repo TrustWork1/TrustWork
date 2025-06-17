@@ -215,6 +215,7 @@ class ProcessStripeSession(APIView):
         all_bid=Bid.objects.filter(project=project_details).exclude(id=bid_id)
         all_bid.update(status="Rejected", is_accepted=False)
         bid_details.status = "Accepted"
+        bid_details.is_accepted = True
         project_details.status = "ongoing"
         bid_details.save()
         project_details.save()

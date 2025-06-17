@@ -31,6 +31,7 @@ from master.models import Location
 import stripe, logging
 from django.db.models import Q
 from django.http import Http404
+from payment_handle.gateways.escrow import PaymentGatewayAPI
 from uuid import uuid4
 import os
 import environ
@@ -897,81 +898,6 @@ def get_currency_code(country_code):
     else:
         return "Country not found"
 
-def mtn_account_check(phone_number):
-    import requests
-    try:
-        # === Step 0: Setup ===
-        uuidgen = str(uuid4())  # This is your client_id
-        subscription_key = MTN_DISBURSEMTS_SECRET_KEY
-
-        # === Step 1: Create API User ===
-        apiuser_url = "https://sandbox.momodeveloper.mtn.com/v1_0/apiuser"
-        payload = {
-            "providerCallbackHost": "http://127.0.0.1:8000/callback"
-        }
-        headers = {
-            'X-Reference-Id': uuidgen,
-            'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': subscription_key
-        }
-
-        res1 = requests.post(apiuser_url, headers=headers, json=payload)
-        if res1.status_code != 201:
-            print("❌ Failed to create API user:", res1.text)
-            return {"error": "API user creation failed", "details": res1.text}
-
-        # === Step 2: Generate API Key ===
-        apikey_url = f"https://sandbox.momodeveloper.mtn.com/v1_0/apiuser/{uuidgen}/apikey"
-        res2 = requests.post(apikey_url, headers={'Ocp-Apim-Subscription-Key': subscription_key})
-        if res2.status_code != 201:
-            print("❌ Failed to generate API key:", res2.text)
-            return {"error": "API key generation failed", "details": res2.text}
-        client_secret = res2.json().get("apiKey")
-
-        # === Step 3: Get Access Token ===
-        token_url = "https://sandbox.momodeveloper.mtn.com/disbursement/token/"
-        basic_auth = requests.auth._basic_auth_str(uuidgen, client_secret)
-        token_headers = {
-            "Authorization": basic_auth,
-            "Ocp-Apim-Subscription-Key": subscription_key,
-        }
-
-        token_res = requests.post(token_url, headers=token_headers)
-        if token_res.status_code != 200:
-            print("❌ Failed to get access token:", token_res.text)
-            return {"error": "Access token fetch failed", "details": token_res.text}
-
-        access_token = token_res.json().get("access_token")
-
-        # === Step 4: Validate Account ===
-        validation_url = f"https://sandbox.momodeveloper.mtn.com/disbursement/v1_0/accountholder/msisdn/{phone_number}/basicuserinfo"
-        validation_headers = {
-            "Authorization": f"Bearer {access_token}",
-            "X-Target-Environment": "sandbox",
-            "Ocp-Apim-Subscription-Key": subscription_key
-        }
-
-        validation_res = requests.get(validation_url, headers=validation_headers)
-        if validation_res.status_code == 200:
-            validation_data = validation_res.json()
-            print("✅ MTN Account validation successful:", validation_data)
-        else:
-            validation_data = {
-                "status_code": validation_res.status_code,
-                "error": validation_res.text
-            }
-            print("⚠️ MTN Account validation failed:", validation_data)
-
-        return {
-            # "client_id": uuidgen,
-            # "client_secret": client_secret,
-            # "access_token": access_token,
-            "validation_result": validation_data
-        }
-
-    except Exception as e:
-        print("❌ MTN Error:", str(e))
-        return {"error": "Exception occurred", "details": str(e)}
 
 class BankDetailsAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1103,10 +1029,11 @@ class BankDetailsAPIView(APIView):
                 if has_account:
                     return Response({"error": "This account already exists"}, status=status.HTTP_400_BAD_REQUEST)
                 try:
-                    mtn_data=mtn_account_check(full_account_number)
+                    account_number=full_account_number[1:]
+                    # gateway=PaymentGatewayAPI()
+                    # mtn_data=gateway.mtn_account_status(account_number)
 
-                    # if mtn_data and mtn_data.get("validation_result", {}).get("status_code") == 200:
-                    #     pass
+                    # if mtn_data['result'] == True:
                     BankDetails.objects.create(
                         user_profile=user_profile,
                         bank_account_number=full_account_number,
@@ -1121,7 +1048,7 @@ class BankDetailsAPIView(APIView):
                     }, status=status.HTTP_200_OK)
                     # else:
                     #     return Response({
-                    #         "status": 400,
+                    #         "status": 404,
                     #         "message": "Invalid MTN account",
                     #         "type": "error",
                     #         "data": mtn_data
@@ -1148,12 +1075,14 @@ class BankDetailsAPIView(APIView):
             bank_status_qs = BankDetails.objects.filter(user_profile_id=user_profile, payment_type="stripe")
             if bank_status_qs:
                 stripe_account_id = bank_status_qs.first().stripe_account_id
+
                 stripe_account = stripe.Account.retrieve(stripe_account_id)
-                is_activated = (
-                    # not stripe_account["requirements"]["currently_due"] and
-                    # not stripe_account["requirements"]["eventually_due"] and
-                    stripe_account["capabilities"].get("transfers") == "active"
-                )
+                requirements = stripe_account.get("requirements", {})
+                is_transfer_active = stripe_account["capabilities"].get("transfers") == "active"
+                no_pending_requirements = not requirements.get("currently_due") and not requirements.get("eventually_due")
+                not_disabled = requirements.get("disabled_reason") is None
+                is_activated = is_transfer_active and no_pending_requirements and not_disabled
+                
                 bank_status_qs.update(status="active" if is_activated else "inactive")
                 print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
 
@@ -1830,14 +1759,21 @@ class ProfileDetails(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        search_query = request.query_params.get('search', '')
-        if pk:
-            return Response(ProfileSerializer(Profile.objects.get(pk=pk)).data)
-        user = request.user 
+        search_query = request.query_params.get('search', '').lower()
         latitude = request.query_params.get("latitude")
         longitude = request.query_params.get("longitude")
-        radius = request.query_params.get("radius", 10)
-        # user_type = request.query_params.get("user_type")
+        radius = float(request.query_params.get("radius", 10))
+
+        if pk:
+            try:
+                profile = Profile.objects.get(pk=pk)
+                return Response(ProfileSerializer(profile).data)
+            except Profile.DoesNotExist:
+                return Response(
+                    {"status": 404, "message": "Profile not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        
         if not latitude or not longitude:
             return Response(
                 {
@@ -1847,9 +1783,19 @@ class ProfileDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        
         try:
-            user_profile = user.profile
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except ValueError:
+            return Response({
+                "status": 400,
+                "type": "error",
+                "message": "Latitude and Longitude must be valid float values"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user_profile = request.user.profile
             user_type = user_profile.get_user_type_display()
         except Profile.DoesNotExist:
             return Response(
@@ -1860,86 +1806,59 @@ class ProfileDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if user_type == "client":
-            providers=Profile.objects.filter(user__user_type='provider')
-            if search_query == '':
-                providers=Profile.objects.filter(user__user_type='provider')
-            if search_query:
-                providers = Profile.objects.filter(user__full_name__icontains=search_query)
-            filtered_providers = self.filter_by_location(providers, latitude, longitude)
-            # feedback = Feedback.objects.get(providers)
-            paginator = CustomPaginationProjectProfile()
-            paginated_profiles = paginator.paginate_queryset(filtered_providers, request)
-            serializer = ProfileSerializer(paginated_profiles, many=True) # list(filtered_providers)
-            # serializer = ProfileSerializer(paginated_profiles, many=True)
-            return paginator.get_paginated_response(serializer.data)
-            
-
-        elif user_type == "provider":
-            # projects = Project.objects.filter(bid__service_provider=user_profile).select_related("client")
-            clients = Profile.objects.filter(user__user_type='client')
-            if search_query:
-                clients = clients.filter(user__full_name__icontains=search_query)
-            filtered_clients = self.filter_by_location(clients, latitude, longitude)
-            paginator = CustomPaginationProjectProfile()
-            paginated_profiles = paginator.paginate_queryset(list(filtered_clients), request)
-            # serializer = ProfileSerializer(paginated_profiles, many=True)
-            serializer = ProfileSerializer(paginated_profiles, many=True)
-            return paginator.get_paginated_response(serializer.data)
         
-        return Response(
-            {
-                "status": 400,
-                "type": "error",
-                "message": "Invalid user type",
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        if user_type.lower() == "client":
+            providers=Profile.objects.filter(user__user_type='provider').order_by('-created_at')
+            
+            filtered_users= self.filter_by_location(providers, latitude, longitude, radius)
+            
+            if search_query:
+                filtered_users = [
+                    provider for provider in filtered_users
+                    if search_query in (provider.user.full_name or '').lower()
+                ]
+            
+            if not filtered_users:
+                return Response({"message": "No Provider found"}, status=status.HTTP_200_OK)
+            # feedback = Feedback.objects.get(providers)
 
-    from geopy.distance import geodesic 
+        elif user_type.lower() == "provider":
+            # projects = Project.objects.filter(bid__service_provider=user_profile).select_related("client")
+            clients = Profile.objects.filter(user__user_type='client').order_by('-created_at')
 
-    def filter_by_location(self, profiles, latitude, longitude):
-        user_location = (float(latitude), float(longitude))
+            filtered_users = self.filter_by_location(clients, latitude, longitude, radius)
+
+            if search_query:
+                filtered_users = [
+                    client for client in filtered_users
+                    if search_query in (client.user.full_name or '').lower()
+                ]
+            
+            if not filtered_users:
+                return Response({"message": "No Client found"}, status=status.HTTP_200_OK)
+            
+        paginator = CustomPaginationProjectProfile()
+        paginated_profiles = paginator.paginate_queryset(filtered_users, request)
+        serializer = ProfileSerializer(paginated_profiles, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def filter_by_location(self, profiles, latitude, longitude, radius):
+        user_location = (latitude, longitude)
         filtered_profiles = []
-        radius = 10
+        # radius = 10
         for profile in profiles:  
-            location = profile.location 
-            if location:
-                profile_location = (location.latitude, location.longitude)
-                distance = geodesic(user_location, profile_location).km
-                if distance <= radius: # float(radius)
-                    filtered_profiles.append(profile)
-
+            location = profile.location
+            if location and location.latitude and location.longitude:
+                try:
+                    profile_location = (float(location.latitude), float(location.longitude))
+                    distance = geodesic(user_location, profile_location).km
+                    if distance <= radius:
+                        filtered_profiles.append(profile)
+                except (ValueError, TypeError) as e:
+                    print(" -> Invalid lat/lng due to:", str(e))
+                    continue  # Skip invalid lat/lng
         return filtered_profiles
-
-# from chat_management.models import Message,Conversation
-    # def filter_by_location(self, profiles, latitude, longitude, radius):
-    #     user_location = (float(latitude), float(longitude))
-    #     print("user_location", user_location)
-    #     filtered_profiles = []
-    #     for projects in profiles:
-    #         location = Profile.location
-    #         if location:
-    #             print(f"Latitude: {location.latitude}, Longitude: {location.longitude}")
-    #             profile_location = (location.latitude, location.longitude)
-    #             distance = geodesic(user_location, profile_location).km
-    #             if distance <= float(radius):
-    #                 filtered_profiles.append(projects)
-    #         else:
-    #             print("Location is None or invalid") 
-
-    #     # for profile in profiles:
-    #     #     location = profile.location
-    #     #     print("location", location)
-    #     #     if location:
-    #     #         profile_location = (location.latitude, location.longitude)
-    #     #         print("profile_location", profile_location)
-    #     #         distance = geodesic(user_location, profile_location).km
-    #     #         print("distance", distance)
-    #     #         if distance <= float(radius):
-    #     #             filtered_profiles.append(profile)
-
-    #     # return filtered_profiles
+    
 
 from django.db.models import F, Case, When, Value, BooleanField
 

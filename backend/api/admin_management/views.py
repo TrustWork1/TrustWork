@@ -575,12 +575,12 @@ def onboarding_return(request):
 def reauth_with_token(request, token):
     bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe", status="inactive").order_by('-created_at').first()
     if not bank or not bank.stripe_account_id:
-        return redirect("https://trustwork-dev.dedicateddevelopers.us/")
+        return redirect("https://connect.stripe.com/hosted/setup/c/complete")
     
     account_link = stripe.AccountLink.create(
         account=bank.stripe_account_id,
         refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{token}/",
-        return_url="https://trustwork-dev.dedicateddevelopers.us/",
+        return_url="https://connect.stripe.com/hosted/setup/c/complete",
         type="account_onboarding",
     )
 

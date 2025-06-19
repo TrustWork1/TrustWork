@@ -1,0 +1,12 @@
+dev-deployment:
+ variables:
+   GIT_STRATEGY: fetch
+ script:
+   - bash -c "echo 11 | /home/developer/deploy.sh"
+ environment:
+     name: Development
+     url : https://trustwork-escrow.dedicateddevelopers.us/
+ tags:
+         - python-server1
+ only:
+   - dev

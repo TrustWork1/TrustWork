@@ -2,7 +2,7 @@ from django.urls import path,include
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView, ChangePasswordView
 from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,HandleSubscription, CouponsView
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView
-from api.profile.views import BankDetailsAPIView,HandleWithdraw,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView
+from api.profile.views import BankDetailsAPIView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView #,HandleWithdraw
 # from api.bids.views import BidsApiView
 from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, onboarding_return, reauth_with_token
 from api.master.views import LocationApiView,JobCategoryApiView
@@ -252,7 +252,7 @@ urlpatterns = [
     path('membership-payment-pending/list/', PendingPayment.as_view(), name='PaymentApiViewGet'),
     path("webhooks/",include('api.webhook_urls')),
     path("handle_subscription/",HandleSubscription.as_view()),
-    path("handle_withdraw/",HandleWithdraw.as_view()),
+    # path("handle_withdraw/",HandleWithdraw.as_view()),
     # path('initiate-payment/', InitiatePaymentAPIView.as_view(), name='initiate-payment'),
     # path('payment-response/', PaymentResponseAPIView.as_view(), name='payment-response'),
     path('api/checkout-session/', CreateCheckoutSessionView.as_view(), name='payment-response'),

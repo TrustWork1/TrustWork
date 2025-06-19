@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import generics
-from payment_handle.gateways.MTN import Collection
 from profile_management.models import MembershipPlans
 from api.profile.serializers import ProfilePaymentStatusSerializer,Profile
 from api.project.serializers import Project, ProjectSerializer, TransectionSerializer
@@ -41,18 +40,6 @@ BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_TEST_WEBHOOK_SECRET")
-
-def collection(amount,mobile_number,external_id):
-    coll = Collection()
-    response = coll.requestToPay(amount=amount,phone_number=mobile_number,external_id=external_id)
-    status_resposne = coll.getTransactionStatus(response['ref'])
-    print(status_resposne)
-    if status_resposne.get("status") == "SUCCESS":
-        pass #Do something here
-    
-    return status_resposne.get("status")
-
-# collection(100,mobile_number="swapnil.chopra@webskitters.in")
 
 class PaymentApiView(APIView):
     def post(self,request):

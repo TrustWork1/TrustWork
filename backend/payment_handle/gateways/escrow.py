@@ -34,13 +34,13 @@ class PaymentGatewayAPI:
             print(f"Error during collection initialization: {e}")
             return None
 
-    def initialize_disbursement(self, escrow_id: str):
+    def initialize_disbursement(self, escrow_id: str, phone_number: str):
         url = f"{self.base_url}/mtn-momo/initialize_disbursement/"
         headers = {"Content-Type": "application/json"}
         data = {
             "escrow_id": str(escrow_id),
-            "callback_url":f"{TRUSTWORK_BASE_API}/api/webhooks/escrow_disbursement/"
-
+            "callback_url":f"{TRUSTWORK_BASE_API}/api/webhooks/escrow_disbursement/",
+            "phone_number": phone_number,
         }
 
         try:
@@ -107,7 +107,7 @@ class PaymentGatewayAPI:
             return None
         
     def mtn_account_status(self, account_number):
-        url = f"{self.base_url}/mtn-momo/mtn_account_status/"
+        url = f"{self.base_url}/mtn-momo/mtn_account_add_status/"
         headers = {"Content-Type": "application/json"}
         data = {
             "account_number": account_number

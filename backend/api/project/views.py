@@ -518,18 +518,16 @@ class ChangeProjectStatusView(APIView):
                     )
 
                 elif bank_details.payment_type == "mtn":
-                    if escrow_id:
-                        response = gateway.initialize_disbursement(escrow_id=escrow_id)
-                        print("Payment response: ",response)
-                        Transactions.objects.create(
-                            escrow_id=escrow_id,
-                            status='in_progress',
-                            project=project,
-                            bid=bid,
-                            transaction_type="disbursement"
-                        )
-                    else:
-                        print("No escrow_id found for the latest transaction.")
+                    mtn_number= bank_details.bank_account_number[1:]
+                    response = gateway.initialize_disbursement(escrow_id=escrow_id, phone_number=mtn_number)
+                    print("Payment response: ",response)
+                    Transactions.objects.create(
+                        escrow_id=escrow_id,
+                        status='in_progress',
+                        project=project,
+                        bid=bid,
+                        transaction_type="disbursement"
+                    )
 
                 sender_profile = Profile.objects.get(user=request.user)
                 # print("Sender",sender_profile)
@@ -685,6 +683,7 @@ class ProjectBidApiView(APIView):
                 Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
             elif action == "accept":
                 bid.status = 'Accepted'
+                bid.is_accepted = True
                 
                 if bid.project.status=="myoffer":
                     bid.project.status="active"
@@ -716,12 +715,13 @@ class ProjectBidApiView(APIView):
                             # bid.project.save()
                         except:
                             pass
-                        Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
+                        Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected', is_accepted=False)
                     except Exception as e:
                         print(e)
                         response={}
             elif action == "reject":
                 bid.status = 'Rejected'
+                bid.is_accepted = False
                 bid.project.status='active'
                 bid.project.save()
                 bid.save()

@@ -569,7 +569,6 @@ export function* bidStatusSaga(action) {
 
     if (response?.status == 200) {
       yield put(bidStatusSuccess(response?.data));
-      showErrorAlert(response?.data?.message);
     } else {
       yield put(bidStatusFailure(response?.data));
       showErrorAlert(response?.data?.message);

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -105,6 +106,7 @@ const Payment = props => {
   const [cvv, setCvv] = useState('');
   const [name, setName] = useState('');
   const [showSeen, setShowSeen] = useState(false);
+  const [mtnRequest, setMtnRequest] = useState(false);
   const [phoneNo, setPhoneNo] = useState('');
   const [openPayNow, setOpenPayNow] = useState(null);
   const [isValidateMobile, setIsValidateMobile] = useState(false);
@@ -210,7 +212,22 @@ const Payment = props => {
         break;
       case 'Project/bidStatusSuccess':
         status1 = ProjectReducer.status;
-        setShowSeen(true);
+        if (
+          ProjectReducer?.bidStatusResponse?.data?.payment_response == 'FAILED'
+        ) {
+          Alert.alert('Fail!', `Payment is Unsuccessful`, [
+            {
+              text: 'OK',
+              onPress: () =>
+                console.log(
+                  'FAILED response--->',
+                  ProjectReducer.bidStatusResponse.data.payment_response,
+                ),
+            },
+          ]);
+        } else {
+          setMtnRequest(true);
+        }
 
         break;
       case 'Project/bidStatusFailure':
@@ -615,6 +632,97 @@ const Payment = props => {
             </View>
           </Modal>
         )}
+
+        <Modal
+          visible={mtnRequest}
+          backdropOpacity={0}
+          useNativeDriverForBackdrop={true}
+          animationIn="slideInDown"
+          animationOut="slideOutDown"
+          useNativeDriver={true}
+          swipeDirection={['down']}
+          avoidKeyboard={true}
+          style={styles.modalContainer}>
+          <View style={styles.modalMainContainer}>
+            <View style={styles.modalSubContainer}>
+              <View style={styles.succesMainComponent}>
+                <Image
+                  source={GifImage.Done}
+                  style={{width: normalize(100), height: normalize(100)}}
+                />
+                <View style={styles.modalHeaderTxtContainer}>
+                  <Text style={styles.modalHeaderTxt}>Success!</Text>
+                  <Text style={styles.title}>Payment request sent to MTN</Text>
+                  <Text style={styles.message}>
+                    Please approve the payment request on your MTN Mobile Money
+                    app or dial *165#.
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.btnMainContainer,
+                    {
+                      paddingHorizontal: normalize(10),
+                      marginTop: normalize(20),
+                    },
+                  ]}>
+                  <NextBtn
+                    height={normalize(50)}
+                    title={'OK'}
+                    borderColor={Colors.themeGreen}
+                    color={Colors.themeWhite}
+                    backgroundColor={Colors.themeGreen}
+                    onPress={() => {
+                      setMtnRequest(false);
+                      setTimeout(() => {
+                        if (openPayNow == 'Card') {
+                          NavigationService.navigate('Project');
+                        } else {
+                          NavigationService.goBack();
+                        }
+                        // NavigationService.navigate('Project');
+                      });
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* <View style={[]}>
+            <View style={styles.card}>
+              <Text style={styles.title}>Payment request sent to MTN</Text>
+              <Text style={styles.message}>
+                Please approve the payment request on your MTN Mobile Money app
+                or dial *165#.
+              </Text>
+              <View
+                style={[
+                  styles.btnMainContainer,
+                  {paddingHorizontal: normalize(10), marginTop: normalize(20)},
+                ]}>
+                <NextBtn
+                  height={normalize(50)}
+                  title={'OK'}
+                  borderColor={Colors.themeGreen}
+                  color={Colors.themeWhite}
+                  backgroundColor={Colors.themeGreen}
+                  onPress={() => {
+                    setMtnRequest(false);
+                    setTimeout(() => {
+                      if (openPayNow == 'Card') {
+                        NavigationService.navigate('Project');
+                      } else {
+                        NavigationService.goBack();
+                      }
+                      // NavigationService.navigate('Project');
+                    });
+                  }}
+                />
+              </View>
+            </View>
+          </View> */}
+        </Modal>
       </StripeProvider>
     </>
   );
@@ -742,5 +850,30 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: normalize(15),
     borderTopRightRadius: normalize(15),
     padding: normalize(25),
+  },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+  },
+  title: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  message: {
+    textAlign: 'center',
+    marginTop: 8,
+    color: '#555',
+  },
+  note: {
+    marginTop: 12,
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
   },
 });

@@ -1037,7 +1037,7 @@ class BankDetailsAPIView(APIView):
                     account_number=full_account_number[1:]
                     gateway=PaymentGatewayAPI()
                     mtn_data=gateway.mtn_account_status(account_number)
-
+                    # print(mtn_data)
                     if mtn_data['result'] == True:
                         BankDetails.objects.create(
                             user_profile=user_profile,
@@ -1054,7 +1054,7 @@ class BankDetailsAPIView(APIView):
                     else:
                         return Response({
                             "status": 404,
-                            "message": "Invalid MTN account",
+                            "message": "Invalid Cameroon MTN account",
                             "type": "error",
                             "data": mtn_data
                         }, status=status.HTTP_404_NOT_FOUND)

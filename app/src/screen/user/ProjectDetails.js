@@ -288,9 +288,14 @@ const ProjectDetails = props => {
     console.log(item);
     return (
       <>
-        {ProjectReducer?.projectDetailsResponse?.data?.payment_status ==
+        {ProjectReducer?.projectDetailsResponse?.data?.transaction_status ==
         'in_progress' ? (
-          <></>
+          <>
+            <Text style={[styles.ongoingDescriptionTxt, {textAlign: 'center'}]}>
+              Please approve the payment request on your MTN Mobile Money app or
+              dial *165#.
+            </Text>
+          </>
         ) : (
           <>
             {item?.status != 'Rejected' && (
@@ -860,9 +865,7 @@ const ProjectDetails = props => {
           </View>
         </View>
 
-        <Text style={[styles.providerHeaderTxt, css.mt2]}>
-          {'Service Provider'}
-        </Text>
+        <Text style={[styles.providerHeaderTxt, css.mt2]}>{'Feedback'}</Text>
         <View style={styles.providerContiner}>
           <View style={{flexDirection: 'row'}}>
             <Image
@@ -1023,7 +1026,7 @@ const ProjectDetails = props => {
           undefined && (
           <>
             <Text style={[styles.providerHeaderTxt, css.mt3]}>
-              {'Client Feedback'}
+              {`Provider's Review`}
             </Text>
             <View style={styles.providerContiner}>
               <View style={{marginTop: normalize(0)}}>
@@ -1215,7 +1218,7 @@ const ProjectDetails = props => {
               completedDetailsComponent()
             )}
           </KeyboardAwareScrollView>
-          {ProjectReducer?.projectDetailsResponse?.data?.payment_status ==
+          {/* {ProjectReducer?.projectDetailsResponse?.data?.payment_status ==
             'in_progress' && (
             <View>
               <View style={[]}>
@@ -1226,7 +1229,7 @@ const ProjectDetails = props => {
                 </View>
               </View>
             </View>
-          )}
+          )} */}
         </View>
       </SafeAreaView>
 

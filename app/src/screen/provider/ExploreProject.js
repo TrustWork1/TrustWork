@@ -22,6 +22,7 @@ import constants from '../../utils/helpers/constants';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import Loader from '../../utils/helpers/Loader';
 
 let status = '';
 
@@ -204,16 +205,16 @@ const ExploreProject = props => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* <Loader
-        visible={
-          ProjectReducer?.status == 'Project/projectListByLocationRequest'
-        }
-      /> */}
       <Header
         onHeaderPress={() => NavigationService.navigate('ProfileProvider')}
         menuTxt={'Explore Project'}
       />
       <SafeAreaView style={styles.mainContainer}>
+        <Loader
+          visible={
+            ProjectReducer?.status == 'Project/projectListByLocationRequest'
+          }
+        />
         <View
           style={{
             backgroundColor: Colors.themeGreen,

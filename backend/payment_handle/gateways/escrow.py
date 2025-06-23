@@ -14,12 +14,12 @@ class PaymentGatewayAPI:
         
         self.base_url = base_url
 
-    def initialize_collection(self, amount: int, currency: str, payer: dict, payee: dict, external_resource_id: str):
+    def initialize_collection(self, amount: str, phone_number: str, payer: dict, payee: dict, external_resource_id: str):
         url = f"{self.base_url}/mtn-momo/initialize_collection/"
         headers = {"Content-Type": "application/json"}
         data = {
             "amount": amount,
-            "currency": currency,
+            "phone_number":phone_number,
             "payer": payer,
             "payee": payee,
             "external_resource_id": external_resource_id,
@@ -28,7 +28,6 @@ class PaymentGatewayAPI:
 
         try:
             response = requests.post(url, json=data, headers=headers)
-            print(response.text)
             return response.json()  # Return JSON response
         except requests.exceptions.RequestException as e:
             print(f"Error during collection initialization: {e}")

@@ -126,6 +126,13 @@ const Notification = () => {
                 id: item?.project_id,
                 flag: 'Completed',
               });
+            } else if (item?.object_type == 'project offered') {
+              NavigationService.navigate('ProviderBottomTabNav', {
+                screen: 'ProviderTopTabNav',
+                params: {
+                  screen: 'MyOffer',
+                },
+              });
             } else if (item?.object_type == 'bid created') {
               NavigationService.navigate('ProjectDetails', {
                 id: item?.project_id,
@@ -185,11 +192,11 @@ const Notification = () => {
 
   return (
     <View style={styles.mainContainer}>
-      <Loader
-        visible={ProfileReducer?.status == 'Profile/notificationRequest'}
-      />
       <Header backIcon={Icons.BackIcon} headerTitle={'Notification'} />
       <SafeAreaView style={styles.mainContainer}>
+        <Loader
+          visible={ProfileReducer?.status == 'Profile/notificationRequest'}
+        />
         <View style={styles.container}>
           <FlatList
             data={notificationsData}
@@ -197,7 +204,13 @@ const Notification = () => {
             scrollEventThrottle={16}
             onMomentumScrollEnd={e => {
               if (isCloseToBottom(e.nativeEvent)) {
-                fetchNotificationData();
+                if (
+                  ProfileReducer?.status != 'Profile/notificationRequest' &&
+                  ProfileReducer?.notificationResponse?.pages > page
+                ) {
+                  setPage(page + 1);
+                  getNotificationList(page + 1);
+                }
               }
             }}
             ListEmptyComponent={() => listEmptyComponent()}

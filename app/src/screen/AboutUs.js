@@ -42,7 +42,7 @@ const AboutUs = props => {
         break;
       case 'Profile/cmsSuccess':
         status = ProfileReducer.status;
-        setCmsData(ProfileReducer?.cmsResponse?.data[3]);
+        setCmsData(ProfileReducer?.cmsResponse?.data[2]);
         break;
       case 'Profile/cmsFailure':
         status = ProfileReducer.status;

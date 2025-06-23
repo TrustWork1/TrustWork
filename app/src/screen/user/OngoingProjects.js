@@ -20,6 +20,7 @@ import Loader from '../../utils/helpers/Loader';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import css from '../../themes/css';
 
 let status = '';
 let status1 = '';
@@ -183,10 +184,6 @@ const OngoingProjects = () => {
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <Loader
-            visible={ProjectReducer.status == 'Project/projectListRequest'}
-          />
-
           <View
             style={{
               backgroundColor: Colors.themeGreen,
@@ -226,11 +223,15 @@ const OngoingProjects = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <View
-            style={{
-              paddingHorizontal: normalize(10),
-            }}>
-            <View>
+          <View style={[css.f1]}>
+            <Loader
+              visible={ProjectReducer.status == 'Project/projectListRequest' &&
+                search == ''}
+            />
+            <View
+              style={{
+                paddingHorizontal: normalize(10),
+              }}>
               <FlatList
                 data={projectList}
                 showsVerticalScrollIndicator={false}
@@ -258,7 +259,7 @@ const OngoingProjects = () => {
                         <View
                           style={{
                             alignItems: 'center',
-                            marginTop: normalize(30),
+                            marginTop: normalize(10),
                           }}>
                           <Text style={styles.projectTitle}>
                             No Projects Found !!

@@ -30,25 +30,25 @@ class JobCategoryApiView(APIView):
     def get(self, request, pk=None):
         try:
             provider_id = request.query_params.get('provider_id', "")
-            user_type = request.query_params.get('user_type', " ")
+            user_type = request.query_params.get('user_type', "")
             if pk:
-                active_categories = JobCategory.objects.filter(pk=pk).order_by('updated_at').first()
+                active_categories = JobCategory.objects.filter(pk=pk).order_by('-updated_at').first()
                 if active_categories:
                     serializer = JobCategorySerailizer(active_categories, many=True)
                     return Response(serializer.data, status=status.HTTP_200_OK)
             
             elif user_type:
                 if user_type == 'client':
-                    categories = JobCategory.objects.filter(profile__user__user_type='client').order_by('updated_at')
+                    categories = JobCategory.objects.filter(profile__user__user_type='client').order_by('-updated_at')
                 elif user_type == 'provider':
                     if provider_id:
                         categories = JobCategory.objects.filter(profile__user__user_type='provider', profile__id=provider_id).order_by('-updated_at')
                     else:
-                        categories = JobCategory.objects.filter(profile__user__user_type='provider').distinct().order_by('updated_at')
+                        categories = JobCategory.objects.all().order_by('-updated_at')
                 else:
                     return Response({"message": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                data=JobCategory.objects.all().distinct().order_by('updated_at')
+                data=JobCategory.objects.all().distinct().order_by('-updated_at')
                 serializer = JobCategorySerailizer(data, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             

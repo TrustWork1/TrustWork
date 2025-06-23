@@ -146,10 +146,6 @@ const CompletedProjects = () => {
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <Loader
-            visible={ProjectReducer.status == 'Project/projectListRequest'}
-          />
-
           <View
             style={{
               backgroundColor: Colors.themeGreen,
@@ -189,11 +185,17 @@ const CompletedProjects = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <View
-            style={{
-              paddingHorizontal: normalize(10),
-            }}>
-            <View>
+          <View>
+            <Loader
+              visible={
+                ProjectReducer.status == 'Project/projectListRequest' &&
+                search == ''
+              }
+            />
+            <View
+              style={{
+                paddingHorizontal: normalize(10),
+              }}>
               <FlatList
                 data={projectList}
                 showsVerticalScrollIndicator={false}
@@ -221,7 +223,7 @@ const CompletedProjects = () => {
                         <View
                           style={{
                             alignItems: 'center',
-                            marginTop: normalize(30),
+                            marginTop: normalize(10),
                           }}>
                           <Text style={styles.projectTitle}>
                             No Projects Found !!

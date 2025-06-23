@@ -103,7 +103,7 @@ const PaymentHistory = props => {
                 {item?.project?.client?.full_name}
               </Text>
               <Text style={[styles.nameStyle]}>
-                ${item?.project?.project_total_cost}
+                ${item?.transection_amount}
               </Text>
             </View>
             <View style={[css.aic, css.row, css.jcsb, css.f1]}>

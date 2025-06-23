@@ -300,7 +300,7 @@ const ServiceProvidersDetails = props => {
         renderItem={({item}) => (
           <View style={styles.row}>
             {item.map((subItem, subIndex) => {
-              console.log(subItem);
+              // console.log(subItem);
               return (
                 <View
                   key={subIndex}

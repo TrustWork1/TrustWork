@@ -255,7 +255,7 @@ class ProjectDetail(APIView):
         if transaction_status:
             transaction_status=transaction_status.status
         else:
-            transaction_status="Payment pending"
+            transaction_status=""
         if message.last():
             message=MessagesSerializer(message.last()).data
         else:
@@ -263,7 +263,7 @@ class ProjectDetail(APIView):
         serializer = ProjectSerializer(project)
         data = serializer.data
         # data.pop("client")
-        data['transaction_status'] = transaction_status
+        # data['transaction_status'] = transaction_status       # payment status
         data['last_message'] = message
         # conversation = Conversation.objects.get(project=project)
         # message= Message.objects.filter(conversation=conversation).order_by("-sent_at").first()
@@ -682,23 +682,22 @@ class ProjectBidApiView(APIView):
                 #     pass
                 Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected')
             elif action == "accept":
-                bid.status = 'Accepted'
-                bid.is_accepted = True
-                
                 if bid.project.status=="myoffer":
+                    bid.status = 'Accepted'
+                    bid.is_accepted = True
                     bid.project.status="active"
                     Transactions.objects.create(bid=bid,status='pending',project=bid.project,transaction_type="collection")
 
                     bid.project.save()
-                bid.save()
+                    bid.save()
                 # bid.project.project_budget=bid.project_total_cost
                 # bid.project.save()
-                #ddd
+                
                 if request.data.get("phone_number") and action == "accept":
                     try:
-                        bid.project.status="ongoing"
-                        bid.project.save()
+                        phone_number=request.data.get("phone_number")
                         gateway=PaymentGatewayAPI()
+                        
                         client_details={
                             "mobile_number":request.data.get("phone_number",bid.service_provider.phone),
                             "email":bid.project.client.user.email
@@ -707,15 +706,25 @@ class ProjectBidApiView(APIView):
                             "mobile_number":bid.service_provider.phone if bid.service_provider.phone else bid.service_provider.phone ,
                             "email":bid.service_provider.user.email,
                         }
-                        response=gateway.initialize_collection(bid.project_total_cost,'EUR',client_details,provider_details,bid.project.id)
-                        print(response)
+                        print("Request sending")
+                        response=gateway.initialize_collection(bid.project_total_cost,phone_number,client_details,provider_details,bid.project.id)
+                        # print("Response: ", response)
                         try:
-                            Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection")
-                            # bid.project.status="ongoing"
-                            # bid.project.save()
+                            payment_status=response['response']['status']
+                            if payment_status.lower() == "failed":
+                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='failed',project=bid.project,transaction_type="collection")
+                            if payment_status.lower() == "pending":
+                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection")
+                                Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected', is_accepted=False)
+                            if payment_status.lower() == "successful":
+                                bid.status = 'Accepted'
+                                bid.is_accepted = True
+                                bid.project.status="ongoing"
+                                bid.project.save()
+                                bid.save()
                         except:
                             pass
-                        Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected', is_accepted=False)
+                        
                     except Exception as e:
                         print(e)
                         response={}
@@ -729,7 +738,7 @@ class ProjectBidApiView(APIView):
 
             serializer = BidSerializer(bid).data
             try:
-                serializer['payment_response']=response
+                serializer['payment_response']=payment_status
             except:
                 pass
             return Response(serializer, status=status.HTTP_200_OK)

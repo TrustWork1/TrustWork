@@ -284,11 +284,13 @@ const ProviderHome = props => {
                 </>
               }
               ListEmptyComponent={
-                <>
-                  <View style={[css.aic]}>
-                    <Text style={[css.txtStyle]}>No Project Found</Text>
-                  </View>
-                </>
+                ProjectReducer.status != 'Project/ProActiveProjectRequest' && (
+                  <>
+                    <View style={[css.aic]}>
+                      <Text style={[css.txtStyle]}>No Project Found</Text>
+                    </View>
+                  </>
+                )
               }
             />
           </View>

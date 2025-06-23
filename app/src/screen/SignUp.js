@@ -288,6 +288,7 @@ const SignUp = props => {
       </View>
     );
   };
+
   const TermsConditionComponent = () => {
     return (
       <View style={styles.modalViewContainer}>

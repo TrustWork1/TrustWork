@@ -43,32 +43,39 @@ class InitiatePaymentAPI(APIView):
         collection=MtnMoMoCollection()
 
                 
-        if not validate_json_structure(request.data):
-            return Response({"message":"Invalid Json"})
+        # if not validate_json_structure(request.data):
+        #     return Response({"message":"Invalid Json"})
         
-        amount=request.data.get("amount")
+        amount=float(request.data.get("amount"))
         phone_number=request.data.get("phone_number")
         external_resource_id=request.data.get("external_resource_id")
         external_callback_url=request.data.get("callback_url")
         payer=request.data.get("payer")
         payee=request.data.get("payee")
         
-        payer,_=User.objects.get_or_create(phone_number=payer['mobile_number'],email=payer['email'])
-        payee,_=User.objects.get_or_create(phone_number=payee['mobile_number'],email=payee['email'])
+        payer,_=User.objects.get_or_create(phone_number=payer['mobile_number'], email=payer['email'])
+        payee,_=User.objects.get_or_create(phone_number=payee['mobile_number'], email=payee['email'])
         
-        escrow=Escrow.objects.create(amount=amount,external_resource_id=external_resource_id,status="pending",payer=payer,payee=payee,external_callback_url=external_callback_url,payment_method="mtn-momo")
-        Events.objects.create(event_type="collection_initialized",event_description="",escrow=escrow)
-        # collection=MtnMoMoCollection()
-        response=collection.requestToPay(amount=amount,external_id=str(escrow.id),phone_number=payer.phone_number)
-        print(response)
+        escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="mtn-momo")
+        Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
+        
+        response=collection.requestToPay(amount=amount, external_id=str(escrow.id), phone_number=phone_number)
+        Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
         status=collection.getTransactionStatus(response.get('ref'))
-        print(status)
-        Events.objects.create(event_type="collection_in_progress",event_description="",escrow=escrow)
-        transaction_id=Transactions.objects.create(escrow=escrow,amount=amount,status="pending",transaction_type="collection",payment_method="mtn-momo",external_transaction_id=response['ref'],external_callback_url=external_callback_url)
+        payment_status = status['status']
+        # print("payment_status: ",payment_status)
+        if payment_status.lower() == "pending":
+            transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
         
+        if payment_status.lower() == "failed":
+            escrow=Escrow.objects.get(id=escrow.id, external_resource_id=external_resource_id, payment_method="mtn-momo")
+            escrow.status = "collection_failed"
+            escrow.save()
+            transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="failed", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+            Events.objects.create(event_type="collection_failed", event_description=status['reason'], escrow=escrow)
         
-        return Response({"transaction_id":transaction_id.id,'response':status,"escrow_id":escrow.id})
-    
+        return Response({"transaction_id":transaction_id.id, 'response':status, "escrow_id":escrow.id})
+
 class TransactionStatusAPI(APIView):
     def get(self,request,txn_id):
         '''
@@ -106,17 +113,17 @@ class InitiateStripeCollection(APIView):
         payer,_=User.objects.get_or_create(external_user_id=payer['user_id'])
         payee,_=User.objects.get_or_create(external_user_id=payee['user_id'])
         
-        escrow=Escrow.objects.create(amount=amount,external_resource_id=external_resource_id,status="pending",payer=payer,payee=payee,external_callback_url=external_callback_url,payment_method="stripe")
-        Events.objects.create(event_type="collection_initialized",event_description="",escrow=escrow)
+        escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="stripe")
+        Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
         # collection=MtnMoMoCollection()
-        transaction=Transactions.objects.create(escrow=escrow,amount=amount,status="pending",transaction_type="collection",payment_method="stripe",external_callback_url=external_callback_url)
+        transaction=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="stripe", external_callback_url=external_callback_url)
         
-        response=stripe_collection(amount,escrow.id,transaction.id)
+        response=stripe_collection(amount,escrow.id, transaction.id)
         transaction.external_transaction_id=response['payment_id']
         transaction.save()
-        Events.objects.create(event_type="collection_in_progress",event_description="",escrow=escrow)
+        Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
         
-        return Response({"transaction_id":transaction.id,"escrow_id":escrow.id,**response} )
+        return Response({"transaction_id":transaction.id, "escrow_id":escrow.id, **response} )
 
 STRIPE_COLLECTION_WEBHOOK_SECRET = settings.STRIPE_COLLECTION_WEBHOOK_SECRET
 class StripeCollectionStatus(APIView):

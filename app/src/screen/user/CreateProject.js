@@ -260,7 +260,6 @@ const CreateProject = props => {
       case 'Project/JobCategoryFailure':
         status = ProjectReducer.status;
         break;
-
       case 'Project/JobCategoryProviderRequest':
         status = ProjectReducer.status;
         break;

@@ -186,6 +186,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     bid_cost = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
+    transaction_status = serializers.SerializerMethodField()
     # bis_sent = serializers.SerializerMethodField()
     client_id = serializers.CharField(source='user.first_name',read_only=True)
     document=serializers.FileField(required=False)
@@ -249,6 +250,12 @@ class ProjectSerializer(serializers.ModelSerializer):
         return " "
         # obj.payment_status if obj.payment_status else
 
+    def get_transaction_status(self, obj):
+        transaction=Transactions.objects.filter(bid__project=obj,transaction_type="collection").last()
+        if transaction:
+            return transaction.status
+        return ""
+    
     # def get_provider(self, obj):
     #     accepted_bid = obj.bid.filter(status__iexact="accepted").last()
     #     if accepted_bid:
@@ -780,6 +787,21 @@ class BidSerializerProjectView(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
 
+
+class ProviderSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    user_referal_code = serializers.CharField(source='user.user_referal_code', read_only=True)
+    total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
+    total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
+    referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
+    full_name = serializers.CharField(source='user.full_name') 
+    user_type = serializers.CharField(source='user.get_user_type_display',read_only=True)
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
 class TransactionProjectSerializer(serializers.ModelSerializer):
     client = ProfileSerializer(read_only=True)
     class Meta:
@@ -788,9 +810,11 @@ class TransactionProjectSerializer(serializers.ModelSerializer):
 
 class TransactionBidSerializer(serializers.ModelSerializer):
     service_provider_name = serializers.CharField(source='service_provider.full_name', read_only=True)
+    service_provider = ProviderSerializer(read_only=True)
+    
     class Meta:
         model = Bid
-        fields = ['id', 'bid_details', 'quotation_details', 'project_total_cost', 'time_line', 'time_line_hour', 'is_accepted', 'service_provider_name']
+        fields = ['id', 'bid_details', 'quotation_details', 'project_total_cost', 'time_line', 'time_line_hour', 'is_accepted', 'service_provider_name', 'service_provider']
 
 
 class TransectionSerializer(serializers.ModelSerializer):

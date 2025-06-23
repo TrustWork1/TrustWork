@@ -426,7 +426,7 @@ const ProviderProjectDetails = props => {
         {/* /////////////////// Client //////////////////// */}
         <View>
           <Text style={[styles.projectTitle, {marginVertical: normalize(16)}]}>
-            {'Client'}
+            {'Feedback'}
           </Text>
         </View>
         <View
@@ -598,7 +598,7 @@ const ProviderProjectDetails = props => {
           undefined && (
           <>
             <Text style={[styles.providerHeaderTxt, css.mt3]}>
-              {'Service Provider Feedback'}
+              {`Client's Review`}
             </Text>
             <View style={styles.providerContiner}>
               <View style={{marginTop: normalize(0)}}>

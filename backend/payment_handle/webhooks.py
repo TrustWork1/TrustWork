@@ -27,13 +27,16 @@ class EscrowCollectionWebhook(APIView):
     permission_classes=[AllowAny]
     def post(self,request):
         """
-                {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'EUR', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
+        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
 
         """
         print(request.data)
         data=request.data
         t=Transactions.objects.get(escrow_id=data.get("externalId"))
         t.status="completed"
+        t.bid.status="Accepted"
+        t.bid.is_accepted = True
+        t.bid.save()
         t.project.status="ongoing"
         t.project.save()
         t.save()
@@ -66,40 +69,28 @@ class EscrowDisbursementWebhook(APIView):
     permission_classes=[AllowAny]
     def post(self,request):
         """
-                {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'EUR', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
+        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
 
         """
         print(request.data)
         data=request.data
         t=Transactions.objects.filter(escrow_id=data.get("externalId"),transaction_type="disbursement").last()
         t.status="disbursement_completed"
+        t.project.status="completed"
+        t.project.save()
         t.save()
         try:
-            client_notification=Notification.objects.create(reciever=t.bid.project.client,title="Payment Successfull",message=f"Payment for project {t.bid.project.title} is successfull")
-            client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
+            provider_notification=Notification.objects.create(
+                sender=t.bid.project.client,
+                receiver=t.bid.project.client,
+                title="Payment Received",
+                message=f"Payment Received for project {t.bid.project.project_title}",
+                object_type="payment completed",
+                project_id=t.bid.project.id,
+                bid_id=t.bid.id
+            )
             
-            provider_notification=Notification.objects.create(reciever=t.bid.service_provider,title="Payment Successfull",message=f"Payment for bid on project {t.bid.project.title} is successfull")
-            client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
-        except:
-            pass
-        return Response({})
-    
-    def put(self,request):
-        """
-                {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'EUR', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
-
-        """
-        print(request.data)
-        data=request.data
-        t=Transactions.objects.filter(escrow_id=data.get("externalId"),transaction_type="disbursement").last()
-        t.status="disbursement_completed"
-        t.save()
-        try:
-            client_notification=Notification.objects.create(reciever=t.bid.project.client,title="Payment Successfull",message=f"Payment for project {t.bid.project.title} is successfull")
-            client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
-            
-            provider_notification=Notification.objects.create(reciever=t.bid.service_provider,title="Payment Successfull",message=f"Payment for bid on project {t.bid.project.title} is successfull")
-            client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
+            # provider_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
         except:
             pass
         return Response({})

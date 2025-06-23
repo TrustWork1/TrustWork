@@ -7,7 +7,7 @@ from django.db import transaction
 import json
 import re
 from rest_framework import status
-collection=MtnMoMoDisbursement()
+disbursement=MtnMoMoDisbursement()
 
 def validate_json_structure(data):
     if not isinstance(data, dict):
@@ -39,7 +39,7 @@ class InitiateDisbursementAPI(APIView):
         """
         create a new Escrow , get or create  user, event create, Transaction Create
         """
-        collection=MtnMoMoDisbursement()
+        disbursement=MtnMoMoDisbursement()
 
         phone_number=request.data.get("phone_number")
         escrow_id=request.data.get("escrow_id")
@@ -49,17 +49,16 @@ class InitiateDisbursementAPI(APIView):
         escrow_obj.external_callback_url=external_callback_url
         escrow_obj.save()
         with transaction.atomic():
-            Events.objects.create(event_type="disbursement_initialized",event_description="",escrow=escrow_obj)
-            # collection=MtnMoMoCollection()
-            response=collection.disburse(amount=escrow_obj.amount,external_id=str(escrow_obj.id),phone_number=phone_number,payernote='MTN_Momo',payermessage='Disbursement')
+            Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)
+            response=disbursement.disburse(amount=escrow_obj.amount, external_id=str(escrow_obj.id), phone_number=phone_number)
             print(response)
-            status=collection.getTransactionStatus(response.get('ref'))
+            status=disbursement.getTransactionStatus(response.get('ref'))
             print(status)
-            Events.objects.create(event_type="disbursement_in_progress",event_description="",escrow=escrow_obj)
-            transaction_id=Transactions.objects.create(escrow=escrow_obj,amount=escrow_obj.amount,status="pending",transaction_type="disbursement",payment_method="mtn-momo",external_transaction_id=response['ref'],external_callback_url=external_callback_url)
+            Events.objects.create(event_type="disbursement_in_progress", event_description="", escrow=escrow_obj)
+            transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=escrow_obj.amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
         
         
-        return Response({"transaction_id":transaction_id.id,'response':status})
+        return Response({"transaction_id":transaction_id.id, 'response':status})
     
 class DisbursementTransactionStatusAPI(APIView):
     def get(self,request,txn_id):
@@ -67,8 +66,7 @@ class DisbursementTransactionStatusAPI(APIView):
         gets the transaction status for the given id
         '''
         external_transaction_id=Transactions.objects.get(escrow__id=txn_id).external_transaction_id
-        # collection=MtnMoMoCollection()
-        status=collection.getTransactionStatus(external_transaction_id )
+        status=disbursement.getTransactionStatus(external_transaction_id )
         if status:
             print(status)
         return Response({"status":status})

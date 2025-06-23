@@ -149,14 +149,7 @@ const ActiveProjects = props => {
             </View>
           </View>
         </View>
-        <View style={[css.row, css.jcsb]}>
-          <TouchableOpacity
-            onPress={() => {
-              NavigationService.navigate('CreateProject', {item: item});
-            }}
-            style={styles.buttonWithBorder}>
-            <Text style={styles.buttonWithBorderTxt}>Edit Project</Text>
-          </TouchableOpacity>
+        {item?.transaction_status == 'in_progress' ? (
           <TouchableOpacity
             onPress={() =>
               NavigationService.navigate('ProjectDetails', {
@@ -167,7 +160,27 @@ const ActiveProjects = props => {
             style={styles.buttonFillColor}>
             <Text style={styles.buttonFillColorTxt}>View Details</Text>
           </TouchableOpacity>
-        </View>
+        ) : (
+          <View style={[css.row, css.jcsb]}>
+            <TouchableOpacity
+              onPress={() => {
+                NavigationService.navigate('CreateProject', {item: item});
+              }}
+              style={styles.buttonWithBorder}>
+              <Text style={styles.buttonWithBorderTxt}>Edit Project</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                NavigationService.navigate('ProjectDetails', {
+                  flag: 'Active',
+                  item: item,
+                })
+              }
+              style={styles.buttonFillColor}>
+              <Text style={styles.buttonFillColorTxt}>View Details</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -176,11 +189,6 @@ const ActiveProjects = props => {
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          <Loader
-            visible={
-              ProjectReducer.status == 'Project/clientActiveProjectRequest'
-            }
-          />
           <View
             style={{
               backgroundColor: Colors.themeGreen,
@@ -220,11 +228,18 @@ const ActiveProjects = props => {
               </TouchableOpacity>
             </View>
           </View>
-          <View
-            style={{
-              paddingHorizontal: normalize(10),
-            }}>
-            <View>
+
+          <View>
+            <Loader
+              visible={
+                ProjectReducer.status == 'Project/clientActiveProjectRequest' &&
+                search == ''
+              }
+            />
+            <View
+              style={{
+                paddingHorizontal: normalize(10),
+              }}>
               <FlatList
                 data={clientActiveProject}
                 showsVerticalScrollIndicator={false}
@@ -252,7 +267,7 @@ const ActiveProjects = props => {
                         <View
                           style={{
                             alignItems: 'center',
-                            marginTop: normalize(30),
+                            marginTop: normalize(10),
                           }}>
                           <Text style={styles.projectTitle}>
                             No Projects Found !!

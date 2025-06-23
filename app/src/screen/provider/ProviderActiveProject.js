@@ -18,6 +18,7 @@ import {Colors, Fonts} from '../../themes/Themes';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import Loader from '../../utils/helpers/Loader';
 
 let status = '';
 
@@ -139,11 +140,12 @@ const ProviderActiveProject = props => {
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.container}>
-          {/* <Loader
+          <Loader
             visible={
-              ProjectReducer.status == 'Project/ProviderProjectListRequest'
+              ProjectReducer.status == 'Project/ProviderProjectListRequest' &&
+              search == ''
             }
-          /> */}
+          />
 
           <View
             style={{

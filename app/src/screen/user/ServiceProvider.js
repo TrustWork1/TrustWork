@@ -71,7 +71,7 @@ const ServiceProvider = props => {
       // page: data?.count || page,
       page: 1,
       perpage: 50,
-      keyword_search: data?.search || null,
+      keyword_search: data?.search || '',
     };
     connectionrequest()
       .then(() => {

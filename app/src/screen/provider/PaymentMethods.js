@@ -63,7 +63,7 @@ const PaymentMethods = props => {
   const [bankList, setBankList] = useState([]);
   const [mtnList, setmtnList] = useState([]);
   const [isOpen, setIsopen] = useState(false);
-  const [isMtnAdd, setIsMtnAdd] = useState(false);
+  const [isActiveRule, setIsActiveRule] = useState(false);
   const [bankId, setBankId] = useState('');
   const [bName, setBname] = useState('');
   const [AccountNo, setAccountNo] = useState('');
@@ -158,38 +158,6 @@ const PaymentMethods = props => {
     dispatch(addMtnAccountRequest(obj));
   };
 
-  const onUpdateBank = () => {
-    if (!AccountNo || !ifsc || !bName) {
-      showErrorAlert(
-        !AccountNo
-          ? 'Enter Account Number'
-          : !ifsc
-          ? 'Enter IFSC Number'
-          : 'Enter Bank Name',
-      );
-      return;
-    }
-
-    let obj = {
-      data: {
-        bank_account_number: AccountNo,
-        routing_number: ifsc,
-        bank_name: bName,
-        account_type: account,
-        country: countryCode,
-      },
-      id: bankId,
-    };
-
-    connectionrequest()
-      .then(() => {
-        dispatch(updateBankAccountRequest(obj));
-      })
-      .catch(err => {
-        showErrorAlert('Please connect to the internet');
-      });
-  };
-
   const onPrimary = (item, index) => {
     let obj = {
       id: item?.id,
@@ -197,26 +165,6 @@ const PaymentMethods = props => {
 
     let temp = JSON.parse(JSON.stringify(bankList));
     temp[index].is_primary = true;
-    setBankList(temp);
-
-    setBankList(temp);
-
-    connectionrequest()
-      .then(() => {
-        dispatch(makePrimaryRequest(obj));
-      })
-      .catch(err => {
-        showErrorAlert('Please connect to the internet');
-      });
-  };
-
-  const onUnPrimary = (item, index) => {
-    let obj = {
-      id: item?.id,
-    };
-
-    let temp = JSON.parse(JSON.stringify(bankList));
-    temp[index].is_primary = false;
     setBankList(temp);
 
     setBankList(temp);
@@ -427,6 +375,7 @@ const PaymentMethods = props => {
                   paddingHorizontal={normalize(5)}
                   label={'Select Country'}
                   placeholder={'Select Country'}
+                   isSerachBar={true}
                   value={country}
                   marginBottom={normalize(10)}
                   marginLeft={normalize(10)}
@@ -704,10 +653,30 @@ const PaymentMethods = props => {
                 color: Colors.themeWhite,
                 textTransform: 'uppercase',
               }}>
-              Close
+              Closedxd
             </Text>
           </View>
         </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const activeSteps = () => {
+    return (
+      <View
+        style={{
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+          // padding: normalize(5),
+        }}>
+        <View style={[css.px5, styles.modalSubContainer]}>
+          <Text style={[styles.addbankHead]}>
+            {
+              'To activate your account, please check your email inbox. We have sent you a verification link to complete the process.'
+            }
+          </Text>
+        </View>
       </View>
     );
   };
@@ -791,14 +760,39 @@ const PaymentMethods = props => {
             </View>
           )}
           {item?.payment_type == 'stripe' ? (
-            <View style={[css.ml2, css.f1]}>
-              <Text style={[styles.darkTxt]}>{item?.bank_name}</Text>
-              <Text style={[styles.greyTxt, css.fs10]}>
-                {`*******${item?.bank_account_number}`}
-              </Text>
-              <Text style={[styles.greyTxt, css.fs10]}>
-                {item?.routing_number}
-              </Text>
+            <View style={[css.ml2, css.f1, css.row]}>
+              <View style={[]}>
+                <Text style={[styles.darkTxt]}>{item?.bank_name}</Text>
+                <Text style={[styles.greyTxt, css.fs10]}>
+                  {`*******${item?.bank_account_number}`}
+                </Text>
+                <Text style={[styles.greyTxt, css.fs10]}>
+                  {item?.routing_number}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsActiveRule(true)}
+                disabled={item?.status == 'inactive' ? false : true}
+                style={[
+                  styles.statusStyle,
+                  {
+                    backgroundColor:
+                      item?.status == 'inactive'
+                        ? Colors.themePlaceholder
+                        : Colors.themeGreen,
+                  },
+                ]}>
+                <Text
+                  style={[
+                    {
+                      color: Colors.themeBlack,
+                      fontFamily: Fonts.FustatSemiBold,
+                      fontSize: normalize(12),
+                    },
+                  ]}>
+                  {item?.status}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={[css.ml2, css.f1]}>
@@ -1095,14 +1089,14 @@ const PaymentMethods = props => {
         onBackdropPress={() => setIsopen(!isOpen)}>
         {addBankComponent()}
       </Modal>
-      {/* <Modal
-        visible={isMtnAdd}
+      <Modal
+        visible={isActiveRule}
         avoidKeyboard={true}
         style={styles.modalContainer}
-        onBackButtonPress={() => setIsMtnAdd(!isMtnAdd)}
-        onBackdropPress={() => setIsMtnAdd(!isMtnAdd)}>
-        {addMtnComponent()}
-      </Modal> */}
+        // onBackButtonPress={() => setIsActiveRule(!isActiveRule)}
+        onBackdropPress={() => setIsActiveRule(!isActiveRule)}>
+        {activeSteps()}
+      </Modal>
     </View>
   );
 };
@@ -1187,7 +1181,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    // justifyContent: 'flex-end',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.3)',
     margin: 0,
@@ -1242,5 +1236,14 @@ const styles = StyleSheet.create({
   txtStyle: {
     fontSize: normalize(14),
     fontFamily: Fonts.FustatMedium,
+    color: Colors.themeBlack,
+  },
+  statusStyle: {
+    paddingHorizontal: normalize(10),
+
+    height: normalize(30),
+    borderRadius: normalize(15),
+    justifyContent: 'center',
+    marginLeft: normalize(10),
   },
 });

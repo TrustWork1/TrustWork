@@ -19,6 +19,7 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 import Loader from '../../utils/helpers/Loader';
+import css from '../../themes/css';
 
 let status = '';
 
@@ -207,8 +208,7 @@ const ProviderActiveProject = props => {
               <>
                 {ProjectReducer.status !=
                   'Project/ProviderProjectListRequest' && (
-                  <View
-                    style={{alignItems: 'center', marginTop: normalize(20)}}>
+                  <View style={[css.aic, css.jcc, css.mt5, css.f1]}>
                     <Text
                       style={{
                         fontFamily: Fonts.FustatBold,

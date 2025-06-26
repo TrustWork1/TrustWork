@@ -375,6 +375,9 @@ const InvoiceList = () => {
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
               onRowSelectionModelChange={rows => setSelectedRows(rows)}
+              localeText={{
+                noRowsLabel: 'No records found'
+              }}
             />
           </Card>
         </Grid>

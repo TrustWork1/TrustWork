@@ -527,7 +527,7 @@ export function* addBankAccountSaga(action) {
 
     if (response?.status == 200) {
       yield put(addBankAccountSuccess(response?.data));
-      showErrorAlert(response?.data?.message);
+      showErrorAlert(response?.data?.data?.message);
     } else if (response?.status == 201) {
       yield put(addBankAccountFailure(response?.data));
       showErrorAlert(response?.data?.message);
@@ -539,9 +539,9 @@ export function* addBankAccountSaga(action) {
     if (error?.status == 502) {
       yield put(addBankAccountFailure(error));
       showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
+    } else if (error?.status == 404) {
       yield put(addBankAccountFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
+      showErrorAlert(showErrorAlert(error?.response?.data?.message));
     } else {
       yield put(addBankAccountFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);

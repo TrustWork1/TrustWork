@@ -223,6 +223,10 @@ const TableServerSide = () => {
             onChange: (event: ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)
           }
         }}
+        localeText={{
+          noRowsLabel: 'No records found'
+        
+        }}
       />
     </Card>
   )

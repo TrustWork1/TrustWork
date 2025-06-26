@@ -2,14 +2,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from adminsite_management.models import CMS, FAQ,QMS,QMSResponse
-from .serializers import CMSSerializer, FAQSerializer,QMSSerializer,QMSReponseSerializer
+from .serializers import CMSSerializer, FAQSerializer,QMSSerializer,QMSReponseSerializer,CurrencySerializer
 from profile_management.models import Profile
 from rest_framework import status
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
 # from adminsite_management.models import CMS, FAQ
-from .serializers import CMSSerializer, FAQSerializer
 from api.pagination import CustomPagination, CustomPaginationTransition
 from drf_yasg.views import get_schema_view
 from drf_yasg.utils import swagger_auto_schema
@@ -19,6 +18,7 @@ from django.db.models.functions import Cast
 from datetime import datetime
 from django.utils import timezone
 from django.template.loader import render_to_string
+from rest_framework.permissions import IsAuthenticated
 import re
 import os
 import environ
@@ -52,7 +52,7 @@ class CMSListCreateAPIView(APIView):
         }
     )
     def get(self, request):
-        print("called")
+        # print("called")
         cms_entries = CMS.objects.all().order_by('id')
         name = request.query_params.get('search', None)
         if name:
@@ -541,7 +541,7 @@ class QMSResponseApiView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from customuser.models import CustomUser
-from project_management.models import Project, Transactions
+from project_management.models import Project, Transactions, Currency
 class DashboardAnalyticsView(APIView):
     def get(self,request):
         projects= Project.objects.all().count()
@@ -568,9 +568,43 @@ from django.shortcuts import redirect, get_object_or_404
 
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
+class XafCurrency(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        currency = Currency.objects.last()
+        if currency:
+            serializer = CurrencySerializer(currency)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"detail": "No currency data found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        if Currency.objects.exists():
+            return Response({"detail": "Currency data already exists. Use PUT to update."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = CurrencySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        currency = Currency.objects.last()
+        if not currency:
+            return Response({"detail": "Currency data not found. Use POST to create."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CurrencySerializer(currency, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 # class OnboardingReturn
 def onboarding_return(request):
-    return redirect("https://trustwork-dev.dedicateddevelopers.us/")
+    return redirect("https://connect.stripe.com/hosted/setup/c/complete")
 
 def reauth_with_token(request, token):
     bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe", status="inactive").order_by('-created_at').first()

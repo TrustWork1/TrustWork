@@ -275,7 +275,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_bid_cost(self, obj):
         try:
             last_bid = obj.bid.filter(status__iexact="accepted").last()
-            print("last_bid---", last_bid)
+            # print("last_bid---", last_bid)
             if last_bid:
                 return last_bid.project_total_cost
             return ""
@@ -804,9 +804,13 @@ class ProviderSerializer(serializers.ModelSerializer):
 
 class TransactionProjectSerializer(serializers.ModelSerializer):
     client = ProfileSerializer(read_only=True)
+    project_category = serializers.SerializerMethodField()
     class Meta:
         model = Project
-        fields = ['id', 'project_title', 'project_budget', 'status', 'city', 'state', 'country', 'client']
+        fields = ['id', 'project_title', 'project_budget', 'project_timeline', 'project_hrs_week', 'status', 'city', 'state', 'country', 'client', 'project_category']
+
+    def get_project_category(self, obj):
+        return obj.project_category.title if obj.project_category else None
 
 class TransactionBidSerializer(serializers.ModelSerializer):
     service_provider_name = serializers.CharField(source='service_provider.full_name', read_only=True)

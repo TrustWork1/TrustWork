@@ -39,16 +39,14 @@ export const providerCreateValidationSchema = () =>
     zip_code: yup
       .string()
       .trim()
-      .optional()
-      .test({
-        name: 'zip-length-validation',
-        message: 'Zip Code must be between 4 and 8 characters',
-        test: value => {
-          if (!value) return true
+      .nullable() // Accepts null values too
+      .notRequired()
+      .test('zip-length-validation', 'Zip Code must be between 4 and 8 characters', value => {
+        if (!value || value === '') return true // Skip validation if not provided
 
-          return value.length >= 4 && value.length <= 8
-        }
+        return value.length >= 4 && value.length <= 8
       }),
+
     country: yup.string().trim().required().label('Country'),
     latitude: yup.string().trim().required().label('Latitude'),
     longitude: yup.string().trim().required().label('Longitude'),
@@ -99,15 +97,12 @@ export const providerUpdateValidationSchema = () =>
     zip_code: yup
       .string()
       .trim()
-      .optional()
-      .test({
-        name: 'zip-length-validation',
-        message: 'Zip Code must be between 4 and 8 characters',
-        test: value => {
-          if (!value) return true
+      .nullable() // Accepts null values too
+      .notRequired()
+      .test('zip-length-validation', 'Zip Code must be between 4 and 8 characters', value => {
+        if (!value || value === '') return true // Skip validation if not provided
 
-          return value.length >= 4 && value.length <= 8
-        }
+        return value.length >= 4 && value.length <= 8
       }),
     country: yup.string().trim().required().label('Country'),
     latitude: yup.string().trim().required().label('Latitude'),

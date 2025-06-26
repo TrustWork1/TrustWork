@@ -54,8 +54,8 @@ class ProfileAPIViewSearch(APIView):
 
     def get(self, request,user_type):
         search_query = request.query_params.get('search', '')
-        print(request.user.user_type)
-        print(user_type)
+        # print(request.user.user_type)
+        # print(user_type)
         profiles = Profile.objects.filter(user__user_type__icontains=user_type.strip())
         if search_query:
             profiles = profiles.filter(
@@ -85,9 +85,16 @@ class ProfileSelfView(APIView):
         ],
     )
     def get(self,request):
-        profile=get_object_or_404(Profile,user__pk=request.user.pk)
-        serializer=ProfileSerializer(profile)
+        profile=get_object_or_404(Profile, user__pk=request.user.pk)
         # print(request.user.id)
+        # print(profile.id)
+        subscription=Subscriptions.objects.filter(profile=profile).last()
+        if subscription:
+            if subscription.expire_at and subscription.expire_at <= timezone.now():
+                subscription.is_active = False
+                subscription.save()
+                profile.is_payment_verified=False
+                profile.save()
         coupon_check=Coupons.objects.filter(user=request.user.id, is_active=True)
         # for coupon in coupon_check:
         #     if coupon.expire_date < timezone.now().date():
@@ -100,6 +107,7 @@ class ProfileSelfView(APIView):
             request.user.is_discount=False
             request.user.save()
 
+        serializer=ProfileSerializer(profile)
         response = {
             "status" : 200,
             "type" : "success",
@@ -121,7 +129,7 @@ class ProfileSelfView(APIView):
         request_body=ProfileSerializer,
     )
     def put(self, request):
-        print(request.data)
+        # print(request.data)
         
         profile = get_object_or_404(Profile, user__pk=request.user.pk)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
@@ -270,7 +278,7 @@ class ProfileAPIView(APIView):
     )
     def post(self, request,user_type=None):
         data = request.data
-        print(request.data)
+        # print(request.data)
         user = None
         with transaction.atomic():
             if 'user' not in data:
@@ -353,7 +361,7 @@ class ProfileAPIView(APIView):
                 user = request.user
             # request.data._mutable=True
             request.data['user_type']=user_type
-            print(request.data)
+            # print(request.data)
             serializer = ProfileSerializer(data=request.data)
             if serializer.is_valid():
                 data=serializer.save()
@@ -924,8 +932,8 @@ class BankDetailsAPIView(APIView):
 
                     bank_token = stripe.Token.create(
                         bank_account={
-                            'country': "US",
-                            'currency': "usd",
+                            'country': country,
+                            'currency': currency_code,
                             'account_holder_name': username,
                             'account_holder_type': 'individual',
                             'routing_number': data.get('ifsc_code', ''),
@@ -957,16 +965,7 @@ class BankDetailsAPIView(APIView):
                             account.id,
                             external_account=bank_token.id
                         )
-                        # stripe.Account.modify(
-                        #     account.id,
-                        #     settings={
-                        #         "payouts": {
-                        #             "schedule": {
-                        #                 "interval": "manual"
-                        #             }
-                        #         }
-                        #     }
-                        # )
+
                         final_stripe_account_id = account.id
                         uuidgen = str(uuid4())
 
@@ -1086,7 +1085,7 @@ class BankDetailsAPIView(APIView):
                 is_activated = is_transfer_active and no_pending_requirements and not_disabled
                 
                 bank_status_qs.update(status="active" if is_activated else "inactive")
-                print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
+                # print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
             
             bank_details = BankDetails.objects.filter(user_profile_id=user_profile).order_by('-created_at')
 
@@ -1999,9 +1998,24 @@ class HandleSubscription(APIView):
             else:
                 purchase_id = subscription_receipt.get("transactionId")
 
-        Subscriptions.objects.filter(profile=request.user.profile,is_active=True).update(is_active=False)
+        Subscriptions.objects.filter(profile=request.user.profile, is_active=True).update(is_active=False)
         frequency=subscription_plan.split("_")[1]
-        Subscriptions.objects.create(profile=request.user.profile,subscription_frequency=frequency.lower(),subscription_plan=subscription_plan,purchase_token=purchase_id)
+        days=0
+        if frequency == "weekly":
+            days = 7
+        elif frequency == "monthly":
+            days = 30
+        elif frequency == "yearly":
+            days = 365
+        
+        expire_at = timezone.now() + timedelta(days=days)
+        Subscriptions.objects.create(
+            profile=request.user.profile,
+            subscription_frequency=frequency.lower(),
+            subscription_plan=subscription_plan,
+            purchase_token=purchase_id,
+            expire_at=expire_at
+        )
         user_profile=request.user.profile
         user_profile.is_payment_verified=True
         referer_user=CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).last()
@@ -2033,7 +2047,7 @@ class HandleSubscription(APIView):
 
 class CouponsView(APIView):
     def get(self, request):
-        print(request.user.id)
+        # print(request.user.id)
         coupons=Coupons.objects.filter(user=request.user.id, is_active=True)
         data=[]
         for coupon in coupons:
@@ -2071,8 +2085,8 @@ class PreviousWorksApiView(APIView):
     parser_classes=[MultiPartParser,FormParser,JSONParser]
 
     def post(self,request):
-        print(request.data)
-        print(request.FILES)
+        # print(request.data)
+        # print(request.FILES)
         for i in request.FILES.getlist('image'):
             PreviousWorks.objects.create(image=i,profile=request.user.profile)
         return Response({"message":"upload success"})

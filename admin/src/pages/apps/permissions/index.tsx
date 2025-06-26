@@ -176,6 +176,9 @@ const PermissionsTable = () => {
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
+              localeText={{
+                noRowsLabel: 'No records found'
+              }}
             />
           </Card>
         </Grid>

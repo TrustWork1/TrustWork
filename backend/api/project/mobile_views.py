@@ -328,7 +328,7 @@ class ClientActiveProjectsView(generics.ListAPIView):
 
     def get_queryset(self):
         client_profile = self.request.user.profile
-        print("client_profile", client_profile)
+        # print("client_profile", client_profile)
         # projects = Project.objects.filter(client=client_profile)
         # project_status = self.request.GET.get("status")
         status_filter = self.request.query_params.get("status")
@@ -772,7 +772,7 @@ class ProviderViewProject(APIView):
     # pagination_class = CustomPagination
     def get(self, request):
         client_profile = self.request.user.profile
-        print("client_profile", client_profile)
+        # print("client_profile", client_profile)
         # status_filter = self.request.query_params.get("status")
         query = Bid.objects.filter(project__in=Project.objects.filter(client=client_profile, status__iexact='active')) # | Bid.objects.filter() # Accepted
         # query = Project.objects.filter(client=client_profile, status__iexact='active')
@@ -894,7 +894,7 @@ class CreateAndOfferProjectAPIView(APIView):
     parser_classes=[MultiPartParser,JSONParser,FormParser]
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
+        # print(request.data)
         provider_id = request.data.get('provider_id')
         project_data = json.loads(request.data.get('project_data',"{}"))
 
@@ -1221,7 +1221,7 @@ class ServiceDetailsAPIView(APIView):  #client to provider
                         **client_feedbacks
                         
                     }
-                    print(response_data)
+                    # print(response_data)
                 except:
                     return response_data.job_category.title
                 return Response(response_data, status=status.HTTP_200_OK)

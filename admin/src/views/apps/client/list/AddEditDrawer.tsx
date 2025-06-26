@@ -75,6 +75,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     control,
     setValue,
     clearErrors,
+    watch,
     getValues,
     handleSubmit,
     setError,
@@ -105,7 +106,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
       setValue('city', data.data.city)
       setValue('state', data.data.state)
       setValue('country', data.data.country)
-      setValue('zip_code', data.data.zip_code)
+      setValue('zip_code', data.data.zip_code.replace(/-/g, ''))
       setValue('latitude', data.data.latitude)
       setValue('longitude', data.data.longitude)
     } else if (mode === 'add') {
@@ -164,6 +165,8 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     toggle()
     reset()
   }
+
+  console.log(watch())
 
   return (
     <Drawer

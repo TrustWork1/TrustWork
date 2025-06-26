@@ -289,7 +289,7 @@ const ProjectDetails = props => {
     return (
       <>
         {ProjectReducer?.projectDetailsResponse?.data?.transaction_status ==
-        'in_progress' ? (
+          'in_progress' && item?.status != 'Rejected' ? (
           <>
             <Text style={[styles.ongoingDescriptionTxt, {textAlign: 'center'}]}>
               Please approve the payment request on your MTN Mobile Money app or

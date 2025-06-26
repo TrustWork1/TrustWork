@@ -117,7 +117,7 @@ const Payment = props => {
   const [AccountNo, setAccountNo] = useState('');
   const [ifsc, setIFSC] = useState('');
 
-  const phoneRegex = /^[0-9]{10,15}$/;
+  const phoneRegex = /^[0-9]{9,15}$/;
 
   const handleSheetChanges = useCallback(index => {
     console.log('handleSheetChanges', index);

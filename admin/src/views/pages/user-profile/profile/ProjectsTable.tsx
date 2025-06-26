@@ -162,6 +162,9 @@ const ProfileTable = () => {
         pageSizeOptions={[5, 7, 10]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
+        localeText={{
+          noRowsLabel: 'No records found'
+        }}
       />
     </Card>
   ) : null

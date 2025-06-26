@@ -70,4 +70,5 @@ export type TEachProjectBidding = {
   client_name: string
   time_line_hour: string
   bid_sent: boolean
+  transaction_type: string
 }

@@ -463,35 +463,24 @@ const ProviderList = () => {
           />
 
           {/* Conditional check for no data */}
-          {!providerListLoading && providers.length === 0 ? (
-            <Box
-              display='flex'
-              flexDirection='column'
-              alignItems='center'
-              justifyContent='center'
-              sx={{ py: 10, color: 'text.secondary' }}
-            >
-              <Typography variant='h6' fontWeight={500}>
-                No records found
-              </Typography>
-              <Typography variant='body2'>Try changing filters or add a new provider to get started.</Typography>
-            </Box>
-          ) : (
-            <StyledDataGrid
-              autoHeight
-              rowHeight={62}
-              getRowId={row => row.id}
-              rows={providers}
-              columns={columns}
-              loading={providerListLoading}
-              paginationMode='server'
-              rowCount={totalRecords}
-              disableRowSelectionOnClick
-              pageSizeOptions={[10, 25, 50]}
-              paginationModel={paginationModel}
-              onPaginationModelChange={setPaginationModel}
-            />
-          )}
+
+          <DataGrid
+            autoHeight
+            rowHeight={62}
+            getRowId={row => row.id}
+            rows={providers}
+            columns={columns}
+            loading={providerListLoading}
+            paginationMode='server'
+            rowCount={totalRecords}
+            disableRowSelectionOnClick
+            pageSizeOptions={[10, 25, 50]}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            localeText={{
+              noRowsLabel: 'No records found'
+            }}
+          />
         </Card>
       </Grid>
 

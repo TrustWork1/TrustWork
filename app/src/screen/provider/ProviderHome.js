@@ -209,7 +209,7 @@ const ProviderHome = props => {
         visible={ProjectReducer?.status == 'Project/ProActiveProjectRequest'}
       /> */}
       <Header
-        logo={Icons.Logo}
+        logo={Icons.appLogo}
         onHeaderPress={() => NavigationService.navigate('ProfileProvider')}
       />
       <SafeAreaView style={styles.mainContainer}>
@@ -231,69 +231,53 @@ const ProviderHome = props => {
                 onChangeText={text => searchProject(text?.trimStart())}
                 style={styles.searchInputContainer}
               />
-
-              {/* <TouchableOpacity
-                style={styles.searchIconContainer}
-                onPress={() => {}}>
-                <Image
-                  source={Icons.Filter}
-                  style={{
-                    width: normalize(18),
-                    height: normalize(18),
-                    alignSelf: 'center',
-                  }}
-                />
-              </TouchableOpacity> */}
             </View>
           </View>
         </View>
 
         <View style={styles.container}>
-          <View>
-            <FlatList
-              data={activeProjects}
-              horizontal={false}
-              showsVerticalScrollIndicator={false}
-              keyExtractor={(item, index) => index.toString()}
-              ItemSeparatorComponent={() => (
-                <View style={{height: normalize(8)}} />
-              )}
-              renderItem={({item, index}) => renderProjects(item, index)}
-              contentContainerStyle={{
-                paddingHorizontal: normalize(10),
-                paddingBottom:
-                  Platform.OS == 'ios' ? normalize(60) : normalize(100),
-              }}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={e => {
-                if (isCloseToBottom(e.nativeEvent)) {
-                  fetchProjectData();
-                }
-              }}
-              ListHeaderComponent={() => listHeaderComponent()}
-              ListFooterComponent={
+          <FlatList
+            data={activeProjects}
+            horizontal={false}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item, index) => index.toString()}
+            ItemSeparatorComponent={() => (
+              <View style={{height: normalize(8)}} />
+            )}
+            renderItem={({item, index}) => renderProjects(item, index)}
+            contentContainerStyle={{
+              paddingHorizontal: normalize(10),
+              paddingBottom:
+                Platform.OS == 'ios' ? normalize(60) : normalize(100),
+            }}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={e => {
+              if (isCloseToBottom(e.nativeEvent)) {
+                fetchProjectData();
+              }
+            }}
+            ListHeaderComponent={() => listHeaderComponent()}
+            ListFooterComponent={
+              <>
+                {ProjectReducer.status == 'Project/ProActiveProjectRequest' && (
+                  <View style={[css.aic, css.jcc, css.f1, css.mt2]}>
+                    <ActivityIndicator
+                      size={'large'}
+                      color={Colors.themeGreen}></ActivityIndicator>
+                  </View>
+                )}
+              </>
+            }
+            ListEmptyComponent={
+              ProjectReducer.status != 'Project/ProActiveProjectRequest' && (
                 <>
-                  {ProjectReducer.status ==
-                    'Project/ProActiveProjectRequest' && (
-                    <View style={[css.aic, css.jcc, css.f1, css.mt2]}>
-                      <ActivityIndicator
-                        size={'large'}
-                        color={Colors.themeGreen}></ActivityIndicator>
-                    </View>
-                  )}
+                  <View style={[css.jcc, css.aic, css.f1]}>
+                    <Text style={[css.txtStyle]}>No Project Found</Text>
+                  </View>
                 </>
-              }
-              ListEmptyComponent={
-                ProjectReducer.status != 'Project/ProActiveProjectRequest' && (
-                  <>
-                    <View style={[css.aic]}>
-                      <Text style={[css.txtStyle]}>No Project Found</Text>
-                    </View>
-                  </>
-                )
-              }
-            />
-          </View>
+              )
+            }
+          />
         </View>
       </SafeAreaView>
     </View>
@@ -308,8 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.themeBackground,
   },
   container: {
-    height: '80%',
-    width: '100%',
+    flex: 1,
   },
   searchMainContainer: {
     alignItems: 'center',

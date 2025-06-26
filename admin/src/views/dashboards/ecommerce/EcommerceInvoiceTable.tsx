@@ -221,6 +221,9 @@ const EcommerceInvoiceTable = () => {
         paginationModel={paginationModel}
         pageSizeOptions={[6, 10, 25, 50]}
         onPaginationModelChange={setPaginationModel}
+        localeText={{
+          noRowsLabel: 'No records found'
+        }}
       />
     </Card>
   )

@@ -4,7 +4,7 @@ from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUp
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView
 from api.profile.views import BankDetailsAPIView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, ProfileAPIView,ChangeProfileStatusView, ProfileAPIViewSearch,ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView #,HandleWithdraw
 # from api.bids.views import BidsApiView
-from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, onboarding_return, reauth_with_token
+from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, XafCurrency, onboarding_return, reauth_with_token
 from api.master.views import LocationApiView,JobCategoryApiView
 from api.project.views import ProjectList,ChangeProjectStatusView, StripeDisbursementStatus, ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
 from project_management.models import Project,Bid
@@ -97,6 +97,7 @@ urlpatterns = [
     path('user/<str:user_type>/list', ProfileAPIView.as_view(), name='profile-detail-list'),
     path('user/<str:user_type>/details/<int:pk>/', ProfileAPIView.as_view(), name='profile-detail'),
 
+    path('admin/xaf_currency/', XafCurrency.as_view(), name='xaf-currency'),
     path('admin/dashboards/analytics/', DashboardAnalyticsView.as_view(), name='admin-dashboard'),
     path('admin/<str:user_type>/list', ProfileAPIView.as_view(), name='profile-detail-list'),
     path('admin/<str:user_type>/details/<int:pk>/', ProfileAPIView.as_view(), name='profile-detail'),

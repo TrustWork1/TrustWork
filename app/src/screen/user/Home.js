@@ -368,7 +368,7 @@ const Home = props => {
         }
       /> */}
       <Header
-        logo={Icons.Logo}
+        logo={Icons.appLogo}
         onHeaderPress={() => NavigationService.navigate('Profile')}
       />
       <SafeAreaView style={styles.mainContainer}>

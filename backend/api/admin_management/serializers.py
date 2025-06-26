@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from adminsite_management.models import CMS, FAQ,QMS,QMSResponse
 from api.profile.serializers import ProfileSerializer
+from project_management.models import Currency
+
 class CMSSerializer(serializers.ModelSerializer):
     class Meta:
         model = CMS
@@ -25,3 +27,8 @@ class QMSReponseSerializer(serializers.ModelSerializer):
     class Meta:
         model=QMSResponse
         fields=['id', 'qms', 'response']
+
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Currency
+        fields = '__all__'

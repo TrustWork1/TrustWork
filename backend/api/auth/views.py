@@ -186,7 +186,7 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            print(serializer.data)
+            # print(serializer.data)
             # fcmtoken = request.serializer.data.get("fcmtoken", "")
             # devicetype = serializer.data.get("devicetype", "")
             if serializer.data.get("email"):
@@ -200,22 +200,27 @@ class LoginView(APIView):
                     user.devicetype=request.data.get("deviceType",'')
                     user.save()
                     
-                    if user.profile.is_payment_verified :
+                    if user.profile.is_payment_verified:
                         try:
-                            subscription=Subscriptions.objects.get(profile=Profile.objects.get(user=user),is_active=True)
+                            profile=Profile.objects.get(user=user)
+                            subscription=Subscriptions.objects.filter(profile=profile).last()
                             # subscription=user.profile.profile_subscription
-                            freq_check=0
-                            if subscription.subscription_frequency=="weekly":
-                                freq_check=7
-                            elif subscription.subscription_frequency=="monthly":
-                                freq_check=30
-                            elif subscription.subscription_frequency=="yearly":
-                                freq_check=365
-                            if timezone.now()- subscription.created_at > timedelta(days=freq_check):
-                                user.profile.is_payment_verified=False
-                                user.profile.save()
+                            # freq_check=0
+                            # if subscription.subscription_frequency=="weekly":
+                            #     freq_check=7
+                            # elif subscription.subscription_frequency=="monthly":
+                            #     freq_check=30
+                            # elif subscription.subscription_frequency=="yearly":
+                            #     freq_check=365
+                            if subscription:
+                                if subscription.expire_at and subscription.expire_at <= timezone.now():
+                                    subscription.is_active = False
+                                    subscription.save()
+                                    user.profile.is_payment_verified=False
+                                    user.profile.save()
+                                    
                         except Exception as e:
-                            print(e)
+                            print("Error processing subscription:", e)
                             pass
                     
                     coupon_check=Coupons.objects.filter(user=user.id, is_active=True)
@@ -604,7 +609,7 @@ class AuthVerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get('email',None)
         phone = request.data.get('phone')
-        print(request.data)
+        # print(request.data)
         otp = request.data.get('otp')
         print(otp)
         try:
@@ -729,7 +734,7 @@ class UserProfileCreateView(APIView):
         }
     )
     def post(self, request):
-        print(request.data)
+        # print(request.data)
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             referal_code=request.data.get("referred_by_code","")

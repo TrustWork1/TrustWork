@@ -192,6 +192,9 @@ const AnalyticsProject = () => {
         disableRowSelectionOnClick
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
+        localeText={{
+          noRowsLabel: 'No records found'
+        }}
       />
     </Card>
   ) : null

@@ -41,6 +41,7 @@ class InitiateDisbursementAPI(APIView):
         """
         disbursement=MtnMoMoDisbursement()
 
+        amount=request.data.get("amount")
         phone_number=request.data.get("phone_number")
         escrow_id=request.data.get("escrow_id")
         escrow_obj=Escrow.objects.get(id=escrow_id)
@@ -50,12 +51,12 @@ class InitiateDisbursementAPI(APIView):
         escrow_obj.save()
         with transaction.atomic():
             Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)
-            response=disbursement.disburse(amount=escrow_obj.amount, external_id=str(escrow_obj.id), phone_number=phone_number)
+            response=disbursement.disburse(amount=amount, external_id=str(escrow_obj.id), phone_number=phone_number)
             print(response)
             status=disbursement.getTransactionStatus(response.get('ref'))
             print(status)
             Events.objects.create(event_type="disbursement_in_progress", event_description="", escrow=escrow_obj)
-            transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=escrow_obj.amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+            transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
         
         
         return Response({"transaction_id":transaction_id.id, 'response':status})

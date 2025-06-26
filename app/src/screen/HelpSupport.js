@@ -108,8 +108,8 @@ const HelpSupport = props => {
                     lineHeight: normalize(18),
                     paddingTop: normalize(4),
                   }}>
-                  Lorem ipsum dolor sit amet consectetur. Tristique praes ent
-                  viverra volutpat in. Sed ante ac quis.
+                  If you’re facing any issues or have questions, feel free to
+                  reach out. We’re here to assist you with anything you need.
                 </Text>
               </View>
               <TextIn

@@ -181,11 +181,11 @@ class CreateCheckoutSessionView(APIView):
                     "user_id":bid.service_provider.id,
 
                 }
-                response=gateway.initialize_stripe_payment(bid.project_total_cost,'eur',client_details,provider_details,bid.project.id)
+                response=gateway.initialize_stripe_payment(bid.project_total_cost, 'usd', client_details, provider_details, bid.project.id)
                 print(response)
                 # payload = {'session_id': session.id, 'user_id': user_id, 'unit_amount': amount, 'currency': currency, 'project_id': project_id, 'bid_id': bid_id}
                 try:
-                    payment = Transactions.objects.create(escrow_id=response.get("escrow_id"), project_id=bid.project.id, bid_id=bid.id, status=' ') # project_id=project_id, bid_id=bid_id,
+                    payment = Transactions.objects.create(escrow_id=response.get("escrow_id"), project_id=bid.project.id, bid_id=bid.id, payment_type="stripe", status=' ') # project_id=project_id, bid_id=bid_id,
                 except:
                     pass
                 if response:

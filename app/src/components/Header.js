@@ -12,6 +12,7 @@ import {
 import NavigationService from '../navigators/NavigationService';
 import {Colors, Fonts, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
+import css from '../themes/css';
 
 const Header = props => {
   function onPress() {
@@ -41,14 +42,18 @@ const Header = props => {
           <SafeAreaView style={styles.btnContainer}>
             {props.logo && (
               <View style={styles.logoContainer}>
-                <Image
-                  source={props.logo}
-                  resizeMode="contain"
-                  style={{
-                    width: normalize(100),
-                    height: normalize(25),
-                  }}
-                />
+                <View style={[css.row, css.aic]}>
+                  <Image
+                    source={props.logo}
+                    resizeMode="contain"
+                    style={{
+                      width: normalize(25),
+                      height: normalize(25),
+                    }}
+                  />
+                  <Text style={[styles.projectName]}>TrustWork</Text>
+                </View>
+
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                   <TouchableOpacity onPress={() => onHeaderPress()}>
                     <Image
@@ -341,5 +346,11 @@ const styles = StyleSheet.create({
     lineHeight: normalize(14),
     color: Colors.themeGreen,
     textTransform: 'capitalize',
+  },
+  projectName: {
+    fontSize: normalize(16),
+    fontFamily: Fonts.FustatBold,
+    color: '#FFFFFF',
+    marginLeft: normalize(4),
   },
 });

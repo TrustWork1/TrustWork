@@ -38,6 +38,7 @@ export const Fonts = {
 };
 export const Icons = {
   Logo: require('../assets/icon/logo.png'),
+  appLogo: require('../assets/icon/appLogo.png'),
   LocationAccess: require('../assets/icon/Location_Access.png'),
   EyeShow: require('../assets/icon/eyeClose.png'),
   EyeHide: require('../assets/icon/eyeOpen.png'),

@@ -81,6 +81,7 @@ class ProfileJobCategories(models.Model):
     job_category=models.ForeignKey('master.JobCategory',on_delete=models.CASCADE)
 
 class Subscriptions(AbstractModel):
+    expire_at = models.DateTimeField(null=True)
     profile=models.ForeignKey("Profile",on_delete=models.CASCADE,related_name="profile_subscription")
     subscription_frequency=models.CharField(max_length=100,choices=[("weekly","weekly"),("monthly",'monthly'),("yearly","yearly")])
     subscription_plan=models.CharField(max_length=100)
@@ -99,7 +100,7 @@ class Profile(AbstractModel):
     organization_registration_id=models.CharField(max_length=500,null=True,blank=True)
     service_details = models.TextField(blank=True, null=True) 
     client_notes = models.TextField(blank=True, null=True)
-    year_of_experiance = models.TextField(blank=True, null=True)
+    year_of_experiance = models.TextField(null=True, default=0)
     profile_bio=models.TextField(null=True,blank=True)
     profession=models.TextField(null=True)
     street=models.CharField(max_length=255,null=True,blank=True)

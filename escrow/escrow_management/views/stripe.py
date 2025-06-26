@@ -225,19 +225,20 @@ class ReleasePayout(APIView):
 class StripeDisbursementAPI(APIView):
     def post(self, request):
         try:
+            amount=float(request.data.get("amount"))
             escrow_id = request.data.get("escrow_id", "")
             stripe_account_id = request.data.get("stripe_account_id", "")
             external_callback_url = request.data.get("callback_url", "")
 
             escrow_obj = Escrow.objects.get(id=escrow_id)
 
-            total_amount_dollars = float(escrow_obj.amount)
-            amount_cents = int(total_amount_dollars * 100)
+            # total_amount_dollars = float(escrow_obj.amount)
+            amount_cents = int(amount * 100)
 
-            acct = stripe.Account.retrieve(stripe_account_id)
-            country = acct["country"]
-            currency = acct["default_currency"]
-            account_type = acct["type"]
+            # acct = stripe.Account.retrieve(stripe_account_id)
+            # country = acct["country"]
+            # currency = acct["default_currency"]
+            # account_type = acct["type"]
             # print("Connected Account Country:", country)
             # print("Connected Account Type:", account_type)
             # print("Connected Account Currency:", currency)
@@ -257,25 +258,25 @@ class StripeDisbursementAPI(APIView):
                 event_type="disbursement_in_progress", event_description="", escrow=escrow_obj
             )
 
-            payout = stripe.Payout.create(
-                amount=amount_cents,
-                currency="usd",
-                stripe_account=stripe_account_id,
-            )
-            print("STATUS: ",payout.status)
+            # payout = stripe.Payout.create(
+            #     amount=amount_cents,
+            #     currency="usd",
+            #     stripe_account=stripe_account_id,
+            # )
+            # print("STATUS: ",payout.status)
             
             transaction = Transactions.objects.create(
                 escrow=escrow_obj,
-                amount=total_amount_dollars,
+                amount=amount,
                 status="pending",
                 transaction_type="disbursement",
                 payment_method="stripe",
-                external_transaction_id=payout.id,
+                external_transaction_id=transfer.id,
                 external_callback_url=external_callback_url
             )
 
             return Response(
-                {"transaction":str(transaction.id), "status": payout.status, "response":transfer_details},
+                {"transaction":str(transaction.id), "response":transfer_details},
                 status=status.HTTP_200_OK
             )
 

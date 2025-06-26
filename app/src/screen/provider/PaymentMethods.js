@@ -72,7 +72,7 @@ const PaymentMethods = props => {
   const [countryCode, setCountryCode] = useState('');
   const [account, setAccount] = useState('');
   const [phoneNo, setPhoneNo] = useState('');
-  const [code, setCode] = useState('+1');
+  const [code, setCode] = useState('+237');
   const [payType, setPayType] = useState('mtn');
   const [isError, setIsError] = useState(false);
 
@@ -375,7 +375,7 @@ const PaymentMethods = props => {
                   paddingHorizontal={normalize(5)}
                   label={'Select Country'}
                   placeholder={'Select Country'}
-                   isSerachBar={true}
+                  isSerachBar={true}
                   value={country}
                   marginBottom={normalize(10)}
                   marginLeft={normalize(10)}

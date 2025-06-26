@@ -10,7 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from chat_management.models import Messages
 from profile_management.models import Profile
-from project_management.models import Project,Transactions
+from project_management.models import Project, Transactions, Currency
 from profile_management.models import BankDetails
 from rest_framework import generics
 from .serializers import BidSerializerProjectView
@@ -507,26 +507,33 @@ class ChangeProjectStatusView(APIView):
 
                 if bank_details.payment_type == "stripe":
                     stripe_account_id=bank_details.stripe_account_id
-                    response = gateway.disbursement_stripe_payment(escrow_id=escrow_id, stripe_account_id=stripe_account_id)
+                    response = gateway.disbursement_stripe_payment(escrow_id=escrow_id, stripe_account_id=stripe_account_id, amount=bid.project_total_cost)
                     
                     Transactions.objects.create(
                         escrow_id=escrow_id,
                         status='in_progress',
                         project=project,
                         bid=bid,
-                        transaction_type="disbursement"
+                        transaction_type="disbursement",
+                        payment_type="stripe"
                     )
 
                 elif bank_details.payment_type == "mtn":
                     mtn_number= bank_details.bank_account_number[1:]
-                    response = gateway.initialize_disbursement(escrow_id=escrow_id, phone_number=mtn_number)
+                    amount=float(bid.project_total_cost)
+                    currency=Currency.objects.last()
+                    project_total_cost=round(float(currency.xaf_currency) * amount)
+                    # print("amount: ",amount)
+                    # print("project_total_cost: ",project_total_cost)
+                    response = gateway.initialize_disbursement(escrow_id=escrow_id, phone_number=mtn_number, amount=project_total_cost)
                     print("Payment response: ",response)
                     Transactions.objects.create(
                         escrow_id=escrow_id,
                         status='in_progress',
                         project=project,
                         bid=bid,
-                        transaction_type="disbursement"
+                        transaction_type="disbursement",
+                        payment_type="mtn"
                     )
 
                 sender_profile = Profile.objects.get(user=request.user)
@@ -696,6 +703,8 @@ class ProjectBidApiView(APIView):
                 if request.data.get("phone_number") and action == "accept":
                     try:
                         phone_number=request.data.get("phone_number")
+                        if len(phone_number) <= 9:
+                            phone_number = "237"+ phone_number
                         gateway=PaymentGatewayAPI()
                         
                         client_details={
@@ -706,15 +715,18 @@ class ProjectBidApiView(APIView):
                             "mobile_number":bid.service_provider.phone if bid.service_provider.phone else bid.service_provider.phone ,
                             "email":bid.service_provider.user.email,
                         }
-                        print("Request sending")
-                        response=gateway.initialize_collection(bid.project_total_cost,phone_number,client_details,provider_details,bid.project.id)
+                        # print("Request sending")
+                        amount=float(bid.project_total_cost)
+                        currency=Currency.objects.last()
+                        project_total_cost=round(float(currency.xaf_currency) * amount)
+                        response=gateway.initialize_collection(project_total_cost,phone_number,client_details,provider_details,bid.project.id)
                         # print("Response: ", response)
                         try:
                             payment_status=response['response']['status']
                             if payment_status.lower() == "failed":
-                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='failed',project=bid.project,transaction_type="collection")
+                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='failed',project=bid.project,transaction_type="collection", payment_type="mtn")
                             if payment_status.lower() == "pending":
-                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection")
+                                Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='in_progress',project=bid.project,transaction_type="collection", payment_type="mtn")
                                 Bid.objects.filter(project=bid.project).exclude(id=bid_id).update(status='Rejected', is_accepted=False)
                             if payment_status.lower() == "successful":
                                 bid.status = 'Accepted'

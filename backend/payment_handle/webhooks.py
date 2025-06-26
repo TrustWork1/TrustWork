@@ -30,40 +30,57 @@ class EscrowCollectionWebhook(APIView):
         {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
 
         """
-        print(request.data)
+        print("MTN Callback url called")
+        print("Callback: ",request.data)
         data=request.data
-        t=Transactions.objects.get(escrow_id=data.get("externalId"))
-        t.status="completed"
-        t.bid.status="Accepted"
-        t.bid.is_accepted = True
-        t.bid.save()
-        t.project.status="ongoing"
-        t.project.save()
-        t.save()
+        external_id = data.get("externalId")
+        status = data.get("status", "").upper()
+
+        if not external_id:
+            return Response({"error": "Missing externalId"}, status=400)
         
-        client_notification=Notification.objects.create(
-            sender=t.bid.project.client,
-            receiver=t.bid.project.client,
-            title="Payment Successfull",
-            message=f"Payment for project {t.bid.project.project_title} is successfull",
-            object_type="payment completed",
-            project_id=t.bid.project.id,
-            bid_id=t.bid.id
-        )
-        
-        # provider_notification=Notification.objects.create(
-        #     sender=t.bid.project.client,
-        #     receiver=t.bid.service_provider,
-        #     title="Payment Successfull",
-        #     message=f"Payment for bid on project {t.bid.project.project_title} is successfull",
-        #     object_type="payment completed",
-        #     project_id=t.bid.project.id,
-        #     bid_id=t.bid.id
-        # )
-        # client_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
-        # provider_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
-        
-        return Response({})
+        try:
+            transaction=Transactions.objects.filter(escrow_id=external_id, transaction_type="collection").last()
+
+            if status == "SUCCESSFUL":
+                transaction.status = "completed"
+                transaction.bid.status = "Accepted"
+                transaction.bid.is_accepted = True
+                transaction.project.status = "ongoing"
+
+                transaction.bid.save()
+                transaction.project.save()
+                transaction.save()
+
+                client_notification=Notification.objects.create(
+                    sender=transaction.bid.project.client,
+                    receiver=transaction.bid.project.client,
+                    title="Payment Successfull",
+                    message=f"Payment for project {transaction.bid.project.project_title} is successfull",
+                    object_type="payment completed",
+                    project_id=transaction.bid.project.id,
+                    bid_id=transaction.bid.id
+                )
+            else:
+                transaction.status = "failed"
+                transaction.save()
+
+                client_notification=Notification.objects.create(
+                    sender=transaction.bid.project.client,
+                    receiver=transaction.bid.project.client,
+                    title="Payment Failed",
+                    message=f"Payment for project {transaction.bid.project.project_title} is failed",
+                    object_type="payment not completed",
+                    project_id=transaction.bid.project.id,
+                    bid_id=transaction.bid.id
+                )
+
+            return Response({"message": f"Callback processed with status: {status}"}, status=200)
+
+        except Transactions.DoesNotExist:
+            return Response({"error": "Transaction not found"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
     
 class EscrowDisbursementWebhook(APIView):
     permission_classes=[AllowAny]
@@ -72,28 +89,45 @@ class EscrowDisbursementWebhook(APIView):
         {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
 
         """
-        print(request.data)
+        print("MTN Callback url called")
+        print("Callback: ",request.data)
         data=request.data
-        t=Transactions.objects.filter(escrow_id=data.get("externalId"),transaction_type="disbursement").last()
-        t.status="disbursement_completed"
-        t.project.status="completed"
-        t.project.save()
-        t.save()
+        external_id = data.get("externalId")
+        status = data.get("status", "").upper()
+
+        if not external_id:
+            return Response({"error": "Missing externalId"}, status=400)
+        
         try:
-            provider_notification=Notification.objects.create(
-                sender=t.bid.project.client,
-                receiver=t.bid.project.client,
-                title="Payment Received",
-                message=f"Payment Received for project {t.bid.project.project_title}",
-                object_type="payment completed",
-                project_id=t.bid.project.id,
-                bid_id=t.bid.id
-            )
+            transaction=Transactions.objects.filter(escrow_id=external_id, transaction_type="disbursement").last()
+
+            if status == "SUCCESSFUL":
+                transaction.status="disbursement_completed"
+                transaction.project.status="completed"
+                transaction.project.save()
+                transaction.save()
+                
+                provider_notification=Notification.objects.create(
+                    sender=transaction.bid.project.client,
+                    receiver=transaction.bid.project.client,
+                    title="Payment Received",
+                    message=f"Payment Received for project {transaction.bid.project.project_title}",
+                    object_type="payment completed",
+                    project_id=transaction.bid.project.id,
+                    bid_id=transaction.bid.id
+                )
+            else:
+                transaction.status="disbursement_failed"
+                # transaction.project.status="completed"
+                # transaction.project.save()
+                transaction.save()
             
-            # provider_notification.send_to_token(extra_data=json.dumps({"notification_type":"payment_success"}))
-        except:
-            pass
-        return Response({})
+            return Response({"message": f"Callback processed with status: {status}"}, status=200)
+
+        except Transactions.DoesNotExist:
+            return Response({"error": "Transaction not found"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
 
 
 import uuid, hashlib
@@ -225,7 +259,7 @@ class GooglePlayWebhookView(APIView):
 
         decoded = base64.b64decode(message_data).decode('utf-8')
         data = json.loads(decoded)
-        print("Decoded Payload:", data)
+        # print("Decoded Payload:", data)
 
         subscription = data.get("subscriptionNotification")
         if not subscription:

@@ -15,14 +15,16 @@ class Escrow(BaseModel):
     
 
 class Events(BaseModel):
-    event_type=models.CharField(max_length=100,choices=[("collection_initialized",'collection_initialized'),
-                                                        ('collection_in_progress','collection_in_progress'),
-                                                        ('collection_success','collection_success'),
-                                                        ('disbursement_initialized','disbursement_initialized'),
-                                                        ('disbursement_in_progress','disbursement_in_progress'),
-                                                        ('disbursement_success','disbursement_success'),
-                                                        ('collection_failed','collection_failed'),('disbursement_failed','disbursement_failed')
-                                                        ])
+    event_type=models.CharField(max_length=100,choices=[
+        ("collection_initialized",'collection_initialized'),
+        ('collection_in_progress','collection_in_progress'),
+        ('collection_success','collection_success'),
+        ('disbursement_initialized','disbursement_initialized'),
+        ('disbursement_in_progress','disbursement_in_progress'),
+        ('disbursement_success','disbursement_success'),
+        ('collection_failed','collection_failed'),
+        ('disbursement_failed','disbursement_failed'),
+    ])
     event_description=models.TextField(default='')
     escrow=models.ForeignKey(Escrow,on_delete=models.CASCADE)
     

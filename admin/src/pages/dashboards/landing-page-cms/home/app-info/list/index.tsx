@@ -29,8 +29,6 @@ const AppInfoList = () => {
     return data?.data ?? undefined
   }, [data?.data])
 
-  console.log('cmsData', { cmsData })
-
   const initialDatas = {
     tagline: '',
     title: '',
@@ -104,6 +102,16 @@ const AppInfoList = () => {
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={12}>
+        <Typography
+          variant='h2'
+          gutterBottom
+          sx={{
+            m: 2,
+            fontWeight: 600
+          }}
+        >
+          App Info Section
+        </Typography>
         <Card>
           <CardHeader title='Manage App Info' className='secondaryDesign' />
           <Divider sx={{ m: '0 !important' }} />

@@ -18,8 +18,6 @@ class MtnMoMoCollection(MtnMoMo):
         self.collections_primary_key = MTN_COLLECTION_PRIMARY_KEY
 
     def requestToPay(self, amount, phone_number, external_id, payernote="TRUSTWORK", payermessage="SENT PROJECT FEE"):
-        xaf=self.xaf_currency
-        amount = round(xaf * amount, 2)
         uuidgen = str(uuid4())
         url = f"{self.base_url}/collection/v1_0/requesttopay"
         payload = json.dumps({
@@ -36,7 +34,7 @@ class MtnMoMoCollection(MtnMoMo):
         headers = {
             'X-Reference-Id': uuidgen,
             'X-Target-Environment': self.environment_mode,
-            # 'X-Callback-Url': self.callback_url,
+            'X-Callback-Url': self.callback_url,
             'Ocp-Apim-Subscription-Key': self.collections_primary_key,
             'Content-Type': 'application/json',
             'Authorization': "Bearer " + str(self.authToken()["access_token"])

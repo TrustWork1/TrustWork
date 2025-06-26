@@ -403,7 +403,21 @@ const UserMembershipPlan = props => {
                   width: normalize(33),
                   marginRight: normalize(15),
                 }}
-                onPress={() => dispatch(logoutRequest())}>
+                onPress={() =>
+                  Alert.alert(
+                    'Confirm Logout !!',
+                    'Are you sure you want to logout ?',
+                    [
+                      {
+                        text: 'Cancel',
+                        onPress: () => {},
+                        style: 'cancel',
+                      },
+                      {text: 'OK', onPress: () => dispatch(logoutRequest())},
+                    ],
+                    {cancelable: false},
+                  )
+                }>
                 <Image style={styles.logoutIcon} source={Icons.logout} />
               </TouchableOpacity>
             </View>

@@ -10,7 +10,7 @@ TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 class PaymentGatewayAPI:
     def __init__(self, base_url: str = None):
         if base_url is None:
-            base_url = os.getenv('ESCROW_BASE_API')
+            base_url = ESCROW_BASE_API
         
         self.base_url = base_url
 
@@ -33,13 +33,14 @@ class PaymentGatewayAPI:
             print(f"Error during collection initialization: {e}")
             return None
 
-    def initialize_disbursement(self, escrow_id: str, phone_number: str):
+    def initialize_disbursement(self, escrow_id: str, phone_number: str, amount: str):
         url = f"{self.base_url}/mtn-momo/initialize_disbursement/"
         headers = {"Content-Type": "application/json"}
         data = {
             "escrow_id": str(escrow_id),
             "callback_url":f"{TRUSTWORK_BASE_API}/api/webhooks/escrow_disbursement/",
             "phone_number": phone_number,
+            "amount": amount,
         }
 
         try:
@@ -89,13 +90,14 @@ class PaymentGatewayAPI:
             print(f"Error during collection initialization: {e}")
             return None
     
-    def disbursement_stripe_payment(self, escrow_id, stripe_account_id):
+    def disbursement_stripe_payment(self, escrow_id, stripe_account_id, amount):
         url = f"{self.base_url}/stripe/initialize_disbursement/"
         headers = {"Content-Type": "application/json"}
         data = {
             "escrow_id": str(escrow_id),
             "stripe_account_id": stripe_account_id,
-            "callback_url":f"{ESCROW_BASE_API}/stripe/webhooks/stripe_escrow_disbursement/"
+            "callback_url":f"{ESCROW_BASE_API}/stripe/webhooks/stripe_escrow_disbursement/",
+            "amount": amount,
         }
         try:
             response = requests.post(url, json=data, headers=headers)

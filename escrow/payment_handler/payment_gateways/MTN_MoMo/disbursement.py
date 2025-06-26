@@ -18,8 +18,6 @@ class MtnMoMoDisbursement(MtnMoMo):
         self.disbursement_primary_key = MTN_DISBURSEMENT_PRIMARY_KEY
 
     def disburse(self, amount, phone_number, external_id, payernote="TRUSTWORK", payermessage="RECEIVED PROJECT FEE"):
-        xaf=self.xaf_currency
-        amount = round(xaf * amount, 2)
         uuidgen = str(uuid4())
         url = f"{self.base_url}/disbursement/v1_0/transfer"
         payload = json.dumps({
@@ -36,7 +34,7 @@ class MtnMoMoDisbursement(MtnMoMo):
         headers = {
             'X-Reference-Id': uuidgen,
             'X-Target-Environment': self.environment_mode,
-            # 'X-Callback-Url': self.callback_url,
+            'X-Callback-Url': self.callback_url,
             'Ocp-Apim-Subscription-Key': self.disbursement_primary_key,
             'Content-Type': 'application/json',
             'Authorization': "Bearer " + str(self.authToken()["access_token"])

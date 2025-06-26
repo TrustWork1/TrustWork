@@ -26,6 +26,8 @@ class MtnDisbursementWebhook(APIView):
         sleep(2)
 
         try:
+            print("MTN Callback url calling")
+            print("request_data: ",request_data)
             external_id = request_data.get("externalId")
             status = request_data.get("status", "").upper()
 
@@ -40,7 +42,7 @@ class MtnDisbursementWebhook(APIView):
 
             transaction = Transactions.objects.filter(escrow=escrow, transaction_type="disbursement").last()
             if transaction:
-                transaction.status = "completed"
+                transaction.status = "completed" if status == "SUCCESSFUL" else "failed"
                 transaction.save()
 
             Events.objects.create(

@@ -12,6 +12,7 @@ import Loader from '../../utils/helpers/Loader';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import {Colors, Fonts} from '../../themes/Themes';
 let status = '';
 
 const MyOffer = props => {
@@ -157,7 +158,14 @@ const MyOffer = props => {
                 {ProjectReducer.status !=
                   'Project/ProviderOfferListRequest' && (
                   <View style={[css.aic, css.mt7]}>
-                    <Text style={[css.txtStyle]}>No offers Found</Text>
+                    <Text
+                      style={{
+                        fontFamily: Fonts.FustatBold,
+                        fontSize: normalize(14),
+                        color: Colors.themeBlack,
+                      }}>
+                      No offers Found
+                    </Text>
                   </View>
                 )}
               </>

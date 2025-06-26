@@ -46,7 +46,7 @@ class InitiatePaymentAPI(APIView):
         # if not validate_json_structure(request.data):
         #     return Response({"message":"Invalid Json"})
         
-        amount=float(request.data.get("amount"))
+        amount=request.data.get("amount")
         phone_number=request.data.get("phone_number")
         external_resource_id=request.data.get("external_resource_id")
         external_callback_url=request.data.get("callback_url")
@@ -104,7 +104,7 @@ class ValidMtnAccount(APIView):
     
 class InitiateStripeCollection(APIView):
     def post(self,request):
-        amount=request.data.get("amount")
+        amount=float(request.data.get("amount"))
         external_resource_id=request.data.get("external_resource_id")
         external_callback_url=request.data.get("callback_url")
         payer=request.data.get("payer")
@@ -124,6 +124,7 @@ class InitiateStripeCollection(APIView):
         Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
         
         return Response({"transaction_id":transaction.id, "escrow_id":escrow.id, **response} )
+
 
 STRIPE_COLLECTION_WEBHOOK_SECRET = settings.STRIPE_COLLECTION_WEBHOOK_SECRET
 class StripeCollectionStatus(APIView):

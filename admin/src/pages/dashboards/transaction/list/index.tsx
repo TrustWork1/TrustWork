@@ -35,7 +35,7 @@ import { globalSuccess } from 'src/lib/functions/_helpers.lib'
 
 // ** Actions Imports
 
-import { updateMembershipStatus, deleteMembership } from 'src/services/functions/membership.api'
+import { deleteMembership } from 'src/services/functions/membership.api'
 
 // ** Third Party Components
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -47,16 +47,13 @@ import { TProviderType } from 'src/types/apps/provider.type'
 // ** Custom Table Components Imports
 // import TableHeaderClient from 'src/views/apps/membership/list/TableHeader'
 import AddEditDrawer from 'src/views/apps/membership/list/AddEditDrawer'
-import { commonJobCategoriesList, commonLocationList } from 'src/services/functions/common.api'
-import { TEachJobCategory } from 'src/types/apps/common.type'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { TEachMembership } from 'src/types/apps/membership.type'
 import { fetchTransaction } from 'src/services/functions/transaction.api'
 import { TEachTransaction } from '@/type/apps/transaction.type'
 import { renderPaymentStatus } from 'src/lib/functions/validationFn'
 import moment from 'moment'
-import { HUMAN_READABLE_DATE_TIME_FORMAT, VALID_DATE_TIME_FORMAT } from 'src/configs/constant'
+import { HUMAN_READABLE_DATE_TIME_FORMAT } from 'src/configs/constant'
 
 interface StatusType {
   [key: string]: ThemeColor
@@ -413,6 +410,9 @@ const TransactionList = () => {
             pageSizeOptions={[10, 25, 50]}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
+            localeText={{
+              noRowsLabel: 'No records found'
+            }}
           />
         </Card>
       </Grid>

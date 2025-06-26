@@ -110,7 +110,7 @@ const MapAddress = <T extends FieldValues>({ setValue, clearErrors, loadingDetai
           setValue('city' as Path<T>, address.city as PathValue<T, Path<T>>)
           setValue('state' as Path<T>, address.state as PathValue<T, Path<T>>)
           setValue('country' as Path<T>, address.country as PathValue<T, Path<T>>)
-          setValue('zip_code' as Path<T>, address.zipcode as PathValue<T, Path<T>>)
+          setValue('zip_code' as Path<T>, address.zipcode.replace(/-/g, '') as PathValue<T, Path<T>>)
           setValue('address' as Path<T>, formattedAddress as PathValue<T, Path<T>>)
           setValue('street' as Path<T>, address.street as PathValue<T, Path<T>>)
 

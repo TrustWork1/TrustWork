@@ -181,15 +181,25 @@ const navigation = (): VerticalNavItemsType => {
       action: 'manage'
     },
     {
-      sectionTitle: 'Content Management'
+      sectionTitle: 'Currency Management'
     },
     {
-      title: 'Membership',
-      icon: 'tabler:ticket',
-      path: '/dashboards/membership/list',
-      subject: 'membership',
+      title: 'XAF Currency',
+      icon: 'ri:currency-fill',
+      path: '/dashboards/currency/list',
+      subject: 'currency',
       action: 'manage'
     },
+    {
+      sectionTitle: 'Content Management'
+    },
+    // {
+    //   title: 'Membership',
+    //   icon: 'tabler:ticket',
+    //   path: '/dashboards/membership/list',
+    //   subject: 'membership',
+    //   action: 'manage'
+    // },
 
     {
       title: 'CMS',
@@ -209,6 +219,24 @@ const navigation = (): VerticalNavItemsType => {
       path: '/dashboards/qms/list',
       subject: 'qms',
       action: 'manage'
+    },
+    {
+      sectionTitle: 'App Content Management'
+    },
+    {
+      title: 'App Management',
+      icon: 'tabler:category',
+      subject: 'landing-page-cms-home',
+      action: 'manage',
+      children: [
+        {
+          title: 'App Referral Content',
+          path: '/dashboards/app-referral-content/list/',
+
+          subject: 'landing-page-cms-home-app-referral-content',
+          action: 'manage'
+        }
+      ]
     },
     {
       sectionTitle: 'Landing Page CMS Management'
@@ -258,24 +286,7 @@ const navigation = (): VerticalNavItemsType => {
         }
       ]
     },
-    {
-      sectionTitle: 'App Content Management'
-    },
-    {
-      title: 'App Management',
-      icon: 'tabler:category',
-      subject: 'landing-page-cms-home',
-      action: 'manage',
-      children: [
-        {
-          title: 'App Referral Content',
-          path: '/dashboards/app-referral-content/list/',
 
-          subject: 'landing-page-cms-home-app-referral-content',
-          action: 'manage'
-        }
-      ]
-    },
     {
       title: 'About Us',
       icon: 'tabler:category',

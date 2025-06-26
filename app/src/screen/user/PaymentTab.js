@@ -87,7 +87,7 @@ const PaymentTab = () => {
               </View>
               <View style={{flex: 0.47, flexDirection: 'column'}}>
                 <Text style={styles.commonInactiveTxt}>
-                  {item?.project?.project_category?.title}
+                  {item?.project?.project_category}
                 </Text>
                 {/* <Text
                   style={[

@@ -44,6 +44,10 @@ export const listOfUniqueKeys = {
       contentUpdate: 'put-download-content'
     }
   },
+  currency: {
+    list: 'get-currency-list',
+    update: 'put-currency-list'
+  },
   aboutUs: {
     aboutInfo: {
       content: 'get-about-info-content',

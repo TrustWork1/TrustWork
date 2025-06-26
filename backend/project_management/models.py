@@ -64,6 +64,10 @@ class Transactions(AbstractModel):
     status=models.CharField(max_length=100)
     transaction_type=models.CharField(null=True,max_length=100,choices=[("collection","collection"),("disbursement","disbursement")],default="collection")
     project=models.ForeignKey(Project,on_delete=models.PROTECT,null=True)
+    payment_type = models.CharField(null=True, blank=True, max_length=100)
+
+class Currency(AbstractModel):
+    xaf_currency = models.CharField(null=True, blank=True)
 
 from django.db.models.signals import post_save,post_delete
 from django.dispatch import receiver

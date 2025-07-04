@@ -48,6 +48,7 @@ class InitiateDisbursementAPI(APIView):
         payee=escrow_obj.payee
         external_callback_url=request.data.get("callback_url")
         escrow_obj.external_callback_url=external_callback_url
+        escrow_obj.payment_method += ", mtn-momo"
         escrow_obj.save()
         with transaction.atomic():
             Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)

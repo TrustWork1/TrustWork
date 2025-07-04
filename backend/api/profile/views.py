@@ -462,17 +462,34 @@ class ProfileAPIView(APIView):
                     ),
             ]
     )
-    def delete(self, request, pk,user_type=None):
-        profile = get_object_or_404(Profile, pk=pk)
-        profile.user.delete()
-        profile.delete()
+    def delete(self, request, pk=None,user_type=None):
+        try:
+            profile = get_object_or_404(Profile, pk=pk)
+            profile.user.is_active = False
+            profile.user.save()
+            profile.status = "inactive"
+            profile.save()
 
-        response = {
-            "status" : 200,
-            "type" : "success",
-            "message" : "profile deleted successfully"
-        }
-        return Response(response,status=status.HTTP_200_OK)
+            return Response({
+                "status": 200,
+                "type": "success",
+                "message": "Profile deactivated successfully"
+            }, status=status.HTTP_200_OK)
+
+        except Http404:
+            return Response({
+                "status": 404,
+                "type": "error",
+                "message": "Profile not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            print("Error:", str(e))
+            return Response({
+                "status": 400,
+                "type": "error",
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 # class JobCategoryUpdateView(APIView):
@@ -529,176 +546,6 @@ class ChangeProfileStatusView(APIView):
         return Response(response,status=status.HTTP_202_ACCEPTED)
 
 
-
-# class BankDetailsAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     @swagger_auto_schema(
-#         operation_summary="Retrieve a specific bank detail or all bank details for the authenticated user",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True 
-#             )
-#         ],
-#         responses={200: BankDetailsSerializer(many=True)},
-#         tags=['BankDetails'],
-#     )
-#     # def get(self, request, pk=None):
-#     #     if pk:
-#     #         bank_detail = get_object_or_404(BankDetails, pk=pk,user_profile__user=request.user)
-#     #         serializer = BankDetailsSerializer(bank_detail)
-#     #     else:
-#     #         bank_details = BankDetails.objects.filter(user_profile__user=request.user).order_by("-updated_at")
-#     #         serializer = BankDetailsSerializer(bank_details, many=True)
-
-#     #     response = {
-#     #         "status" : 200,
-#     #         "type" : "success",
-#     #         "message" : "data fetched successfully",
-#     #         "data" : serializer.data
-#     #     }
-#     #     return Response(response,status=status.HTTP_200_OK)
-
-#     def get(self, request, pk=None):
-#         search_query = request.query_params.get("search", None)
-        
-#         if pk:
-#             bank_detail = get_object_or_404(
-#                 BankDetails,
-#                 pk=pk,
-#                 user_profile__user=request.user
-#             )
-#             serializer = BankDetailsSerializer(bank_detail)
-#         else:
-#             bank_details = BankDetails.objects.filter(user_profile__user=request.user)
-            
-#             if search_query:
-#                 bank_details = bank_details.filter(Q(bank_name__icontains=search_query))
-            
-#             bank_details = bank_details.order_by("-updated_at")
-#             serializer = BankDetailsSerializer(bank_details, many=True)
-
-#         response = {
-#             "status": 200,
-#             "type": "success",
-#             "message": "data fetched successfully",
-#             "data": serializer.data
-#         }
-#         return Response(response, status=status.HTTP_200_OK)
-
-
-#     @swagger_auto_schema(
-#         request_body=BankDetailsSerializer,
-#         operation_summary="Create a new bank detail",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True 
-#             )
-#         ],
-#         responses={201: BankDetailsSerializer},
-#         tags=['BankDetails'],
-#     )
-#     def post(self, request):
-#         data={**request.data}
-#         print(request.user.id)
-#         data['user_profile']=Profile.objects.get(user__id=request.user.id).pk
-#         serializer = BankDetailsSerializer(data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             response={
-#                 "status" : 200,
-#                 "type" : "success",
-#                 "message" : "data created successfully",
-#                 "data" : serializer.data
-#             } 
-#             return Response(response, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     @swagger_auto_schema(
-#         operation_summary="Update Bank Details",
-#         operation_description="Updates bank details for a specific bank record by primary key (pk).",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True 
-#             )
-#         ],
-#         request_body=BankDetailsSerializer,
-#         responses={
-#             200: openapi.Response(
-#                 description="Data updated successfully",
-#                 schema=openapi.Schema(
-#                     type=openapi.TYPE_OBJECT,
-#                     properties={
-#                         "status": openapi.Schema(type=openapi.TYPE_INTEGER, description="Status code"),
-#                         "type": openapi.Schema(type=openapi.TYPE_STRING, description="Response type"),
-#                         "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
-#                         "data": openapi.Schema(type=openapi.TYPE_OBJECT, description="Updated bank details", additional_properties=True),
-#                     }
-#                 ),
-#             ),
-#             400: openapi.Response(
-#                 description="Validation error",
-#                 schema=openapi.Schema(
-#                     type=openapi.TYPE_OBJECT,
-#                     properties={
-#                         'errors': openapi.Schema(type=openapi.TYPE_OBJECT, description="Detailed validation errors")
-#                     }
-#                 ),
-#             ),
-#             404: openapi.Response(description="Bank detail not found")
-#         }
-#     )
-#     def put(self, request, pk):
-#         bank_detail = get_object_or_404(BankDetails, pk=pk)
-#         serializer = BankDetailsSerializer(bank_detail, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             response={
-#                 "status" : 200,
-#                 "type" : "success",
-#                 "message" : "data updated successfully",
-#                 "data" : serializer.data
-#             }
-#             return Response(response,status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     @swagger_auto_schema(
-#         operation_summary="Delete a bank detail",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True 
-#             )
-#         ],
-#         responses={200: 'Bank detail deleted successfully'},
-#         tags=['BankDetails'],
-#     )
-#     def delete(self, request, pk):
-#         bank_detail = get_object_or_404(BankDetails, pk=pk)
-#         bank_detail.delete()
-#         response={
-#             "status" : 200,
-#             "type" : "success",
-#             "message" : "data deleted successfully"
-#         }
-#         return Response(response,status=status.HTTP_200_OK)
-
-
 import pycountry
 
 def get_currency_code(country_code):
@@ -706,200 +553,198 @@ def get_currency_code(country_code):
     if country:
         
         country_currency_map = {
-    "AF": "AFN",  # Afghanistan -> Afghan Afghani
-    "AL": "ALL",  # Albania -> Albanian Lek
-    "DZ": "DZD",  # Algeria -> Algerian Dinar
-    "AD": "EUR",  # Andorra -> Euro
-    "AO": "AOA",  # Angola -> Angolan Kwanza
-    "AR": "ARS",  # Argentina -> Argentine Peso
-    "AM": "AMD",  # Armenia -> Armenian Dram
-    "AU": "AUD",  # Australia -> Australian Dollar
-    "AT": "EUR",  # Austria -> Euro
-    "AZ": "AZN",  # Azerbaijan -> Azerbaijani Manat
-    "BS": "BSD",  # Bahamas -> Bahamian Dollar
-    "BH": "BHD",  # Bahrain -> Bahraini Dinar
-    "BD": "BDT",  # Bangladesh -> Bangladeshi Taka
-    "BB": "BBD",  # Barbados -> Barbadian Dollar
-    "BY": "BYN",  # Belarus -> Belarusian Ruble
-    "BE": "EUR",  # Belgium -> Euro
-    "BZ": "BZD",  # Belize -> Belize Dollar
-    "BJ": "CDF",  # Benin -> Central African CFA Franc
-    "BT": "BTN",  # Bhutan -> Bhutanese Ngultrum
-    "BO": "BOB",  # Bolivia -> Bolivian Boliviano
-    "BA": "BAM",  # Bosnia and Herzegovina -> Convertible Mark
-    "BW": "BWP",  # Botswana -> Botswanan Pula
-    "BR": "BRL",  # Brazil -> Brazilian Real
-    "BN": "BND",  # Brunei -> Brunei Dollar
-    "BG": "BGN",  # Bulgaria -> Bulgarian Lev
-    "BF": "XOF",  # Burkina Faso -> West African CFA Franc
-    "BI": "BIF",  # Burundi -> Burundian Franc
-    "KH": "KHR",  # Cambodia -> Cambodian Riel
-    "CM": "CDF",  # Cameroon -> Central African CFA Franc
-    "CA": "CAD",  # Canada -> Canadian Dollar
-    "CV": "CVE",  # Cape Verde -> Cape Verdean Escudo
-    "KY": "KYD",  # Cayman Islands -> Cayman Islands Dollar
-    "CF": "XAF",  # Central African Republic -> Central African CFA Franc
-    "TD": "CDF",  # Chad -> Central African CFA Franc
-    "CL": "CLP",  # Chile -> Chilean Peso
-    "CN": "CNY",  # China -> Chinese Yuan
-    "CO": "COP",  # Colombia -> Colombian Peso
-    "KM": "KMF",  # Comoros -> Comorian Franc
-    "CG": "CDF",  # Congo, Republic of the -> Congolese Franc
-    "CD": "CDF",  # Congo, Democratic Republic of the -> Congolese Franc
-    "CR": "CRC",  # Costa Rica -> Costa Rican Colón
-    "CI": "CFA",  # Côte d'Ivoire -> West African CFA Franc
-    "HR": "HRK",  # Croatia -> Croatian Kuna
-    "CU": "CUP",  # Cuba -> Cuban Peso
-    "CY": "CYP",  # Cyprus -> Cypriot Pound
-    "CZ": "CZK",  # Czech Republic -> Czech Koruna
-    "DK": "DKK",  # Denmark -> Danish Krone
-    "DJ": "DJF",  # Djibouti -> Djiboutian Franc
-    "DM": "DOP",  # Dominica -> Dominican Peso
-    "DO": "DOM",  # Dominican Republic -> Dominican Peso
-    "EC": "USD",  # Ecuador -> United States Dollar
-    "EG": "EGP",  # Egypt -> Egyptian Pound
-    "SV": "SVC",  # El Salvador -> Salvadoran Colón
-    "GQ": "GNF",  # Equatorial Guinea -> Central African CFA Franc
-    "ER": "ERN",  # Eritrea -> Eritrean Nakfa
-    "EE": "EEK",  # Estonia -> Estonian Kroon
-    "ET": "ETB",  # Ethiopia -> Ethiopian Birr
-    "FJ": "FJD",  # Fiji -> Fijian Dollar
-    "FI": "EUR",  # Finland -> Euro
-    "FR": "EUR",  # France -> Euro
-    "GA": "GFA",  # Gabon -> Central African CFA Franc
-    "GM": "GMD",  # Gambia -> Gambian Dalasi
-    "GE": "GEL",  # Georgia -> Georgian Lari
-    "DE": "EUR",  # Germany -> Euro
-    "GH": "GHS",  # Ghana -> Ghanaian Cedi
-    "GR": "EUR",  # Greece -> Euro
-    "GD": "XCD",  # Grenada -> East Caribbean Dollar
-    "GT": "GTQ",  # Guatemala -> Guatemalan Quetzal
-    "GN": "GNF",  # Guinea -> Guinean Franc
-    "GW": "GNF",  # Guinea-Bissau -> Guinean Franc
-    "GY": "GYD",  # Guyana -> Guyanese Dollar
-    "HT": "HTG",  # Haiti -> Haitian Gourde
-    "HN": "HNL",  # Honduras -> Honduran Lempira
-    "HK": "HKD",  # Hong Kong -> Hong Kong Dollar
-    "HU": "HUF",  # Hungary -> Hungarian Forint
-    "IS": "ISK",  # Iceland -> Icelandic Krona
-    "IN": "INR",  # India -> Indian Rupee
-    "ID": "IDR",  # Indonesia -> Indonesian Rupiah
-    "IR": "IRR",  # Iran -> Iranian Rial
-    "IQ": "IQD",  # Iraq -> Iraqi Dinar
-    "IE": "EUR",  # Ireland -> Euro
-    "IL": "ILS",  # Israel -> Israeli New Shekel
-    "IT": "EUR",  # Italy -> Euro
-    "JM": "JMD",  # Jamaica -> Jamaican Dollar
-    "JP": "JPY",  # Japan -> Japanese Yen
-    "JO": "JOD",  # Jordan -> Jordanian Dinar
-    "KZ": "KZT",  # Kazakhstan -> Kazakhstani Tenge
-    "KE": "KES",  # Kenya -> Kenyan Shilling
-    "KI": "AUD",  # Kiribati -> Australian Dollar
-    "KP": "KPW",  # North Korea -> North Korean Won
-    "KR": "KRW",  # South Korea -> South Korean Won
-    "KW": "KWD",  # Kuwait -> Kuwaiti Dinar
-    "KG": "KGS",  # Kyrgyzstan -> Kyrgyzstani Som
-    "LA": "LAK",  # Laos -> Laotian Kip
-    "LV": "LVL",  # Latvia -> Latvian Lats
-    "LB": "LBP",  # Lebanon -> Lebanese Pound
-    "LS": "LSL",  # Lesotho -> Lesotho Loti
-    "LR": "LRD",  # Liberia -> Liberian Dollar
-    "LY": "LYD",  # Libya -> Libyan Dinar
-    "LI": "CHF",  # Liechtenstein -> Swiss Franc
-    "LT": "LTL",  # Lithuania -> Lithuanian Litas
-    "LU": "EUR",  # Luxembourg -> Euro
-    "MO": "MOP",  # Macau -> Macanese Pataca
-    "MK": "MKD",  # North Macedonia -> Macedonian Denar
-    "MG": "MGA",  # Madagascar -> Malagasy Ariary
-    "MW": "MWK",  # Malawi -> Malawian Kwacha
-    "MY": "MYR",  # Malaysia -> Malaysian Ringgit
-    "MV": "MVR",  # Maldives -> Maldivian Rufiyaa
-    "ML": "CFA",  # Mali -> West African CFA Franc
-    "MT": "MNT",  # Malta -> Maltese Lira
-    "MH": "USD",  # Marshall Islands -> United States Dollar
-    "MQ": "EUR",  # Martinique -> Euro
-    "MR": "MRU",  # Mauritania -> Ouguiya
-    "MU": "MUR",  # Mauritius -> Mauritian Rupee
-    "YT": "EUR",  # Mayotte -> Euro
-    "MX": "MXN",  # Mexico -> Mexican Peso
-    "FM": "USD",  # Micronesia -> United States Dollar
-    "MD": "MDL",  # Moldova -> Moldovan Leu
-    "MC": "EUR",  # Monaco -> Euro
-    "MN": "MNT",  # Mongolia -> Mongolian Tugrik
-    "ME": "EUR",  # Montenegro -> Euro
-    "MA": "MAD",  # Morocco -> Moroccan Dirham
-    "MZ": "MZN",  # Mozambique -> Mozambican Metical
-    "MM": "MMK",  # Myanmar -> Myanmar Kyat
-    "NA": "NAD",  # Namibia -> Namibian Dollar
-    "NR": "AUD",  # Nauru -> Australian Dollar
-    "NP": "NPR",  # Nepal -> Nepalese Rupee
-    "NL": "EUR",  # Netherlands -> Euro
-    "NC": "XPF",  # New Caledonia -> CFP Franc
-    "NZ": "NZD",  # New Zealand -> New Zealand Dollar
-    "NI": "NIO",  # Nicaragua -> Nicaraguan Córdoba
-    "NE": "CDF",  # Niger -> Central African CFA Franc
-    "NG": "NGN",  # Nigeria -> Nigerian Naira
-    "NO": "NOK",  # Norway -> Norwegian Krone
-    "NP": "NPR",  # Nepal -> Nepalese Rupee
-    "OM": "OMR",  # Oman -> Omani Rial
-    "PK": "PKR",  # Pakistan -> Pakistani Rupee
-    "PA": "PAB",  # Panama -> Panamanian Balboa
-    "PG": "PGK",  # Papua New Guinea -> Kina
-    "PY": "PYG",  # Paraguay -> Paraguayan Guarani
-    "PE": "PEN",  # Peru -> Peruvian Nuevo Sol
-    "PH": "PHP",  # Philippines -> Philippine Peso
-    "PL": "PLN",  # Poland -> Polish Zloty
-    "PT": "PTE",  # Portugal -> Portuguese Escudo
-    "QA": "QAR",  # Qatar -> Qatari Rial
-    "RO": "RON",  # Romania -> Romanian Leu
-    "RU": "RUB",  # Russia -> Russian Ruble
-    "RW": "RWF",  # Rwanda -> Rwandan Franc
-    "SA": "SAR",  # Saudi Arabia -> Saudi Riyal
-    "SD": "SDG",  # Sudan -> Sudanese Pound
-    "SN": "XOF",  # Senegal -> West African CFA Franc
-    "SC": "SCR",  # Seychelles -> Seychellois Rupee
-    "SL": "SLL",  # Sierra Leone -> Sierra Leonean Leone
-    "SG": "SGD",  # Singapore -> Singapore Dollar
-    "SK": "SKK",  # Slovakia -> Slovak Koruna
-    "SI": "SIT",  # Slovenia -> Slovenian Tolar
-    "SB": "SBD",  # Solomon Islands -> Solomon Islands Dollar
-    "SO": "SOS",  # Somalia -> Somali Shilling
-    "ZA": "ZAR",  # South Africa -> South African Rand
-    "SS": "SSP",  # South Sudan -> South Sudanese Pound
-    "ES": "EUR",  # Spain -> Euro
-    "LK": "LKR",  # Sri Lanka -> Sri Lankan Rupee
-    "SD": "SDG",  # Sudan -> Sudanese Pound
-    "SR": "SRD",  # Suriname -> Surinamese Dollar
-    "SE": "SEK",  # Sweden -> Swedish Krona
-    "CH": "CHF",  # Switzerland -> Swiss Franc
-    "SY": "SYP",  # Syria -> Syrian Pound
-    "TW": "TWD",  # Taiwan -> New Taiwan Dollar
-    "TJ": "TJS",  # Tajikistan -> Tajikistani Somoni
-    "TZ": "TZS",  # Tanzania -> Tanzanian Shilling
-    "TH": "THB",  # Thailand -> Thai Baht
-    "TG": "CDF",  # Togo -> Central African CFA Franc
-    "TO": "TOP",  # Tonga -> Tongan Paʻanga
-    "TT": "TTD",  # Trinidad and Tobago -> Trinidad and Tobago Dollar
-    "TN": "TND",  # Tunisia -> Tunisian Dinar
-    "TR": "TRY",  # Turkey -> Turkish Lira
-    "TM": "TMT",  # Turkmenistan -> Turkmenistan Manat
-    "TC": "XCD",  # Turks and Caicos Islands -> East Caribbean Dollar
-    "TV": "AUD",  # Tuvalu -> Australian Dollar
-    "UG": "UGX",  # Uganda -> Ugandan Shilling
-    "UA": "UAH",  # Ukraine -> Ukrainian Hryvnia
-    "AE": "AED",  # United Arab Emirates -> UAE Dirham
-    "GB": "GBP",  # United Kingdom -> British Pound
-    "US": "USD",  # United States -> United States Dollar
-    "UY": "UYU",  # Uruguay -> Uruguayan Peso
-    "UZ": "UZS",  # Uzbekistan -> Uzbekistani Som
-    "VU": "VUV",  # Vanuatu -> Vanuatu Vatu
-    "VE": "VES",  # Venezuela -> Venezuelan Bolívar
-    "VN": "VND",  # Vietnam -> Vietnamese Dong
-    "WF": "CFP",  # Wallis and Futuna -> CFP Franc
-    "YE": "YER",  # Yemen -> Yemeni Rial
-    "ZM": "ZMW",  # Zambia -> Zambian Kwacha
-    "ZW": "ZWD",  # Zimbabwe -> Zimbabwe Dollar
-}
+            "AF": "AFN",  # Afghanistan -> Afghan Afghani
+            "AL": "ALL",  # Albania -> Albanian Lek
+            "DZ": "DZD",  # Algeria -> Algerian Dinar
+            "AD": "EUR",  # Andorra -> Euro
+            "AO": "AOA",  # Angola -> Angolan Kwanza
+            "AR": "ARS",  # Argentina -> Argentine Peso
+            "AM": "AMD",  # Armenia -> Armenian Dram
+            "AU": "AUD",  # Australia -> Australian Dollar
+            "AT": "EUR",  # Austria -> Euro
+            "AZ": "AZN",  # Azerbaijan -> Azerbaijani Manat
+            "BS": "BSD",  # Bahamas -> Bahamian Dollar
+            "BH": "BHD",  # Bahrain -> Bahraini Dinar
+            "BD": "BDT",  # Bangladesh -> Bangladeshi Taka
+            "BB": "BBD",  # Barbados -> Barbadian Dollar
+            "BY": "BYN",  # Belarus -> Belarusian Ruble
+            "BE": "EUR",  # Belgium -> Euro
+            "BZ": "BZD",  # Belize -> Belize Dollar
+            "BJ": "XOF",  # Benin -> West African CFA Franc
+            "BT": "BTN",  # Bhutan -> Bhutanese Ngultrum
+            "BO": "BOB",  # Bolivia -> Bolivian Boliviano
+            "BA": "BAM",  # Bosnia and Herzegovina -> Convertible Mark
+            "BW": "BWP",  # Botswana -> Botswanan Pula
+            "BR": "BRL",  # Brazil -> Brazilian Real
+            "BN": "BND",  # Brunei -> Brunei Dollar
+            "BG": "BGN",  # Bulgaria -> Bulgarian Lev
+            "BF": "XOF",  # Burkina Faso -> West African CFA Franc
+            "BI": "BIF",  # Burundi -> Burundian Franc
+            "KH": "KHR",  # Cambodia -> Cambodian Riel
+            "CM": "XAF",  # Cameroon -> Central African CFA Franc
+            "CA": "CAD",  # Canada -> Canadian Dollar
+            "CV": "CVE",  # Cape Verde -> Cape Verdean Escudo
+            "KY": "KYD",  # Cayman Islands -> Cayman Islands Dollar
+            "CF": "XAF",  # Central African Republic -> Central African CFA Franc
+            "TD": "XAF",  # Chad -> Central African CFA Franc
+            "CL": "CLP",  # Chile -> Chilean Peso
+            "CN": "CNY",  # China -> Chinese Yuan
+            "CO": "COP",  # Colombia -> Colombian Peso
+            "KM": "KMF",  # Comoros -> Comorian Franc
+            "CG": "XAF",  # Republic of the Congo -> Central African CFA Franc
+            "CD": "CDF",  # Democratic Republic of the Congo -> Congolese Franc
+            "CR": "CRC",  # Costa Rica -> Costa Rican Colón
+            "CI": "XOF",  # Côte d'Ivoire -> West African CFA Franc
+            "HR": "EUR",  # Croatia -> Euro
+            "CU": "CUP",  # Cuba -> Cuban Peso
+            "CY": "EUR",  # Cyprus -> Euro
+            "CZ": "CZK",  # Czech Republic -> Czech Koruna
+            "DK": "DKK",  # Denmark -> Danish Krone
+            "DJ": "DJF",  # Djibouti -> Djiboutian Franc
+            "DM": "XCD",  # Dominica -> East Caribbean Dollar
+            "DO": "DOP",  # Dominican Republic -> Dominican Peso
+            "EC": "USD",  # Ecuador -> US Dollar
+            "EG": "EGP",  # Egypt -> Egyptian Pound
+            "SV": "USD",  # El Salvador -> US Dollar
+            "GQ": "XAF",  # Equatorial Guinea -> Central African CFA Franc
+            "ER": "ERN",  # Eritrea -> Eritrean Nakfa
+            "EE": "EUR",  # Estonia -> Euro
+            "ET": "ETB",  # Ethiopia -> Ethiopian Birr
+            "FJ": "FJD",  # Fiji -> Fijian Dollar
+            "FI": "EUR",  # Finland -> Euro
+            "FR": "EUR",  # France -> Euro
+            "GA": "XAF",  # Gabon -> Central African CFA Franc
+            "GM": "GMD",  # Gambia -> Gambian Dalasi
+            "GE": "GEL",  # Georgia -> Georgian Lari
+            "DE": "EUR",  # Germany -> Euro
+            "GH": "GHS",  # Ghana -> Ghanaian Cedi
+            "GR": "EUR",  # Greece -> Euro
+            "GD": "XCD",  # Grenada -> East Caribbean Dollar
+            "GT": "GTQ",  # Guatemala -> Guatemalan Quetzal
+            "GN": "GNF",  # Guinea -> Guinean Franc
+            "GW": "XOF",  # Guinea-Bissau -> West African CFA Franc
+            "GY": "GYD",  # Guyana -> Guyanese Dollar
+            "HT": "HTG",  # Haiti -> Haitian Gourde
+            "HN": "HNL",  # Honduras -> Honduran Lempira
+            "HK": "HKD",  # Hong Kong -> Hong Kong Dollar
+            "HU": "HUF",  # Hungary -> Hungarian Forint
+            "IS": "ISK",  # Iceland -> Icelandic Krona
+            "IN": "INR",  # India -> Indian Rupee
+            "ID": "IDR",  # Indonesia -> Indonesian Rupiah
+            "IR": "IRR",  # Iran -> Iranian Rial
+            "IQ": "IQD",  # Iraq -> Iraqi Dinar
+            "IE": "EUR",  # Ireland -> Euro
+            "IL": "ILS",  # Israel -> Israeli New Shekel
+            "IT": "EUR",  # Italy -> Euro
+            "JM": "JMD",  # Jamaica -> Jamaican Dollar
+            "JP": "JPY",  # Japan -> Japanese Yen
+            "JO": "JOD",  # Jordan -> Jordanian Dinar
+            "KZ": "KZT",  # Kazakhstan -> Kazakhstani Tenge
+            "KE": "KES",  # Kenya -> Kenyan Shilling
+            "KI": "AUD",  # Kiribati -> Australian Dollar
+            "KP": "KPW",  # North Korea -> North Korean Won
+            "KR": "KRW",  # South Korea -> South Korean Won
+            "KW": "KWD",  # Kuwait -> Kuwaiti Dinar
+            "KG": "KGS",  # Kyrgyzstan -> Kyrgyzstani Som
+            "LA": "LAK",  # Laos -> Lao Kip
+            "LV": "EUR",  # Latvia -> Euro
+            "LB": "LBP",  # Lebanon -> Lebanese Pound
+            "LS": "LSL",  # Lesotho -> Lesotho Loti
+            "LR": "LRD",  # Liberia -> Liberian Dollar
+            "LY": "LYD",  # Libya -> Libyan Dinar
+            "LI": "CHF",  # Liechtenstein -> Swiss Franc
+            "LT": "EUR",  # Lithuania -> Euro
+            "LU": "EUR",  # Luxembourg -> Euro
+            "MO": "MOP",  # Macau -> Macanese Pataca
+            "MK": "MKD",  # North Macedonia -> Macedonian Denar
+            "MG": "MGA",  # Madagascar -> Malagasy Ariary
+            "MW": "MWK",  # Malawi -> Malawian Kwacha
+            "MY": "MYR",  # Malaysia -> Malaysian Ringgit
+            "MV": "MVR",  # Maldives -> Maldivian Rufiyaa
+            "ML": "XOF",  # Mali -> West African CFA Franc
+            "MT": "EUR",  # Malta -> Euro
+            "MH": "USD",  # Marshall Islands -> US Dollar
+            "MQ": "EUR",  # Martinique -> Euro
+            "MR": "MRU",  # Mauritania -> Mauritanian Ouguiya
+            "MU": "MUR",  # Mauritius -> Mauritian Rupee
+            "YT": "EUR",  # Mayotte -> Euro
+            "MX": "MXN",  # Mexico -> Mexican Peso
+            "FM": "USD",  # Micronesia -> US Dollar
+            "MD": "MDL",  # Moldova -> Moldovan Leu
+            "MC": "EUR",  # Monaco -> Euro
+            "MN": "MNT",  # Mongolia -> Mongolian Tugrik
+            "ME": "EUR",  # Montenegro -> Euro
+            "MA": "MAD",  # Morocco -> Moroccan Dirham
+            "MZ": "MZN",  # Mozambique -> Mozambican Metical
+            "MM": "MMK",  # Myanmar -> Burmese Kyat
+            "NA": "NAD",  # Namibia -> Namibian Dollar
+            "NR": "AUD",  # Nauru -> Australian Dollar
+            "NP": "NPR",  # Nepal -> Nepalese Rupee
+            "NL": "EUR",  # Netherlands -> Euro
+            "NC": "XPF",  # New Caledonia -> CFP Franc
+            "NZ": "NZD",  # New Zealand -> New Zealand Dollar
+            "NI": "NIO",  # Nicaragua -> Nicaraguan Córdoba
+            "NE": "XOF",  # Niger -> West African CFA Franc
+            "NG": "NGN",  # Nigeria -> Nigerian Naira
+            "NO": "NOK",  # Norway -> Norwegian Krone
+            "OM": "OMR",  # Oman -> Omani Rial
+            "PK": "PKR",  # Pakistan -> Pakistani Rupee
+            "PA": "PAB",  # Panama -> Panamanian Balboa
+            "PG": "PGK",  # Papua New Guinea -> Kina
+            "PY": "PYG",  # Paraguay -> Guarani
+            "PE": "PEN",  # Peru -> Sol
+            "PH": "PHP",  # Philippines -> Peso
+            "PL": "PLN",  # Poland -> Zloty
+            "PT": "EUR",  # Portugal -> Euro
+            "QA": "QAR",  # Qatar -> Qatari Riyal
+            "RO": "RON",  # Romania -> Leu
+            "RU": "RUB",  # Russia -> Ruble
+            "RW": "RWF",  # Rwanda -> Franc
+            "SA": "SAR",  # Saudi Arabia -> Riyal
+            "SD": "SDG",  # Sudan -> Sudanese Pound
+            "SN": "XOF",  # Senegal -> West African CFA Franc
+            "SC": "SCR",  # Seychelles -> Rupee
+            "SL": "SLL",  # Sierra Leone -> Leone
+            "SG": "SGD",  # Singapore -> Dollar
+            "SK": "EUR",  # Slovakia -> Euro
+            "SI": "EUR",  # Slovenia -> Euro
+            "SB": "SBD",  # Solomon Islands -> Dollar
+            "SO": "SOS",  # Somalia -> Shilling
+            "ZA": "ZAR",  # South Africa -> Rand
+            "SS": "SSP",  # South Sudan -> Pound
+            "ES": "EUR",  # Spain -> Euro
+            "LK": "LKR",  # Sri Lanka -> Rupee
+            "SR": "SRD",  # Suriname -> Dollar
+            "SE": "SEK",  # Sweden -> Krona
+            "CH": "CHF",  # Switzerland -> Franc
+            "SY": "SYP",  # Syria -> Pound
+            "TW": "TWD",  # Taiwan -> Dollar
+            "TJ": "TJS",  # Tajikistan -> Somoni
+            "TZ": "TZS",  # Tanzania -> Shilling
+            "TH": "THB",  # Thailand -> Baht
+            "TG": "XOF",  # Togo -> West African CFA Franc
+            "TO": "TOP",  # Tonga -> Paʻanga
+            "TT": "TTD",  # Trinidad and Tobago -> Dollar
+            "TN": "TND",  # Tunisia -> Dinar
+            "TR": "TRY",  # Turkey -> Lira
+            "TM": "TMT",  # Turkmenistan -> Manat
+            "TC": "USD",  # Turks and Caicos Islands -> Dollar
+            "TV": "AUD",  # Tuvalu -> Australian Dollar
+            "UG": "UGX",  # Uganda -> Shilling
+            "UA": "UAH",  # Ukraine -> Hryvnia
+            "AE": "AED",  # United Arab Emirates -> Dirham
+            "GB": "GBP",  # United Kingdom -> Pound
+            "US": "USD",  # United States -> Dollar
+            "UY": "UYU",  # Uruguay -> Peso
+            "UZ": "UZS",  # Uzbekistan -> Som
+            "VU": "VUV",  # Vanuatu -> Vatu
+            "VE": "VES",  # Venezuela -> Bolívar
+            "VN": "VND",  # Vietnam -> Dong
+            "WF": "XPF",  # Wallis and Futuna -> CFP Franc
+            "YE": "YER",  # Yemen -> Rial
+            "ZM": "ZMW",  # Zambia -> Kwacha
+            "ZW": "ZWL",  # Zimbabwe -> Dollar
+        }
 
         return country_currency_map.get(country.alpha_2, "Currency not found")
     else:
@@ -929,6 +774,9 @@ class BankDetailsAPIView(APIView):
                 try:
                     country = data.get("country", "US")
                     currency_code = get_currency_code(country)
+
+                    if currency_code.upper() != "USD":
+                        return Response({"error": "Please add USD account"}, status=status.HTTP_400_BAD_REQUEST)
 
                     bank_token = stripe.Token.create(
                         bank_account={
@@ -1548,63 +1396,6 @@ class ProfileMembershipAPIView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
-
-# # class ProfileMembershipAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None):
-#         if pk:
-#             profile_membership = get_object_or_404(ProfileMembership, pk=pk)
-#             serializer = ProfileMembershipSerializer(profile_membership)
-#         else:
-#             profile_memberships = ProfileMembership.objects.all()
-#             serializer = ProfileMembershipSerializer(profile_memberships, many=True)
-
-#         response={
-#             "status" : 200,
-#             "type" : "success",
-#             "message" : "data fetched successfully",
-#             "data" : serializer.data
-#         }
-#         return Response(response,status=status.HTTP_200_OK)
-
-#     def post(self, request):
-#         serializer = ProfileMembershipSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             response={
-#             "status" : 201,
-#             "type" : "success",
-#             "message" : "data created successfully",
-#             "data" : serializer.data
-#         }
-#             return Response(response, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def put(self, request, pk):
-#         profile_membership = get_object_or_404(ProfileMembership, pk=pk)
-#         serializer = ProfileMembershipSerializer(profile_membership, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             response={
-#             "status" : 202,
-#             "type" : "success",
-#             "message" : "data updated successfully",
-#             "data" : serializer.data
-#         }
-#             return Response(response,status=status.HTTP_202_ACCEPTED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, pk):
-#         profile_membership = get_object_or_404(ProfileMembership, pk=pk)
-#         profile_membership.delete()
-#         response={
-#             "status" : 200,
-#             "type" : "success",
-#             "message" : "data deleted successfully",
-            
-#         }
-#         return Response(response,status=status.HTTP_200_OK)   
 
 class ProfileDetailUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer

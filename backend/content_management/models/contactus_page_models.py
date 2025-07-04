@@ -18,6 +18,8 @@ class ContactUs(models.Model):
     map_url = models.TextField(blank=True, null=True)
     get_in_touch_title = models.CharField(max_length=255, blank=True, null=True)
     get_in_touch_description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "Untitled ContactUs Section"
@@ -28,6 +30,8 @@ class ContactForm(models.Model):
     email = models.EmailField(blank=True, null=True)
     subject = models.CharField(max_length=255, blank=True, null=True)
     message = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.full_name or 'Anonymous'} - {self.subject or 'No Subject'}"

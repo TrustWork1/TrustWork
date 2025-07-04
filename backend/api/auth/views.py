@@ -261,6 +261,64 @@ class LoginView(APIView):
             "error": error_message
         }, status=status.HTTP_400_BAD_REQUEST)
 
+class AdminLoginView(APIView):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Bearer Token)",
+                type=openapi.TYPE_STRING,
+                required=False
+            )
+        ],
+        request_body=LoginSerializer,
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                description="Admin Login successful",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'accessToken': openapi.Schema(type=openapi.TYPE_STRING, description="User's access token"),
+                        'UserData': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description="Serialized user data",
+                            additional_properties=openapi.Schema(type=openapi.TYPE_STRING)
+                        ),
+                        'status': openapi.Schema(type=openapi.TYPE_STRING, description="Status code as a string"),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
+                    }
+                )
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Response(
+                description="Invalid credentials or validation errors",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Error message"),
+                    }
+                )
+            )
+        }
+    )
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.data.get("email"):
+                user = authenticate(request, email=serializer.data['email'], password=serializer.data['password'])
+            else:
+                user = authenticate(request, phone=serializer.data['phone'], password=serializer.data['password'])
+
+            if user:
+                user_type = user.user_type
+                if user.is_active and user_type.lower() == "admin":
+                    login(request, user)
+                    token, created = Token.objects.get_or_create(user=user)
+                    return Response({'accessToken': token.key,"UserData":UserSerializer(instance=user).data,"status":"200","message":"Login Success."}, status=status.HTTP_200_OK)
+                return Response({'error': 'You do not have permission for Admin login'}, status=status.HTTP_400_BAD_REQUEST)
+                
+        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 

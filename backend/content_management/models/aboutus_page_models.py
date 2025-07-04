@@ -8,6 +8,8 @@ class AboutUs(models.Model):
     description = models.TextField(blank=True, null=True)
     image1 = models.ImageField(upload_to='aboutus_page/', blank=True, null=True)
     image2 = models.ImageField(upload_to='aboutus_page/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "AboutUs Untitled"
@@ -22,6 +24,8 @@ class WhyYouTrustUsSection(models.Model):
     mission_description = models.TextField(blank=True, null=True)
     vision_title = models.CharField(max_length=255, blank=True, null=True)
     vision_description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.section_header or "WhyYouTrustUsSection Untitled"
@@ -32,6 +36,8 @@ class WhyYouTrustUsFeature(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     icon = models.ImageField(upload_to='aboutus_page/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "WhyYouTrustUsFeature Untitled"

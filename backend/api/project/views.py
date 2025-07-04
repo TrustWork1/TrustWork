@@ -24,6 +24,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from project_management.models import Notification
 import json
+from django.core.files.storage import default_storage
 import stripe
 from django.conf import settings
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
@@ -489,6 +490,12 @@ class ChangeProjectStatusView(APIView):
     def put(self,request,pk=None,user_type=None):
         project = get_object_or_404(Project, pk=pk)
         project.status=request.data.get("status")
+        if project.document:
+            if default_storage.exists(project.document.name):
+                default_storage.delete(project.document.name)
+                # print("Project File Deleted")
+            project.document = None
+        
         if request.data.get("status")=="completed":
             try:
                 latest_transaction = Transactions.objects.filter(project=project, transaction_type="collection").order_by('-created_at').first()

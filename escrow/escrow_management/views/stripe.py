@@ -231,6 +231,9 @@ class StripeDisbursementAPI(APIView):
             external_callback_url = request.data.get("callback_url", "")
 
             escrow_obj = Escrow.objects.get(id=escrow_id)
+            escrow_obj.payment_method += ", stripe"
+            escrow_obj.save()
+            
 
             # total_amount_dollars = float(escrow_obj.amount)
             amount_cents = int(amount * 100)
@@ -242,6 +245,16 @@ class StripeDisbursementAPI(APIView):
             # print("Connected Account Country:", country)
             # print("Connected Account Type:", account_type)
             # print("Connected Account Currency:", currency)
+            # external_accounts = stripe.Account.list_external_accounts(
+            #     stripe_account_id,
+            #     object="bank_account"
+            # )
+            # for bank_account in external_accounts['data']:
+                # print("Bank Account ID:", bank_account["id"])
+                # print("Bank Account Currency:", bank_account["currency"])
+                # currency = bank_account["currency"]
+
+            # print("External account currency: ",currency)
 
             Events.objects.create(
                 event_type="disbursement_initialized", event_description="", escrow=escrow_obj
@@ -257,13 +270,6 @@ class StripeDisbursementAPI(APIView):
             Events.objects.create(
                 event_type="disbursement_in_progress", event_description="", escrow=escrow_obj
             )
-
-            # payout = stripe.Payout.create(
-            #     amount=amount_cents,
-            #     currency="usd",
-            #     stripe_account=stripe_account_id,
-            # )
-            # print("STATUS: ",payout.status)
             
             transaction = Transactions.objects.create(
                 escrow=escrow_obj,
@@ -271,9 +277,20 @@ class StripeDisbursementAPI(APIView):
                 status="pending",
                 transaction_type="disbursement",
                 payment_method="stripe",
-                external_transaction_id=transfer.id,
+                external_transaction_id=transfer.destination,
                 external_callback_url=external_callback_url
             )
+
+            # try:
+            #     # if currency.lower() == "usd":
+            #     payout = stripe.Payout.create(
+            #         amount=amount_cents,
+            #         currency="usd",
+            #         stripe_account=stripe_account_id,
+            #     )
+            #     print("STATUS: ",payout.status)
+            # except Exception as e:
+            #     print(str(e))
 
             return Response(
                 {"transaction":str(transaction.id), "response":transfer_details},
@@ -305,60 +322,43 @@ class StripeDisbursementWebhook(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # Handle payout events
-        if event["type"] == "payout.paid":
-            payment_status="paid"
-            payout = event["data"]["object"]
-            payout_id = payout["id"]
+        payout = event["data"]["object"]
+        payout_acc = event["account"]  # This is the connected account ID like 'acct_1XYZ...'
+        payout_id = payout["id"]
+        payment_status = "paid" if event["type"] == "payout.paid" else "failed"
 
+        # Find all pending transactions for this connected account
+        transactions = Transactions.objects.filter(
+            external_transaction_id=payout_acc,
+            transaction_type="disbursement",
+            status="pending"
+        )
+
+        for transaction in transactions:
+            transaction.status = "completed" if payment_status == "paid" else "failed"
+            transaction.save()
+
+            Events.objects.create(
+                event_type="disbursement_success" if payment_status == "paid" else "disbursement_failed",
+                event_description="Payment Sent" if payment_status == "paid" else "Payment Failed",
+                escrow=transaction.escrow
+            )
+
+            escrow_obj = transaction.escrow
+            escrow_obj.status = "disbursement_success" if payment_status == "paid" else "disbursement_failed"
+            escrow_obj.disbursement_date = timezone.now()
+            escrow_obj.save()
+
+            url = f"{TRUSTWORK_BASE_API}/api/stripe-payment-status/"
+            headers = {"Content-Type": "application/json"}
+            callback_data = {
+                "escrow_id": str(escrow_obj.id),
+                "payment_status": payment_status,
+            }
             try:
-                transaction = Transactions.objects.get(external_transaction_id=payout_id)
-                transaction.status = "completed"
-                transaction.save()
-                Events.objects.create(
-                    event_type="disbursement_success", event_description="", escrow=transaction.escrow
-                )
-
-                escrow_obj = transaction.escrow
-                escrow_obj.status = "disbursement_success"
-                escrow_obj.disbursement_date = timezone.now()
-                escrow_obj.save()
-
-                print(f"Payout {payout_id} marked as completed.")
-            except Transactions.DoesNotExist:
-                print(f"No transaction found for payout {payout_id}")
-
-        elif event["type"] == "payout.failed":
-            payment_status="failed"
-            payout = event["data"]["object"]
-            payout_id = payout["id"]
-
-            try:
-                transaction = Transactions.objects.get(external_transaction_id=payout_id)
-                transaction.status = "failed"
-                transaction.save()
-                Events.objects.create(
-                    event_type="disbursement_failed", event_description="", escrow=transaction.escrow
-                )
-
-                escrow_obj = transaction.escrow
-                escrow_obj.status = "disbursement_failed"
-                escrow_obj.disbursement_date = timezone.now()
-                escrow_obj.save()
-
-                print(f"Payout {payout_id} marked as failed.")
-            except Transactions.DoesNotExist:
-                print(f"No transaction found for payout {payout_id}")
-        
-        url = f"{TRUSTWORK_BASE_API}/api/stripe-payment-status/"
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "escrow_id": str(transaction.escrow.id),
-            "payment_status": payment_status
-        }
-        try:
-            response = requests.put(url, json=data, headers=headers)
-            print(response.json())
-        except requests.exceptions.RequestException as e:
-            print(f"Error during disbursement initialization: {e}")
+                response = requests.put(url, json=callback_data, headers=headers)
+                print(f"Callback sent to {url}: {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"Callback error: {e}")
 
         return Response(status=status.HTTP_200_OK)

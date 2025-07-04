@@ -4,6 +4,8 @@ from django.db import models
 class AppDownload(models.Model):
     playstore_link = models.URLField(blank=True, null=True)
     appstore_link = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.playstore_link} - {self.appstore_link}"
@@ -15,6 +17,8 @@ class AppInfo(models.Model):
     description = models.TextField(blank=True, null=True)
     app_download = models.ForeignKey(AppDownload, on_delete=models.CASCADE, related_name='app_links')
     image = models.ImageField(upload_to='home_page/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "AppInfo Untitled"
@@ -23,6 +27,8 @@ class AppInfo(models.Model):
 class FeatureSection(models.Model):
     header = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.header} - {self.description}"
@@ -32,6 +38,8 @@ class Feature(models.Model):
     title = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     icon = models.ImageField(upload_to='home_page/features/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "Feature Untitled"
@@ -44,6 +52,8 @@ class HowItWorksSection(models.Model):
     header = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='home_page/how_it_works/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.header} - {self.description} - {self.image}"
@@ -53,6 +63,8 @@ class HowItWorksStep(models.Model):
     title = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     icon = models.ImageField(upload_to='home_page/how_it_works/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "HowItWorksStep Untitled"
@@ -64,6 +76,8 @@ class HowItWorksStep(models.Model):
 class PricingPlanSection(models.Model):
     header = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.header} - {self.description}"
@@ -79,6 +93,8 @@ class PricingPlan(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CHOICES, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.plan_name
@@ -89,6 +105,8 @@ class PricingPlan(models.Model):
 class PriceFeatures(models.Model):
     features = models.TextField(blank=True, null=True)
     pricing_plan = models.ForeignKey(PricingPlan, on_delete=models.CASCADE, related_name='price_features')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.features or "No PriceFeatures"
@@ -103,6 +121,8 @@ class ReferralSection(models.Model):
     button_title = models.CharField(max_length=255, default='GET STARTED', blank=True, null=True)
     button_link = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='home_page/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "ReferralSection Untitled"
@@ -113,6 +133,8 @@ class DownloadSection(models.Model):
     description = models.TextField(blank=True, null=True)
     app_download = models.ForeignKey(AppDownload, on_delete=models.CASCADE, related_name='app_download_links')
     image = models.ImageField(upload_to='home_page/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.title or "DownloadSection Untitled"

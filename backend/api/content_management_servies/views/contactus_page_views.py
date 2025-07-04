@@ -130,7 +130,7 @@ class ContactUsFormView(APIView):
             except ContactForm.DoesNotExist:
                 return Response({"error": "Contact form entry not found"}, status=status.HTTP_404_NOT_FOUND)
         else:
-            contacts = ContactForm.objects.all()
+            contacts = ContactForm.objects.all().order_by("-id")
             serializer = ContactFormSerializer(contacts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 

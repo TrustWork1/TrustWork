@@ -99,7 +99,14 @@ const ProviderHome = props => {
 
   useEffect(() => {
     if (isFocused) {
-      dispatch(ProfileRequest());
+      connectionrequest()
+        .then(() => {
+          dispatch(ProfileRequest());
+        })
+        .catch(err => {
+          showErrorAlert('Please connect to the internet');
+        });
+
       getProjectList({count: 1});
     }
   }, [isFocused]);

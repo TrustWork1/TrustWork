@@ -9,6 +9,8 @@ import {ProfileRequest} from '../redux/reducer/AuthReducer';
 import {notificationStatusChangeRequest} from '../redux/reducer/ProfileReducer';
 import {Colors, Icons} from '../themes/Themes';
 import css from '../themes/css';
+import connectionrequest from '../utils/helpers/NetInfo';
+import showErrorAlert from '../utils/helpers/Toast';
 let status = '';
 
 const AccountSetting = props => {
@@ -23,11 +25,25 @@ const AccountSetting = props => {
       sender: AuthReducer?.ProfileResponse?.data?.id,
     };
     console.log(obj);
-    dispatch(notificationStatusChangeRequest(obj));
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(notificationStatusChangeRequest(obj));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   };
 
   useEffect(() => {
-    dispatch(ProfileRequest());
+    connectionrequest()
+      .then(() => {
+        dispatch(ProfileRequest());
+        
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, [
     isFocused,
     ProfileReducer.status == 'Profile/notificationStatusChangeSuccess',

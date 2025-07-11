@@ -23,6 +23,8 @@ import Images from '../../themes/Images';
 import constants from '../../utils/helpers/constants';
 import moment from 'moment';
 import Loader from '../../utils/helpers/Loader';
+import connectionrequest from '../../utils/helpers/NetInfo';
+import showErrorAlert from '../../utils/helpers/Toast';
 let status = '';
 const PaymentHistory = props => {
   const [page, setPage] = useState(1);
@@ -39,13 +41,20 @@ const PaymentHistory = props => {
   }, [isFocused, page]);
 
   const PaymentHistoryFun = text => {
-    dispatch(
-      ProviderPaymentListRequest({
-        page: page,
-        limit: 10,
-        keyword_search: text || '',
-      }),
-    );
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(
+          ProviderPaymentListRequest({
+            page: page,
+            limit: 10,
+            keyword_search: text || '',
+          }),
+        );
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   };
 
   const formatNotificationDate = dateString => {

@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 import random
 from django.conf import settings
 from django.contrib.auth.models import Group
-from utils import send_otp, send_otp_sms
+from utils import send_otp_sms
 from master.models import Location
 # from master import *
 import master
@@ -52,7 +52,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         phone_extension = validated_data.get("phone_extension", "")
         phone_number = validated_data.get("phone", "")
         if validated_data.get("phone"):
-            # send_otp(validated_data.get("phone_extension")+validated_data.get("phone"),otp)
             send_otp_sms(phone_extension + phone_number, otp)
         if validated_data.get("email"):
             

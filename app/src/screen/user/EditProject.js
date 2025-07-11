@@ -22,6 +22,7 @@ import css from '../../themes/css';
 import {Colors, Fonts, Icons} from '../../themes/Themes';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import connectionrequest from '../../utils/helpers/NetInfo';
 let status = '';
 
 const EditProject = props => {
@@ -41,7 +42,14 @@ const EditProject = props => {
 
   // console.log(props);
   useEffect(() => {
-    dispatch(JobCategoryRequest());
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(JobCategoryRequest());
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
     setCat_Id(props?.route?.params?.data?.project_category?.id);
     setCategory(props?.route?.params?.data?.project_category?.title);
     setTitle(props?.route?.params?.data?.project_title);
@@ -81,7 +89,14 @@ const EditProject = props => {
         id: props?.route?.params?.data?.id,
       };
       // console.log(obj);
-      dispatch(EditProjectRequest(obj));
+      connectionrequest()
+      .then(() => {
+        
+        dispatch(EditProjectRequest(obj));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
     }
   };
 

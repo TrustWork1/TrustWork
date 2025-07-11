@@ -152,12 +152,18 @@ const AcceptedBids = props => {
                 color={Colors.themeWhite}
                 backgroundColor={Colors.themeGreen}
                 onPress={() => {
-                  dispatch(
-                    createChatRoomRequest({
-                      user_id: item?.project?.client?.id,
-                    }),
-                    setUserdata(item?.client),
-                  );
+                  connectionrequest()
+                    .then(() => {
+                      dispatch(
+                        createChatRoomRequest({
+                          user_id: item?.project?.client?.id,
+                        }),
+                        setUserdata(item?.client),
+                      );
+                    })
+                    .catch(err => {
+                      showErrorAlert('Please connect to the internet');
+                    });
                 }}
               />
             </View>

@@ -20,6 +20,7 @@ import css from '../themes/css';
 import {Colors, Fonts, GifImage, Icons, Sizes} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
 import showErrorAlert from '../utils/helpers/Toast';
+import connectionrequest from '../utils/helpers/NetInfo';
 let status = '';
 
 const WithdrawMoney = () => {
@@ -230,7 +231,13 @@ const WithdrawMoney = () => {
       case 'Profile/WithdrawPointsSuccess':
         status = ProfileReducer.status;
         setShowSeen(true);
-        dispatch(ProfileRequest());
+        connectionrequest()
+          .then(() => {
+            dispatch(ProfileRequest());
+          })
+          .catch(err => {
+            showErrorAlert('Please connect to the internet');
+          });
         break;
       case 'Profile/WithdrawPointsFailure':
         status = ProfileReducer.status;
@@ -340,7 +347,13 @@ const WithdrawMoney = () => {
                       'sorry!, you dont have any balance to withdraw',
                     );
                   } else {
-                    dispatch(WithdrawPointsRequest({}));
+                    connectionrequest()
+                      .then(() => {
+                        dispatch(WithdrawPointsRequest({}));
+                      })
+                      .catch(err => {
+                        showErrorAlert('Please connect to the internet');
+                      });
                   }
                 }}
               />

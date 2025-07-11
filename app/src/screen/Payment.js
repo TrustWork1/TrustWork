@@ -443,8 +443,8 @@ const Payment = props => {
 
   return (
     <>
-      <StripeProvider publishableKey="pk_test_51Q1uGJ06D9ayl3BS7fwiypJd2zkTFHJte5Itulh67991fpNzKtQchHA2bqwGhIgxhzhw6qvl3Zn81lCPpEw2JOS600ErjSExQF">
-        {/* <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc"> */}
+      {/* <StripeProvider publishableKey="pk_test_51Q1uGJ06D9ayl3BS7fwiypJd2zkTFHJte5Itulh67991fpNzKtQchHA2bqwGhIgxhzhw6qvl3Zn81lCPpEw2JOS600ErjSExQF"> */}
+        <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc">
         <View style={styles.mainContainer}>
           <Loader visible={AuthReducer.status == 'Auth/CreatePaymentRequest'} />
           <Header backIcon={Icons.BackIcon} headerTitle={'Payment'} />

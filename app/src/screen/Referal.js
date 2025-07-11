@@ -23,6 +23,8 @@ import {ReferralStepsRequest} from '../redux/reducer/ProfileReducer';
 import {useIsFocused} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import constants from '../utils/helpers/constants';
+import connectionrequest from '../utils/helpers/NetInfo';
+import showErrorAlert from '../utils/helpers/Toast';
 
 const listData = [
   {
@@ -50,7 +52,14 @@ const Referal = props => {
   const ProfileReducer = useSelector(state => state.ProfileReducer);
 
   useEffect(() => {
-    dispatch(ReferralStepsRequest());
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(ReferralStepsRequest());
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, [isFocused]);
 
   const referralCode = code;

@@ -155,14 +155,14 @@ const ProfileProvider = props => {
           fileName = fileName.replace(/\.heic$/i, '.jpg');
         }
 
-        imageObj.name = fileName;
+        // imageObj.name = fileName;
         imageObj.type =
           response.mime === 'image/heic' ? 'image/jpeg' : response.mime;
         imageObj.uri = response.path;
         setImgPicker(false);
         const obj = new FormData();
         obj.append('cover_image', imageObj);
-
+        console.log(obj, '.....cover img obj');
         dispatch(UpdateCoverPicRequest(obj));
       })
       .catch(err => console.log(err));

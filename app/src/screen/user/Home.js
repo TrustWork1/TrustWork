@@ -99,7 +99,13 @@ const Home = props => {
 
   useEffect(() => {
     if (isFocused) {
-      dispatch(ProfileRequest());
+      connectionrequest()
+        .then(() => {
+          dispatch(ProfileRequest());
+        })
+        .catch(err => {
+          showErrorAlert('Please connect to the internet');
+        });
       getRecentUpdateClient({count: 1});
       getFeaturedProviders({count: 1});
     }

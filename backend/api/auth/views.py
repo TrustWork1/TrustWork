@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 import pytz
-from utils import send_otp, send_otp_sms
+from utils import send_otp_sms
 from .serializers import GenerateOTPSerializer, VerifyOTPSerializer, ChangePasswordSerializer
 from rest_framework.permissions import AllowAny
 import random

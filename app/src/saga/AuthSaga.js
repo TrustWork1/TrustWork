@@ -101,6 +101,9 @@ export function* userCheckSaga(action) {
     if (error?.status == 502) {
       yield put(userCheckFailure(error));
       showErrorAlert(error?.message);
+    } else if (error?.status == 504) {
+      yield put(userCheckFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(userCheckFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -152,6 +155,9 @@ export function* signUpSaga(action) {
     if (error?.status == 502) {
       yield put(signUpFailure(error));
       showErrorAlert(error?.message);
+    } else if (error?.status == 504) {
+      yield put(signUpFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(signUpFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -186,6 +192,9 @@ export function* verifyEmailSaga(action) {
     if (error?.status == 502) {
       yield put(verifyEmailFailure(error));
       showErrorAlert(error?.message);
+    } else if (error?.status == 504) {
+      yield put(verifyEmailFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(verifyEmailFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -213,7 +222,10 @@ export function* ResendOtpSaga(action) {
     if (error?.status == 502) {
       yield put(ResendOtpFailure(error));
       showErrorAlert(error?.message);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(ResendOtpFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(ResendOtpFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -289,7 +301,10 @@ export function* signinSaga(action) {
     if (error?.status == 502) {
       yield put(signinFailure(error));
       showErrorAlert(error?.message);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(signinFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(signinFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -319,6 +334,9 @@ export function* forgotPasswordSaga(action) {
     } else if (error?.status == 500) {
       yield put(forgotPasswordFailure(error));
       showErrorAlert(error?.message);
+    } else if (error?.status == 504) {
+      yield put(forgotPasswordFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(forgotPasswordFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -346,7 +364,10 @@ export function* verificationSaga(action) {
     if (error?.status == 502) {
       yield put(verificationFailure(error));
       showErrorAlert(error?.message);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(verificationFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(verificationFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -376,7 +397,10 @@ export function* verificationOtpSaga(action) {
     } else if (error?.status == 500) {
       yield put(verificationOtpFailure(error));
       showErrorAlert(error?.message);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(verificationOtpFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       console.log(error?.message);
       yield put(verificationOtpFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -411,7 +435,10 @@ export function* resetPasswordSaga(action) {
     if (error?.status == 502) {
       yield put(resetPasswordFailure(error));
       showErrorAlert(error?.message);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(resetPasswordFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(resetPasswordFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -451,6 +478,9 @@ export function* ProfileSaga(action) {
     } else if (error?.status == 401) {
       yield put(ProfileFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(ProfileFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(ProfileFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -517,6 +547,9 @@ export function* changePasswordSaga(action) {
     if (error?.status == 502) {
       yield put(changePasswordFailure(error));
       showErrorAlert(error?.message);
+    } else if (error?.status == 504) {
+      yield put(changePasswordFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(changePasswordFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -552,6 +585,9 @@ export function* UpdateProfileSaga(action) {
     } else if (error?.status == 401) {
       yield put(UpdateProfileFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(UpdateProfileFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(UpdateProfileFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -583,12 +619,19 @@ export function* UpdateCoverPicSaga(action) {
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
+    console.log(error?.response);
     if (error?.status == 502) {
       yield put(UpdateCoverPicFailure(error));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
       yield put(UpdateCoverPicFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 413) {
+      yield put(UpdateCoverPicFailure(error));
+      showErrorAlert('Oops! That image is too large to upload');
+    } else if (error?.status == 504) {
+      yield put(UpdateCoverPicFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(UpdateCoverPicFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -625,7 +668,10 @@ export function* ProviderListSaga(action) {
     } else if (error?.status == 401) {
       yield put(ProviderListFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(ProviderListFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(ProviderListFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -661,7 +707,10 @@ export function* providerDetailsSaga(action) {
     } else if (error?.status == 401) {
       yield put(providerDetailsFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(providerDetailsFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(providerDetailsFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -697,6 +746,9 @@ export function* providerListByLocationSaga(action) {
     } else if (error?.status == 401) {
       yield put(providerListByLocationFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(providerListByLocationFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(providerListByLocationFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -729,7 +781,10 @@ export function* MembershipListSaga(action) {
     } else if (error?.status == 401) {
       yield put(MembershipListFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(MembershipListFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(MembershipListFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -766,7 +821,10 @@ export function* MembershipStatusSaga(action) {
     } else if (error?.status == 401) {
       yield put(MembershipStatusFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(MembershipStatusFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(MembershipStatusFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -803,7 +861,10 @@ export function* MTNPaymentSaga(action) {
     } else if (error?.status == 401) {
       yield put(mtnPaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(mtnPaymentFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(mtnPaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -842,7 +903,10 @@ export function* deleteUserSaga(action) {
     } else if (error?.status == 401) {
       yield put(deleteUserFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(deleteUserFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(deleteUserFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -878,7 +942,10 @@ export function* ServiceListSaga(action) {
     } else if (error?.status == 401) {
       yield put(serviceListFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(serviceListFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(serviceListFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -915,6 +982,9 @@ export function* recentUpdateClientSaga(action) {
     } else if (error?.status == 401) {
       yield put(recentUpdateClientFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(recentUpdateClientFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(recentUpdateClientFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -953,7 +1023,10 @@ export function* SubscriptionSaga(action) {
     } else if (error?.status == 401) {
       yield put(SubscriptionFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
-    } else {
+    }else if (error?.status == 504) {
+      yield put(SubscriptionFailure(error));
+      showErrorAlert('Request Timed Out');
+    }  else {
       yield put(SubscriptionFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
     }
@@ -991,6 +1064,9 @@ export function* CreatePaymentSaga(action) {
     } else if (error?.status == 401) {
       yield put(CreatePaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(CreatePaymentFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(CreatePaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -1033,6 +1109,9 @@ export function* StripePaymentSaga(action) {
     } else if (error?.status == 401) {
       yield put(StripePaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(StripePaymentFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(StripePaymentFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);
@@ -1074,6 +1153,9 @@ export function* StripePaymentFailSaga(action) {
     } else if (error?.status == 401) {
       yield put(StripePaymentFailFailure(error));
       showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(StripePaymentFailFailure(error));
+      showErrorAlert('Request Timed Out');
     } else {
       yield put(StripePaymentFailFailure(error));
       showErrorAlert(error?.response?.data?.data?.error);

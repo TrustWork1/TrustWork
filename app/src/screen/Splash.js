@@ -33,7 +33,14 @@ const Splash = props => {
   }, []);
 
   useEffect(() => {
-    dispatch(getTokenRequest());
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(getTokenRequest());
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, []);
 
   useFocusEffect(

@@ -10,6 +10,8 @@ import {useIsFocused} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {bidDetailsRequest} from '../../redux/reducer/ProjectReducer';
 import DataWithIcon from '../../components/Micro/DataWithIcon';
+import connectionrequest from '../../utils/helpers/NetInfo';
+import showErrorAlert from '../../utils/helpers/Toast';
 
 const BidDetails = props => {
   const isFocused = useIsFocused();
@@ -17,7 +19,14 @@ const BidDetails = props => {
   const ProjectReducer = useSelector(state => state.ProjectReducer);
 
   useEffect(() => {
-    dispatch(bidDetailsRequest(props?.route?.params?.bid_id));
+    connectionrequest()
+      .then(() => {
+
+        dispatch(bidDetailsRequest(props?.route?.params?.bid_id));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, [isFocused]);
   console.log(props);
   return (

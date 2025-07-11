@@ -13,6 +13,7 @@ import {Colors, Fonts, Icons} from '../themes/Themes';
 import errorMessages from '../utils/errorMessages';
 import normalize from '../utils/helpers/normalize';
 import showErrorAlert from '../utils/helpers/Toast';
+import connectionrequest from '../utils/helpers/NetInfo';
 let status = '';
 
 const ChangePass = () => {
@@ -40,7 +41,14 @@ const ChangePass = () => {
         new_password: password,
         confirm_password: confirmPassword,
       };
-      dispatch(changePasswordRequest(obj));
+      connectionrequest()
+      .then(() => {
+        
+        dispatch(changePasswordRequest(obj));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
     }
   };
 

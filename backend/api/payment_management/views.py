@@ -37,9 +37,6 @@ BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL")
 
 # Dev Cred
 
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_TEST_WEBHOOK_SECRET")
 
 class PaymentApiView(APIView):
     def post(self,request):

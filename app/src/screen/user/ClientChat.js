@@ -19,6 +19,7 @@ import {Colors, Fonts, Icons} from '../../themes/Themes';
 import constants from '../../utils/helpers/constants';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import connectionrequest from '../../utils/helpers/NetInfo';
 let status = '';
 
 const ClientChat = props => {
@@ -68,7 +69,14 @@ const ClientChat = props => {
   }, []);
 
   useEffect(() => {
-    dispatch(messageListRequest(roomId));
+    connectionrequest()
+      .then(() => {
+        
+        dispatch(messageListRequest(roomId));
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
   }, [isFocused, page]);
 
   useEffect(() => {

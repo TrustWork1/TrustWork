@@ -154,6 +154,54 @@ class ProfileSelfView(APIView):
             return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class UserProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes=[MultiPartParser,FormParser,JSONParser]
+    
+    @swagger_auto_schema(
+        operation_description="Retrieve a profile by ID or list of profiles by user type",
+        manual_parameters=[
+            openapi.Parameter(
+                'user_type', openapi.IN_QUERY, description="Filter profiles by user type", type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                'Authorization', openapi.IN_HEADER, description="Authorization token (Bearer token)", type=openapi.TYPE_STRING, required=True
+            )
+        ],
+        responses={200: ProfileSerializer(many=True)}
+    )
+    def get(self, request, user_type=None, pk=None):
+        if pk:
+            profile = get_object_or_404(Profile, pk=pk)
+            serializer = ProfileSerializer(profile)
+        else:
+            profiles = Profile.objects.exclude(status="inactive").order_by("-updated_at")
+            if user_type:
+                profiles = profiles.filter(user__user_type=user_type)
+            
+            search = request.query_params.get('search')
+            if search:
+                profiles = profiles.filter(
+                    Q(phone__icontains=search) |
+                    Q(user__email__icontains=search) |
+                    Q(user__full_name__icontains=search)
+                )
+            paginator = CustomPagination()
+            profiles = profiles.order_by("-id", "-updated_at")
+            paginated_profiles = paginator.paginate_queryset(profiles, request)
+            
+            serializer = ProfileSerializer(paginated_profiles, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        response = {
+            "status": 200,
+            "type": "success",
+            "message": "Data fetched successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes=[MultiPartParser,FormParser,JSONParser]
@@ -1603,7 +1651,7 @@ class ProfileDetails(APIView):
             )
         
         if user_type.lower() == "client":
-            providers=Profile.objects.filter(user__user_type='provider').order_by('-created_at')
+            providers=Profile.objects.filter(user__user_type='provider').exclude(status="inactive").order_by('-created_at')
             
             filtered_users= self.filter_by_location(providers, latitude, longitude, radius)
             
@@ -1619,7 +1667,7 @@ class ProfileDetails(APIView):
 
         elif user_type.lower() == "provider":
             # projects = Project.objects.filter(bid__service_provider=user_profile).select_related("client")
-            clients = Profile.objects.filter(user__user_type='client').order_by('-created_at')
+            clients = Profile.objects.filter(user__user_type='client').exclude(status="inactive").order_by('-created_at')
 
             filtered_users = self.filter_by_location(clients, latitude, longitude, radius)
 
@@ -1792,11 +1840,11 @@ class HandleSubscription(APIView):
         Subscriptions.objects.filter(profile=request.user.profile, is_active=True).update(is_active=False)
         frequency=subscription_plan.split("_")[1]
         days=0
-        if frequency == "weekly":
+        if frequency.lower() == "weekly" or frequency.lower() == "weekly(discount)":
             days = 7
-        elif frequency == "monthly":
+        elif frequency.lower() == "monthly" or frequency.lower() == "monthly(discount)":
             days = 30
-        elif frequency == "yearly":
+        elif frequency.lower() == "yearly" or frequency.lower() == "yearly(discount)":
             days = 365
         
         expire_at = timezone.now() + timedelta(days=days)

@@ -413,19 +413,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email]
 
-        # Render the email body from the HTML template
         html_message = render_to_string('email_temp.html', {
             'title': 'Registration OTP',
             'otp': f'Your OTP for registration is {otp}.',
             'image': TRUSTWORK_BASE_API
         })
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=from_email,
-            recipient_list=recipient_list,
-            html_message=html_message
-        )
+
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=recipient_list,
+                html_message=html_message,
+                fail_silently=False  # catch error instead of hiding it
+            )
+        except Exception as e:
+            print(f"[EMAIL ERROR] OTP mail sending failed: {e}")
     def validate(self, data):
         email = data.get('email',"")
         phone = data.get('phone',"")

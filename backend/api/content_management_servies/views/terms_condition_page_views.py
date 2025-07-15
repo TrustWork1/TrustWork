@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from content_management.models.home_page_models import DownloadSection
 from content_management.models.terms_condition_page_models import *
 from api.content_management_servies.serializers.terms_condition_page_serializers import *
 
@@ -96,6 +97,7 @@ class TermsConditionsView(APIView):
     def get(self, request):
         response_data = {}
 
+        download_section = DownloadSection.objects.last()
         # Terms Conditions Section
         terms_conditions_section = TermsConditionsSection.objects.last()
         if terms_conditions_section:
@@ -103,6 +105,10 @@ class TermsConditionsView(APIView):
                 "id": terms_conditions_section.id,
                 "section_header": terms_conditions_section.section_header,
                 "section_description": terms_conditions_section.section_description,
-                "details": terms_conditions_section.details
+                "details": terms_conditions_section.details,
+                "download_section": {
+                    "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
+                    "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
+                }
             }
         return Response(response_data, status=status.HTTP_200_OK)

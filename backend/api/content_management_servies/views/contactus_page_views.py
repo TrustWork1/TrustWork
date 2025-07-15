@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from content_management.models.home_page_models import DownloadSection
 from content_management.models.contactus_page_models import *
 from api.content_management_servies.serializers.contactus_page_serializers import *
 
@@ -208,6 +209,7 @@ class ContactUsView(APIView):
     def get(self, request):
         response_data = {}
 
+        download_section = DownloadSection.objects.last()
         contact_us = ContactUs.objects.last()
         if contact_us:
             response_data = {
@@ -229,6 +231,11 @@ class ContactUsView(APIView):
                 "latitude": contact_us.latitude,
                 "map_url": contact_us.map_url,
                 "get_in_touch_title": contact_us.get_in_touch_title,
-                "get_in_touch_description": contact_us.get_in_touch_description
+                "get_in_touch_description": contact_us.get_in_touch_description,
+                "download_section": {
+                    "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
+                    "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
+                }
             }
+        
         return Response(response_data, status=status.HTTP_200_OK)

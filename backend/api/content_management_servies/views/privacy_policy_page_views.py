@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from content_management.models.home_page_models import DownloadSection
 from content_management.models.privacy_policy_page_models import *
 from api.content_management_servies.serializers.privacy_policy_page_serializers import *
 
@@ -96,6 +97,7 @@ class PrivacyPolicyView(APIView):
     def get(self, request):
         response_data = {}
 
+        download_section = DownloadSection.objects.last()
         # Privacy Policy Section
         privacy_policy_section = PrivacyPolicySection.objects.last()
         if privacy_policy_section:
@@ -103,6 +105,10 @@ class PrivacyPolicyView(APIView):
                 "id": privacy_policy_section.id,
                 "section_header": privacy_policy_section.section_header,
                 "section_description": privacy_policy_section.section_description,
-                "details": privacy_policy_section.details
+                "details": privacy_policy_section.details,
+                "download_section": {
+                    "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
+                    "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
+                }
             }
         return Response(response_data, status=status.HTTP_200_OK)

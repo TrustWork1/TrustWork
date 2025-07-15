@@ -54,7 +54,6 @@ const Referal = props => {
   useEffect(() => {
     connectionrequest()
       .then(() => {
-        
         dispatch(ReferralStepsRequest());
       })
       .catch(err => {
@@ -114,25 +113,25 @@ const Referal = props => {
           height: StatusBar.currentHeight,
         }}
       />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity
+      <TouchableOpacity
+        style={{
+          // position: 'absolute',
+          height: normalize(33),
+          width: normalize(33),
+          // marginTop: Platform.OS === 'ios' ? normalize(25) : normalize(35),
+          marginLeft: normalize(15),
+        }}
+        onPress={() => NavigationService.goBack()}>
+        <Image
+          source={Icons.BackIcon}
+          resizeMode="contain"
           style={{
-            position: 'absolute',
             height: normalize(33),
             width: normalize(33),
-            marginTop: Platform.OS === 'ios' ? normalize(5) : normalize(15),
-            marginLeft: normalize(15),
           }}
-          onPress={() => NavigationService.goBack()}>
-          <Image
-            source={Icons.BackIcon}
-            resizeMode="contain"
-            style={{
-              height: normalize(33),
-              width: normalize(33),
-            }}
-          />
-        </TouchableOpacity>
+        />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerContainer}>
           <Image
             source={Images.Referal}

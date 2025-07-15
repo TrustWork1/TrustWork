@@ -1,7 +1,12 @@
 export default {
   // DEVELOPMENT URL
+  // BASE_URL: 'https://trustwork-api.dedicateddevelopers.us/api',
+  // IMAGE_URL: 'https://trustwork-api.dedicateddevelopers.us/',
+  // SOCKET_URL: 'wss://trustwork-api.dedicateddevelopers.us/ws/chat/',
+
+  // LIVE URL
   BASE_URL: 'https://api.trustwork.live/api',
-  IMAGE_URL: 'https://api.trustwork.live/',
+  IMAGE_URL: 'https://api.trustwork.live',
   SOCKET_URL: 'wss://api.trustwork.live/ws/chat/',
 
   // // LOCAL URL

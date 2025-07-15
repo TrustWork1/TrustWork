@@ -136,6 +136,7 @@ const EditProfile = props => {
     if (!_.isEmpty(selectedImgObj)) {
       obj.append('profile_picture', selectedImgObj);
     }
+    obj.append('phone_extension', code);
     obj.append('phone', phone.replace(/-/g, ''));
     obj.append('full_name', fullName);
     obj.append('email', email);
@@ -285,41 +286,12 @@ const EditProfile = props => {
                   AuthReducer?.ProfileResponse?.data?.email ? false : true
                 }
               />
-              <View style={[css.rowBetween, css.asc, {width: normalize(280)}]}>
-                {/* <Dropdown
-                  show={code?.length > 0 ? true : false}
-                  isPhone={true}
-                  data={CountryCode}
-                  height={normalize(50)}
-                  width={normalize(75)}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  fonts={Fonts.VerdanaProMedium}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  marginTop={normalize(25)}
-                  paddingLeft={normalize(12)}
-                  valueColor={Colors.themeBlack}
-                  paddingHorizontal={normalize(5)}
-                  // label={'Project Category'}
-                  // placeholder={'Select Category'}
-                  value={code}
-                  // disabled={item?.bid_count > 0 || false}
-                  // modalHeight
-                  marginBottom={normalize(10)}
-                  marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  onChange={(selecetedItem, index) => {
-                    setCode(selecetedItem?.dial_code);
-                  }}
-                /> */}
-
+              {/* <View style={[css.rowBetween, css.asc, {width: normalize(280)}]}>
                 <TextIn
                   show={phone?.length > 0 ? true : false}
                   value={`${code}${phone}`}
                   isVisible={false}
-                  onChangeText={val => setPhone(val?.trimStart())}
+                  onChangeText={val => setPhone(val)}
                   height={normalize(50)}
                   width={normalize(280)}
                   fonts={Fonts.FustatMedium}
@@ -338,6 +310,71 @@ const EditProfile = props => {
                   paddingLeft={normalize(10)}
                   paddingRight={normalize(10)}
                   keyboardType={'numeric'}
+                  editable={
+                    AuthReducer?.ProfileResponse?.data?.phone ? false : true
+                  }
+                />
+              </View> */}
+              <View style={[css.rowBetween, css.asc, {width: normalize(280)}]}>
+                <Dropdown
+                  show={code?.length > 0 ? true : false}
+                  isPhone={true}
+                  data={CountryCode}
+                  height={normalize(50)}
+                  width={normalize(75)}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  fonts={Fonts.VerdanaProMedium}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  marginTop={
+                    Platform.OS == 'ios' ? normalize(20) : normalize(15)
+                  }
+                  paddingLeft={normalize(12)}
+                  valueColor={Colors.themeBlack}
+                  paddingHorizontal={normalize(5)}
+                  // label={'Project Category'}
+                  // placeholder={'Select Category'}
+                  value={code}
+                  isSerachBar={true}
+                  // disabled={item?.bid_count > 0 || false}
+                  // modalHeight
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(10)}
+                  outlineTxtwidth={normalize(50)}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  onChange={(selecetedItem, index) => {
+                    setCode(selecetedItem?.dial_code);
+                  }}
+                />
+
+                <TextIn
+                  show={phone?.length > 0 ? true : false}
+                  value={phone}
+                  isVisible={false}
+                  onChangeText={val => {
+                    setPhone(val?.replace(/[^0-9]/g, ''));
+                  }}
+                  height={normalize(50)}
+                  width={normalize(200)}
+                  fonts={Fonts.FustatMedium}
+                  borderColor={Colors.themeBoxBorder}
+                  borderWidth={1}
+                  maxLength={10}
+                  keyboardType={'number-pad'}
+                  marginTop={normalize(10)}
+                  marginBottom={normalize(10)}
+                  marginLeft={normalize(-80)}
+                  outlineTxtwidth={normalize(50)}
+                  label={'Phone Number'}
+                  placeholder={'Enter Phone Number'}
+                  //placeholderIcon={Icons.Email}
+                  placeholderTextColor={Colors.themePlaceholder}
+                  borderRadius={normalize(6)}
+                  fontSize={14}
+                  //Eyeshow={true}
+                  paddingLeft={normalize(10)}
+                  paddingRight={normalize(10)}
                   editable={
                     AuthReducer?.ProfileResponse?.data?.phone ? false : true
                   }

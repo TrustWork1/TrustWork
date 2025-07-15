@@ -171,7 +171,7 @@ const Header = props => {
                   />
                   <View style={styles.titleTxtConatiner}>
                     <Text style={styles.titleTxtt}>{props.title}</Text>
-                    <Text style={styles.subTitleTxt}>{props.subTitle}</Text>
+                    {/* <Text style={styles.subTitleTxt}>{props.subTitle}</Text>
                     {props?.isTyping ? (
                       <Text style={styles.typingTxt}>
                         {props?.isTyping && 'Typing...'}
@@ -189,7 +189,7 @@ const Header = props => {
                         }}>
                         {props.isOnline ? 'Online' : 'Offline'}
                       </Text>
-                    )}
+                    )} */}
                   </View>
                 </View>
               </View>

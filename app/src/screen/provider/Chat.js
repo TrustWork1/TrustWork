@@ -45,7 +45,7 @@ const Chat = props => {
       : props?.route?.params?.roomId != undefined
       ? props?.route?.params?.roomId
       : userdata?.id;
-
+  console.log(constants?.SOCKET_URL + roomId + '/');
   const ws = new WebSocket(constants?.SOCKET_URL + roomId + '/');
   console.log(
     'check-->',
@@ -72,7 +72,6 @@ const Chat = props => {
   useEffect(() => {
     connectionrequest()
       .then(() => {
-        
         dispatch(messageListRequest(roomId));
       })
       .catch(err => {
@@ -205,8 +204,6 @@ const Chat = props => {
         break;
     }
   }
-
- 
 
   return (
     <KeyboardAvoidingView

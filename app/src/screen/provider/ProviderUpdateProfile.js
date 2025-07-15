@@ -837,7 +837,7 @@ const ProviderUpdateProfile = props => {
                     fonts={Fonts.FustatMedium}
                     borderColor={Colors.themeBoxBorder}
                     borderWidth={1}
-                    maxLength={30}
+                    // maxLength={30}
                     marginTop={normalize(10)}
                     marginBottom={normalize(10)}
                     marginLeft={normalize(20)}

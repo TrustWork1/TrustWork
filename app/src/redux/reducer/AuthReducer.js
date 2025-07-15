@@ -280,6 +280,7 @@ const AuthSlice = createSlice({
     },
     ProfileSuccess(state, action) {
       state.ProfileResponse = action.payload;
+      state.isPaymentVerified = action.payload?.data?.is_payment_verified;
       state.status = action.type;
     },
     ProfileFailure(state, action) {

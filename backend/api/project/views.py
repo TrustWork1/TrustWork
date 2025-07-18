@@ -878,34 +878,6 @@ class BidList(APIView):
             return Response(serializer.data, status=201)
         
         return Response(serializer.errors, status=400)
-    
-    # def post(self, request):
-    #     serializer = BidSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         service_provider_id = request.data.get('service_provider')
-    #         if not service_provider_id:
-    #             return Response(
-    #                 {"error": "Service provider ID is required."},
-    #                 status=status.HTTP_400_BAD_REQUEST
-    #             )
-
-    #         service_provider = get_object_or_404(Profile, id=service_provider_id)
-    #         serializer.save(service_provider=service_provider)
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # def post(self, request):
-    #     serializer = BidSerializer(data=request.data)
-        
-    #     if serializer.is_valid():
-    #         try:
-    #             service_provider = Profile.objects.get(id=request.data['service_provider'])
-    #         except Profile.DoesNotExist:
-    #             return Response({"error": "Service provider not found."}, status=status.HTTP_404_NOT_FOUND)
-    #         serializer.save(service_provider=service_provider)
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BidDetail(APIView):
     permission_classes = [IsAuthenticated]
@@ -1005,56 +977,6 @@ class BidDetail(APIView):
             print(str(e))
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# Serch By Project ID
-# class ServiceProviderListView(generics.ListAPIView):
-#     permission_classes = [IsAuthenticated]
-#     # queryset = ServiceProvider.objects.all()
-#     serializer_class = BidSerializerProjectView
-
-#     @swagger_auto_schema(
-#         operation_summary="list of service providers of specific project",
-#         operation_description="list of service providers",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True
-#                 ),
-#                 # openapi.Parameter(
-#                 #     'project_id',
-#                 #     openapi.IN_PATH,
-#                 #     description="ID of the project",
-#                 #     type=openapi.TYPE_INTEGER,
-#                 #     required=True
-#                 # ),
-#         ],
-#         request_body=BidSerializerProjectView,
-#         responses={
-#             200: BidSerializerProjectView(many=True),
-#             404: openapi.Response(
-#                 description="No bids found for this project.",
-#                 examples={
-#                     "application/json": {
-#                         "detail": "No bids found"
-#                     }
-#                 }
-#             ),
-#         },
-#     )
-#     def get_queryset(self):
-#         project_id = self.kwargs['project_id']
-#         return Bid.objects.filter(project_id=project_id)
-
-#     def get(self, request, *args, **kwargs):
-#         project_id = kwargs.get('project_id')
-#         queryset = self.get_queryset()
-#         if not queryset.exists():
-#             return Response({"detail": "No bids found"}, status=status.HTTP_404_NOT_FOUND)
-        
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)
 
 from django.db.models import F, Case, When, Value, BooleanField
 
@@ -1067,14 +989,6 @@ class StandardResultsSetPagination(PageNumberPagination):
 class ServiceProviderListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BidSerializerProjectView
-
-    # def get_queryset(self):
-    #     search = self.request.query_params.get('search', None)
-
-    #     if search:
-    #         queryset = queryset.filter(service_provider__name__icontains=search) 
-
-    #     return queryset
 
     @swagger_auto_schema(
         operation_summary="list of all project on service provider",
@@ -1249,57 +1163,6 @@ class JobCategoryView(APIView):
             return Response({"status": 404, "message": "Job category not found."},status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"message": "Error Occurred Please Check"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    # def get(self, request, pk=None):
-    #     try:
-    #         if pk:
-    #             job_category = JobCategory.objects.filter(pk=pk).order_by("updated_at").first()
-    #             if not job_category:
-    #                 return Response(
-    #                     {"message": "Job category not found or inactive"},
-    #                     status=status.HTTP_404_NOT_FOUND
-    #                 )
-    #             serializer = JobCategorySerializer(job_category)
-    #         else:
-    #             job_categories = JobCategory.objects.filter(status="active")
-    #             serializer = JobCategorySerializer(job_categories, many=True)
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except Exception as e:
-    #         return Response(
-    #             {"message": "Error occurred. Please check", "details": str(e)},
-    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-    #         )
-    
-    # def get(self, request, pk=None):
-    #     try:
-    #         if pk:
-    #             job_category = JobCategory.objects.filter(pk=pk).order_by("updated_at").first()
-    #             if not job_category:
-    #                 return Response(
-    #                     {"message": "Job category not found"},
-    #                     status=status.HTTP_404_NOT_FOUND
-    #                 )
-    #             serializer = JobCategorySerializer(job_category)
-    #             return Response(serializer.data, status=status.HTTP_200_OK)
-    #         else:
-    #             active_categories = JobCategory.objects.filter(status="active").order_by("updated_at")
-    #             inactive_categories = JobCategory.objects.filter(status="inactive").order_by("updated_at")
-                
-    #             active_serializer = JobCategorySerializer(active_categories, many=True)
-    #             inactive_serializer = JobCategorySerializer(inactive_categories, many=True)
-                
-    #             return Response(
-    #                 {
-    #                     "active_categories": active_serializer.data,
-    #                     "inactive_categories": inactive_serializer.data
-    #                 },
-    #                 status=status.HTTP_200_OK
-    #             )
-    #     except Exception as e:
-    #         return Response(
-    #             {"message": "Error occurred. Please check", "details": str(e)},
-    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-    #         )
 
     def post(self, request):
         try:
@@ -1449,92 +1312,6 @@ class FeedbackDetailView(APIView):
 
 from .serializers import  ProjectSerializer
 
-# class FeedbackView(APIView):  #  to the service provider
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, project_id):
-#         print('#######',project_id)
-#         try:
-#             project = Project.objects.get(id=project_id)
-#         except Project.DoesNotExist:
-#             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         data = request.data.copy()
-#         if not data.get('client_review', '') or not data.get('client_rating', ''):
-#             return Response({"error": "Both 'client_review' and 'client_rating' fields are required."},
-#         status=status.HTTP_400_BAD_REQUEST
-#     )
-
-#         data['project'] = project.id
-#         print("data['project'] ", data['project'] )
-#         data['service_provider'] = Bid.objects.get(project__id=project_id,status="Accepted").service_provider.pk
-#         print("data['service_provider']", data['service_provider'])
-#         feedback, created = Feedback.objects.update_or_create(
-#             project=project,
-#             service_provider=bid.service_provider,
-#             defaults={
-#                 'client_review': data.get('client_review'),
-#                 'client_rating': data.get('client_rating'),
-#                 'provider_review': data.get('provider_review'),
-#                 'provider_rating': data.get('provider_rating'),
-#             }
-#         )
-
-
-#         serializer = FeedbackSerializer(data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def get(self, request, project_id,pk):
-#         """Retrieve Feedback with Project Details"""
-#         print("@@@@@@@@", project_id)
-#         try:
-#             project = Project.objects.get(id=project_id)
-#         except Project.DoesNotExist:
-#             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         feedbacks = Feedback.objects.filter(project=project).last()
-#         project_serializer = ProjectSerializer(project)
-#         feedback_serializer = FeedbackSerializer(feedbacks)
-
-#         return Response({
-#             "project_details": project_serializer.data if project_serializer.data else [],
-#             "feedbacks": feedback_serializer.data if feedback_serializer.data else []
-#         }, status=status.HTTP_200_OK)
-
-#     def put(self, request, project_id):
-#         feedback_id = request.data.get("feedback_id", "")
-
-#         try:
-#             feedback = Feedback.objects.get(id=feedback_id)
-#         except Feedback.DoesNotExist:
-#             return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         # if feedback.project.client.user != request.user:
-#         #     return Response({"error": "You are not authorized to update this feedback"}, status=status.HTTP_403_FORBIDDEN)
-
-#         serializer = FeedbackSerializer(feedback, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(data=serializer.data, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, feedback_id):
-   
-#         try:
-#             feedback = Feedback.objects.get(id=feedback_id)
-#         except Feedback.DoesNotExist:
-#             return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#         if feedback.project.client.user != request.user:
-#             return Response({"error": "You are not authorized to delete this feedback"}, status=status.HTTP_403_FORBIDDEN)
-
-#         feedback.delete()
-#         return Response({"message": "Feedback deleted successfully"}, status=status.HTTP_200_OK)
-
-# New Code
 class FeedbackView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1700,22 +1477,6 @@ class ProviderFeedbackView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # def delete(self, request, feedback_id):
-    #     """
-    #     Delete feedback.
-    #     """
-    #     try:
-    #         feedback = Feedback.objects.get(id=feedback_id)
-    #     except Feedback.DoesNotExist:
-    #         return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    #     # Ensure the logged-in user is the service provider who created this feedback
-    #     if feedback.service_provider.user != request.user:
-    #         return Response({"error": "You are not authorized to delete this feedback"}, status=status.HTTP_403_FORBIDDEN)
-
-    #     feedback.delete()
-    #     return Response({"message": "Feedback deleted successfully"}, status=status.HTTP_200_OK)
     
     def delete(self, request, feedback_id):
         """

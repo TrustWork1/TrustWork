@@ -196,60 +196,6 @@ class CreateCheckoutSessionView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    
-
-    # def post(self, request):
-    #     try:
-    #         data = request.data
-    #         amount = data.get('amount', 1000)
-    #         currency = data.get('currency', 'usd')
-    #         user_id = request.user.id
-    #         # project_id = request.data.get(project_id, "")
-    #         # bid_id = request.data.get('bid_id', "")
-    #         # amount=bid_id.get('project_total_cost', ' ')
-    #         # project_id = Bid.objects.get(id=id).project.id
-    #         # print("project_id", project_id)
-    #         # if project_id:
-    #         #     project_id.status=='ongoing'
-    #         #     amount = project_id.get('project_budget', ' ')
-    #             # Project.objects.get(project_id, status='ongoing')
-    #         try:
-    #             session = stripe.checkout.Session.create(
-    #                 payment_method_types=['card'],
-    #                 line_items=[{
-    #                     'price_data': {
-    #                         'currency': currency,
-    #                         'product_data': {'name': 'Service Payment'},
-    #                         'unit_amount': amount,
-    #                         # 'payment_method':['card'],
-    #                         # 'capture_method':'manual',
-    #                     },
-    #                     'quantity': 1,
-    #                 }],
-    #                 mode='payment',
-    #                 # success_url=f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/payment-success/",
-    #                 success_url="http://127.0.0.1:8000/stripe/api/process-stripe-session/payment-success/",
-    #                 # cancel_url=f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/payment-failed/",
-    #                 cancel_url="http://127.0.0.1:8000/stripe/api/process-stripe-session/payment-failed/",
-    #                 metadata={'user_id': user_id} 
-    #             )
-    #             print("session", session)
-
-
-    #             # project_b_url = f"{ESCROW_BASE_API}/stripe/api/process-stripe-session/"
-    #             project_b_url = "http://127.0.0.1:8001/stripe/api/process-stripe-session/"
-    #             payload = {'session_id': session.id, 'user_id': user_id, 'unit_amount': amount, 'currency': currency}
-    #             response = requests.post(project_b_url, json=payload)
-
-    #             if response.status_code == 200:
-    #                 return Response({'session_id': session.id, 'url': session.url}, status=status.HTTP_201_CREATED)
-    #             else:
-    #                 return Response({'error': 'Failed to send session to Project B'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    #         except Exception as e:
-    #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     except Exception as e:
-    #         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CheckPaymentStatus(APIView):
     permission_classes = [permissions.IsAuthenticated] 
@@ -260,7 +206,6 @@ class CheckPaymentStatus(APIView):
         # user_id = request.user.id
         session_id = data.get('session_id')
         project_b_url = f"{ESCROW_BASE_API}/stripe/api/payment-status-view/{session_id}/"
-        # project_b_url = f"http://127.0.0.1:8001/stripe/api/payment-status-view/{session_id}/"
         
         response = requests.get(project_b_url)
 

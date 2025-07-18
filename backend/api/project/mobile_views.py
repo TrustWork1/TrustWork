@@ -182,76 +182,6 @@ class ProjectDetail(APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# class MobileProjectDetail(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get_object(self, pk):
-#         try:
-#             return Project.objects.get(pk=pk)
-#         except Project.DoesNotExist:
-#             raise Http404
-
-#     @swagger_auto_schema(
-#             operation_description="Get a project",
-#             manual_parameters=[
-#                 openapi.Parameter(
-#                     'Authorization',
-#                     openapi.IN_HEADER,
-#                     description="Authorization token (Bearer Token)",
-#                     type=openapi.TYPE_STRING,
-#                     required=True
-#                 ),
-#             ],
-#         # request_body=ProjectSerializer,
-#         responses={200: ProjectSerializer(many=True), 400: "Bad Request"},
-#     )
-#     def get(self, request, pk):
-#         project = self.get_object(pk)
-#         serializer = ProjectSerializer(project)
-#         serializer.data.pop("client")
-#         return Response(serializer.data)
-
-#     @swagger_auto_schema(
-#             operation_description="Update a project",
-#             manual_parameters=[
-#                 openapi.Parameter(
-#                     'Authorization',
-#                     openapi.IN_HEADER,
-#                     description="Authorization token (Bearer Token)",
-#                     type=openapi.TYPE_STRING,
-#                     required=True
-#                 )
-#             ],
-#         request_body=ProjectSerializer,
-#         # responses={200: ProjectSerializer(many=True), 400: "Bad Request"}
-#     )
-#     def put(self, request, pk):
-#         project = self.get_object(pk)
-#         serializer = ProjectSerializer(project, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     @swagger_auto_schema(
-#         operation_description="Delete a project",
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="Authorization token (Bearer Token)",
-#                 type=openapi.TYPE_STRING,
-#                 required=True
-#                 )
-#             ],
-#         # request_body=ProjectSerializer,
-#         responses={204: "No Content", 400: "Bad Request"}
-#     )
-#     def delete(self, request, pk):
-#         project = self.get_object(pk)
-#         project.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
 class ChangeProjectStatusView(APIView):
     def put(self,request,pk=None,user_type=None):
         project = get_object_or_404(Project, pk=pk)
@@ -288,38 +218,6 @@ class BidApiView(APIView):
         except Exception as e:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# previous working code
-# class ClientActiveProjectsView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         client_profile = request.user.profile
-#         projects = Project.objects.filter(client=client_profile)
-
-#         project_status = request.GET.get("status")
-#         if project_status:
-#             projects = projects.filter(status=project_status)
-
-#         bids = Bid.objects.filter(project__in=projects)
-
-#         paginator = CustomPagination()  
-#         paginated_projects = paginator.paginate_queryset(bids, request)
-
-#         serializer = BidSerializer(paginated_projects, many=True)
-
-#         return paginator.get_paginated_response(serializer.data)
-#         # try:
-#         #     client_profile = Profile.objects.get(user=request.user)
-#         # except Profile.DoesNotExist:
-#         #     return Response({"error": "Client profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-#         # active_projects = Project.objects.filter(client=client_profile, status="active")
-        
-#         # paginator = CustomPagination()
-#         # paginated_projects = paginator.paginate_queryset(active_projects, request)
-#         # serializer = ProjectSerializer(paginated_projects, many=True)
-        
-#         # return paginator.get_paginated_response(serializer.data)
 
 class ClientActiveProjectsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -352,63 +250,6 @@ class ClientActiveProjectsView(generics.ListAPIView):
             queryset = queryset.filter(project__status=status_filter).exclude(status__iexact="rejected")
         # queryset=queryset.filter(service_provider__user=self.request.user)
         return queryset
-
-    # def get(self, request):
-    #     user_profile = getattr(request.user, 'profile', None)
-    #     if not user_profile:
-    #         return Response({"detail": "Profile not found for the current user."}, status=400)
-
-    #     if user_profile == "client":
-    #         projects = Project.objects.filter(client=user_profile, status="active")
-    #     elif user_profile == "provider":
-    #         projects = Project.objects.filter(
-    #             bid__service_provider=user_profile, status="active"
-    #         ).distinct()
-    #     else:
-    #         return Response({"detail": "Invalid role"}, status=403)
-
-    #     paginator = CustomPagination()
-    #     paginated_projects = paginator.paginate_queryset(projects, request)
-    #     serializer = ProjectSerializer(paginated_projects, many=True)
-
-    #     if user_profile == "provider":
-    #         for project, data in zip(paginated_projects, serializer.data):
-    #             can_send_bid = not Bid.objects.filter(project=project, service_provider=user_profile).exists()
-    #             data["can_send_bid"] = can_send_bid
-
-    #     return paginator.get_paginated_response(serializer.data)
-
-    #     # if project_status or status_filter:
-    #     #     projects = projects.filter(status=project_status or status_filter)
-    #     #     bids = Bid.objects.filter(project__in=projects)
-    #     #     return bids
-    #     # return Bid.objects.none()
-
-        
-    #     return super().get_queryset()| Bid.objects.filter(project__client__user=self.request.user)
-
-# class ClientActiveProjectsView(generics.ListAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = BidSerializer
-#     pagination_class = CustomPagination
-
-#     def get_queryset(self):
-#         client_profile = self.request.user.profile
-#         print("client_profile", client_profile)
-
-#         status_filter = self.request.query_params.get("status")
-#         queryset = Bid.objects.filter(service_provider__user=self.request.user)
-        
-#         if status_filter in ['completed','ongoing','accepted']:
-#             if status_filter.lower() == "accepted":
-#                 queryset = queryset.filter(is_accepted=True)
-#             elif status_filter in ["completed", "ongoing"]:
-#                 queryset = queryset.filter(project__status__iexact=status_filter).exclude(is_accepted=True)
-#             else:
-#                 queryset = queryset.filter(status__iexact=status_filter)
-
-#         return queryset
-
 
 class MobileBidList(APIView):
     permission_classes = [IsAuthenticated]
@@ -478,91 +319,6 @@ class MobileBidList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def post(self, request):
-    #     try:
-    #         project = Project.objects.get(id=request.data.get("project"))
-    #         serializer = BidSerializer(data=request.data, partial=True, context={'request': request})
-    #         if serializer.is_valid():
-    #             service_provider = Profile.objects.get(user=request.user)
-    #             bid = serializer.save(
-    #                 service_provider=service_provider,
-    #                 project=project
-    #             )
-    #             project.bid_count += 1
-    #             if project.status == "myoffer":
-    #                 project.can_send_bid = True
-    #             project.save()
-    #             bid.bid_sent = False
-    #             bid.is_accepted = True
-    #             bid.save()
-    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     except Project.DoesNotExist:
-    #         return Response({"message": "Project not found"}, status=status.HTTP_200_OK)
-    #     except Exception as e:
-    #         return Response({"detail": str(e)},status=status.HTTP_400_BAD_REQUEST)
-
-    # def post(self, request):
-    #     project_id = request.data.get("project")
-    #     service_provider = Profile.objects.get(user=request.user)
-
-    #     try:
-    #         project = Project.objects.get(id=project_id)
-    #     except Project.DoesNotExist:
-    #         return Response({"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-    #     # can_send_bid = project.bid_count < 1
-
-    #     # if Project.bid_count == 1:
-    #     #     print("OK")
-    #     bid_send = project.bid_count == 1
-    #     can_send_bid = project.bid_count == 0
-    #     existing_bid= Bid.objects.filter(service_provider=service_provider, project=project).exists()
-    #     if existing_bid:
-    #         if not can_send_bid:
-    #             return Response(
-    #                 {"detail": "Bids are no longer accepted for this project.", 
-    #                 "bid_send": bid_send, 
-    #                 "can_send_bid": can_send_bid},
-    #                 status=status.HTTP_400_BAD_REQUEST,
-    #             )
-    #         if project.bid_count == 1:
-    #             return Response({"detail": "Bids are no longer accepted for this project."}, status=status.HTTP_400_BAD_REQUEST)
-
-    #         bids = Bid.objects.filter(service_provider=Profile.objects.get(user=request.user))
-    #         queryset = Project.objects.filter(bid__in=bids, status='myoffer')
-    #         if queryset.exists():
-    #             return Response(can_send_bid)
-    #             #     {"detail": "You have already submitted a bid for this project.", "can_send_bid": can_send_bid},
-    #             #     status=status.HTTP_400_BAD_REQUEST,
-    #             # )
-    #         # if Bid.objects.filter(service_provider=service_provider, project=Project.objects.get(status__in=queryset)):    #.status == "myoffer":
-    #             # bid_send = False
-    #         if queryset.exists():
-    #             return Response({"detail": "You have already submitted a bid for this project."}, status=status.HTTP_400_BAD_REQUEST)
-    #     # if Bid.objects.filter(service_provider=service_provider, project=project).first():
-    #     #     # bid_send = False
-    #     #     return Response({"detail": "You have already submitted a bid for this project."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     serializer = BidSerializer(data=request.data, partial=True, context={'request': request})
-    #     if serializer.is_valid():
-    #         bid = serializer.save(service_provider=service_provider, project=project)
-    #         bid.project.bid_count += 1
-    #         bid.project.save()
-    #         bid.bid_send = True
-
-    #         # can_send_bid = bid.project.bid_count < 1
-    #         bid_send = project.bid_count == 1
-    #         can_send_bid = project.bid_count == 0
-
-    #         return Response( #serializer.data, bid_send, can_send_bid)
-    #             {"data":serializer.data,  
-    #                          "bid_send": bid_send, 
-    #                          "can_send_bid": can_send_bid}, 
-    #                     status=status. HTTP_201_CREATED) # "bid_send": bid.bid_send, "can_send_bid": can_send_bid
-
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class BidDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -622,37 +378,6 @@ class JobCategoryView(APIView):
                 {"message": "Error occurred. Please check", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
-    # def get(self, request, pk=None):
-    #     try:
-    #         if pk:
-    #             job_category = JobCategory.objects.filter(pk=pk).order_by("updated_at").first()
-    #             if not job_category:
-    #                 return Response(
-    #                     {"message": "Job category not found"},
-    #                     status=status.HTTP_404_NOT_FOUND
-    #                 )
-    #             serializer = JobCategorySerializer(job_category)
-    #             return Response(serializer.data, status=status.HTTP_200_OK)
-    #         else:
-    #             active_categories = JobCategory.objects.filter(status="active").order_by("updated_at")
-    #             inactive_categories = JobCategory.objects.filter(status="inactive").order_by("updated_at")
-                
-    #             active_serializer = JobCategorySerializer(active_categories, many=True)
-    #             inactive_serializer = JobCategorySerializer(inactive_categories, many=True)
-                
-    #             return Response(
-    #                 {
-    #                     "active_categories": active_serializer.data,
-    #                     "inactive_categories": inactive_serializer.data
-    #                 },
-    #                 status=status.HTTP_200_OK
-    #             )
-    #     except Exception as e:
-    #         return Response(
-    #             {"message": "Error occurred. Please check", "details": str(e)},
-    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-    #         )
 
     def post(self, request):
         try:
@@ -685,88 +410,6 @@ class JobCategoryView(APIView):
             return Response({"message": "Error Occurred Please Check"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-# class ProviderViewProject(APIView):
-#     permission_classes = [IsAuthenticated]
-#     print ("***************************************************")
-#     def get(self, request):
-#         client_profile = self.request.user.profile
-#         print("client_profile", client_profile)
-#         status_filter = self.request.query_params.get("status")
-#         print("status_filter----------", status_filter)
-#         print(Project.objects.filter(status=status_filter))
-
-#         return Response("OK")
-#         # status_filter = self.request.query_params.get("status")
-#         # query1 = Bid.objects.filter(service_provider__user=self.request.user)
-#         # print("queryquery", query)
-
-#         # if status_filter in ['accepted', 'completed', 'ongoing']:
-#         #     # query = Bid.objects.filter(service_provider__user=self.request.user)
-#         #     # print("queryquery", query)
-#         #     if status_filter == "accepted":
-#         #         query = Project.objects.filter(client=query1, status=status_filter).order_by('updated_at')
-#         #     elif status_filter == "completed":
-#         #         query = Project.objects.filter(client=query1, status=status_filter)
-#         #     elif status_filter == "ongoing":
-#         #         query = Project.objects.filter(client=query1, status=status_filter)
-#         #     else:
-#         #         query = Project.objects.filter(client=query1).order_by('-created_at')
-#         # else:
-#         #     query = Project.objects.filter(client=query1).order_by('-created_at')
-
-#         # serializer = BidSerializer(query, many=True)
-
-#         # return Response({
-#         #     "status": "success",
-#         #     "data": serializer.data
-#         # }, status=status.HTTP_200_OK)
- 
-#     # def get(self, request):
-#     #     projects = Project.objects.filter(service_provider=Profile.objects.get(user=request.user))
-#     #     serializer = ProjectSerializer(projects, many=True)
-#     #     return Response(serializer.data)
-
-# class ProviderViewProject(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         client_profile = self.request.user.profile
-
-#         status_filter = self.request.query_params.get("status")
-#         print("status_filter", status_filter)
-#         query = Project.objects.filter(client=client_profile)
-#         print("query", query)
-#         if status_filter in ['accepted', 'completed', 'ongoing']:
-#             query = query.filter(status=status_filter)
-
-#         query = query.order_by('-created_at') 
-#         projects_with_bids = query.prefetch_related('bid').all()
-
-#         project_data = []
-#         for project in projects_with_bids:
-#             project_serializer = ProjectSerializer(project)
-
-#             accepted_bid = Bid.objects.filter(project=project, status='accepted').first()
-
-#             if accepted_bid:
-#                 provider_data = ProfileSerializer(accepted_bid.service_provider).data
-#                 project_data.append({
-#                     **project_serializer.data,
-#                     'provider': provider_data
-#                 })
-#             # elif not accepted_bid:
-#             #     project_data.append(project_serializer.data)
-
-#             else:
-#                 project_data.append(project_serializer.data)
-#         return Response(project_data)
-#         # return Response({
-#         #     "status": "success",
-#         #     "data": project_data
-#         # }, status=status.HTTP_200_OK)
-
 class ProviderViewProject(APIView):
     permission_classes = [IsAuthenticated]
     # pagination_class = CustomPagination
@@ -786,73 +429,6 @@ class ProviderViewProject(APIView):
         return paginator.get_paginated_response(serializer.data)
         # return Response(ProjectSerializer(query,many=True).data, status=status.HTTP_200_OK)
 
-# class ProviderViewProjectActive(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         client_profile = self.request.user.profile
-
-#         status_filter = self.request.query_params.get("status")
-
-#         query = Project.objects.filter(client=client_profile)
-#         if status_filter in ['accepted', 'completed', 'ongoing']:
-#             query = query.filter(status=status_filter)
-
-#         query = query.order_by('-created_at')
-        
-#         projects_with_bids = query.prefetch_related('bid').all()
-
-#         project_data = []
-#         for project in projects_with_bids:
-#             accepted_bid = Bid.objects.filter(project=project, status='accepted').first()
-
-#             if accepted_bid:
-#                 project_serializer = ProjectSerializer(project)
-#                 provider_data = ProfileSerializer(accepted_bid.service_provider).data
-                
-#                 project_data.append({
-#                     **project_serializer.data,
-#                     'provider': provider_data
-#                 })
-
-#         return Response({
-#             "status": "success",
-#             "data": project_data
-#         }, status=status.HTTP_200_OK)
-
-# class ProviderViewProject(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         client_profile = self.request.user.profile
-
-#         status_filter = self.request.query_params.get("status")
-
-#         query = Project.objects.filter(client=client_profile)
-#         if status_filter in ['accepted', 'completed', 'ongoing']:
-#             query = query.filter(status=status_filter)
-
-#         query = query.order_by('-created_at')
-        
-#         projects_with_bids = query.prefetch_related('bid').all()
-
-#         project_data = []
-#         for project in projects_with_bids:
-#             accepted_bid = Bid.objects.filter(project=project, status='accepted').first()
-
-#             if accepted_bid:
-#                 project_serializer = ProjectSerializer(project)
-#                 provider_data = ProfileSerializer(accepted_bid.service_provider).data
-                
-#                 project_data.append({
-#                     **project_serializer.data,
-#                     'provider': provider_data
-#                 })
-#         return Response(project_data)
-#         # return Response({
-#         #     "status": "success",
-#         #     "data": project_data
-#         # }, status=status.HTTP_200_OK)
 
 class OfferProjectAPIView(APIView):
     def post(self, request, *args, **kwargs):
@@ -987,56 +563,9 @@ class MyOfferProjectListAPIView(APIView):
 
 #         provider = get_object_or_404(Profile, id=provider_id)
 
-# class MyOfferProjectListAPIView(APIView):
-#     permission_classes = [IsAuthenticated] 
-
-#     def get(self, request, *args, **kwargs):
-#         if not hasattr(request.user, 'profile'):
-#             return Response(
-#                 {"error": "Authenticated user must have a linked profile."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         provider_profile = request.user.profile
-#         projects = Project.objects.filter(
-#             bid__service_provider=provider_profile,
-#             status="myoffer" 
-#         ).distinct()
-
-#         project_data = []
-#         for project in projects:
-#             bids = Bid.objects.filter(project=project, service_provider=provider_profile)
-#             project_data.append({
-#                 "project": ProjectSerializer(project, context={'request': request}).data,
-#                 "bids": BidSerializer(bids, many=True, context={'request': request}).data
-#             })
-
-#         return Response(project_data, status=status.HTTP_200_OK)
-
 
 class   OfferDetailAPIView(APIView):
     parser_classes=[MultiPartParser,JSONParser,FormParser]
-
-    # def get(self, request, offer_id, *args, **kwargs):
-    #     """
-    #     Retrieve the details of an offer (project and bid) by ID.
-    #     """
-    #     try:
-    #         project = Project.objects.get(id=offer_id)
-    #         bid = Bid.objects.filter(project=project).first()
-
-    #         project_data = ProjectSerializer(project).data
-    #         bid_data = BidSerializer(bid).data if bid else None
-
-    #         return Response(
-    #             {"project": project_data, "bid": bid_data},
-    #             status=status.HTTP_200_OK
-    #         )
-    #     except Project.DoesNotExist:
-    #         return Response(
-    #             {"error": "Offer not found."},
-    #             status=status.HTTP_404_NOT_FOUND
-    #         )
 
     def get(self, request, *args, **kwargs):
         try:
@@ -1106,51 +635,6 @@ class   OfferDetailAPIView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
-# class ServiceDetailsAPIView(APIView):
-#     def get(self, request, provider_id, service_name):
-#         try:
-#             # Fetch the service provider profile
-#             service_provider = Profile.objects.filter(
-#                 id=provider_id, user__user_type="provider"
-#             ).first()
-
-#             if not service_provider:
-#                 return Response({"error": "Service Provider not found"}, status=status.HTTP_404_NOT_FOUND)
-
-#             # Filter feedback for the given service and calculate the overall rating
-#             feedbacks = Feedback.objects.filter(
-#                 service_provider=service_provider, project__project_category__title=service_name
-#             )
-            
-#             if not feedbacks.exists():
-#                 return Response({"error": f"No feedback found for the service '{service_name}'."}, status=status.HTTP_404_NOT_FOUND)
-
-#             overall_rating = feedbacks.aggregate(average_rating=Avg("rating"))["average_rating"]
-
-#             # Fetch details of clients who gave ratings
-#             client_feedbacks = [
-#                 {
-#                     "client_name": f"{feedback.client.user.first_name} {feedback.client.user.last_name}",
-#                     "description": feedback.client.profile_bio if feedback.client.profile_bio else "No description available",
-#                     "rating": feedback.rating,
-#                 }
-#                 for feedback in feedbacks
-#             ]
-
-#             # Construct the response dictionary
-#             response_data = {
-#                 "service_name": service_name,
-#                 "title": f"Service Details for {service_name}",
-#                 "overall_rating": overall_rating,
-#                 "clients_feedback": client_feedbacks,
-#             }
-
-#             return Response(response_data, status=status.HTTP_200_OK)
-
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ServiceDetailsAPIView(APIView):  #client to provider

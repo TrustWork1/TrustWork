@@ -61,28 +61,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
-    
-    # def get_latitude(self, obj):
-    #     location = Location.objects.filter(latitude=self.initial_data.get('latitude'),
-    #                                        longitude=self.initial_data.get('longitude')).first()
-    #     if location:
-    #         return location.latitude
-    #     return None
-
-    # def get_longitude(self, obj):
-    #     location = Location.objects.filter(latitude=self.initial_data.get('latitude'),
-    #                                        longitude=self.initial_data.get('longitude')).first()
-    #     if location:
-    #         return location.longitude
-    #     return None
-    # def to_representation(self, instance):
-    #     response = super().to_representation(instance)
-    #     location = Location.objects.filter(latitude=self.initial_data.get('latitude'), 
-    #                                        longitude=self.initial_data.get('longitude')).first()
-    #     if location:
-    #         response['latitude'] = location.latitude
-    #         response['longitude'] = location.longitude
-    #     return response
 
     def send_otp_email(self, email, otp):
         subject = 'Your Registration OTP'
@@ -106,62 +84,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
             fail_silently=True
         )
         
-
-# import random
-# from django.core.mail import send_mail
-# from django.conf import settings
-
-# class RegistrationSerializer(serializers.ModelSerializer):
-#     password = serializers.CharField(write_only=True)
-#     otp = serializers.CharField(read_only=True)  # OTP will be read-only
-#     latitude = serializers.FloatField(write_only=True, required=True)
-#     longitude = serializers.FloatField(write_only=True, required=True)
-
-#     class Meta:
-#         model = CustomUser
-#         fields = ['email', 'password', 'user_type', 'otp', 'full_name', 'latitude', 'longitude']
-
-#     def create(self, validated_data):
-#         latitude = validated_data.pop('latitude', None)
-#         longitude = validated_data.pop('longitude', None)
-        
-#         # Generate OTP
-#         otp = str(random.randint(100000, 999999))
-#         print(f"Generated OTP: {otp}")
-        
-#         # Create user
-#         user = CustomUser.objects.create_user(
-#             email=validated_data['email'],
-#             password=validated_data['password'],
-#             user_type=validated_data['user_type'],
-#             full_name=validated_data.get('full_name', ''),
-#             is_active=True
-#         )
-        
-#         # Attach OTP to user
-#         user.otp = otp
-#         user.save()
-
-#         location = Location.objects.filter(latitude=latitude, longitude=longitude).first()
-#         if not location:
-#             location = Location.objects.create(latitude=latitude, longitude=longitude)
-
-#         # Optionally associate the location with the user if needed
-#         # user.location = location
-#         # user.save()
-
-#         # Send OTP email
-#         self.send_otp_email(user.email, otp)
-
-#         return user
-
-#     def send_otp_email(self, email, otp):
-#         subject = 'Your Registration OTP'
-#         message = f'Your OTP for registration is {otp}.'
-#         from_email = settings.DEFAULT_FROM_EMAIL
-#         recipient_list = [email]
-#         send_mail(subject, message, from_email, recipient_list)
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
@@ -206,11 +128,17 @@ class ResetPasswordEmailRequestSerializer(serializers.Serializer):
         domain = self.context['request'].get_host() 
         link = reverse('password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
         reset_url = self.context['frontend_url'] + f"reset-password?token={token}&email={email}"
-        print(link)
+        
+        html_content = render_to_string('email_temp.html', {
+            'title': 'Password Reset Request',
+            'verify_link': f'Hello,<br>Use the following link to reset your password. Click this 👉',
+            'url': reset_url,
+            'image': TRUSTWORK_BASE_API
+        })
         send_mail(
-            subject="Password Reset Request",
-            message=f"Hello, \nUse the following link to reset your password: <a href='{reset_url}'>Reset Link</a>",
-            html_message=f"Hello, \nUse the following link to reset your password: <a href='{reset_url}'>Reset Link</a>",
+            subject="Trustwork Support",
+            message=f"Change your password",
+            html_message = html_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
         )
@@ -388,8 +316,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False,write_only=True,allow_blank=True)
     profession = serializers.CharField(required=False)
     email=serializers.EmailField(required=False,allow_blank=True)
-    associated_organization = serializers.CharField(required=False)
-    organization_registration_id = serializers.CharField(required=False)
+    associated_organization = serializers.CharField(required=False, allow_blank=True)
+    organization_registration_id = serializers.CharField(required=False, allow_blank=True)
     latitude = serializers.CharField(required=False, write_only=True)
     longitude = serializers.CharField(required=False, write_only=True)
     phone_extension=serializers.CharField(required=False,write_only=True)
@@ -463,7 +391,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         
         if user_type == 'provider':
             profile_data['profession'] = validated_data.pop('profession')
-            # profile_data['year_of_experiance'] = validated_data.pop('year_of_experiance') 
             profile_data['associated_organization'] = validated_data.pop('associated_organization')
             profile_data['organization_registration_id'] = validated_data.pop('organization_registration_id')
 

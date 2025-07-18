@@ -38,6 +38,7 @@ import environ
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
+ADMIN_URL = os.getenv('ADMIN_URL')
 
 
 class RegisterView(APIView):
@@ -204,14 +205,7 @@ class LoginView(APIView):
                         try:
                             profile=Profile.objects.get(user=user)
                             subscription=Subscriptions.objects.filter(profile=profile).last()
-                            # subscription=user.profile.profile_subscription
-                            # freq_check=0
-                            # if subscription.subscription_frequency=="weekly":
-                            #     freq_check=7
-                            # elif subscription.subscription_frequency=="monthly":
-                            #     freq_check=30
-                            # elif subscription.subscription_frequency=="yearly":
-                            #     freq_check=365
+
                             if subscription:
                                 if subscription.expire_at and subscription.expire_at <= timezone.now():
                                     subscription.is_active = False
@@ -384,7 +378,7 @@ class RequestPasswordResetEmail(APIView):
         }
     )
     def post(self, request):
-        serializer = ResetPasswordEmailRequestSerializer(data=request.data, context={'request': request, 'frontend_url': 'https://trustwork-admin.dedicateddevelopers.us/'})
+        serializer = ResetPasswordEmailRequestSerializer(data=request.data, context={'request': request, 'frontend_url': ADMIN_URL})
         if serializer.is_valid():
             serializer.save()
             response={
@@ -805,7 +799,7 @@ class UserProfileCreateView(APIView):
             # response_data['year_of_experiance'] = request.data.get('year_of_experiance')
             return Response(response_data, status=status.HTTP_200_OK)
         error_message = list(serializer.errors.values())[0][0]  # Get the first error message
-        error_string = f'{{"error": "{error_message}"}}'
+        # error_string = f'{{"error": "{error_message}"}}'
 
         return Response({"error": f"{error_message}"}, status=status.HTTP_400_BAD_REQUEST)
         # serializer = UserProfileSerializer(data=request.data)

@@ -88,7 +88,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'core.middlewares.reponse_middleware.ResponseMiddleware',
-    'core.middlewares.renderer_middleware.CustomFinalResponseMiddleware'
+    'core.middlewares.renderer_middleware.CustomFinalResponseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS=True
 ROOT_URLCONF = 'core.urls'

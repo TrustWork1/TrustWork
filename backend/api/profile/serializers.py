@@ -282,10 +282,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
         Create or get the project location and set it to the project.
         """
-        latitude = self.initial_data.get("latitude")
-        longitude = self.initial_data.get("longitude")
+        latitude = self.initial_data.get("lat")
+        longitude = self.initial_data.get("lng")
         country = self.initial_data.get("country", "")
-        code = self.initial_data.get("code", "")
+        code = self.initial_data.get("state_code", "")
         print("self.initial_data", self.initial_data)
         location = Location.objects.filter(
             latitude=latitude,
@@ -310,62 +310,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile.save()
         return profile
     
-    # def update(self, instance, validated_data):
-    #     latitude = self.initial_data.get("latitude")
-    #     longitude = self.initial_data.get("longitude")
-    #     country = self.initial_data.get("country", "")
-    #     code = self.initial_data.get("code", "")
-        
-    #     if latitude and longitude:
-    #         location = Location.objects.filter(
-    #             latitude=latitude,
-    #             longitude=longitude,
-    #             country= country, 
-    #             code= code
-    #         ).last()
-    #     if not location:
-    #         location = Location.objects.update(
-    #             latitude=latitude,
-    #             longitude=longitude,
-    #             country= country, 
-    #             code= code).last()
-    #         validated_data["country"] = location
-    #         # instance.location = location
-    #     user = validated_data.get('user', None)
-
-    #     profile = Profile.objects.update(**validated_data)
-    #     profile.location=location
-    #     profile.save()
-    #     # return profile
-    #     if "job_category" in validated_data:
-    #         try:
-    #             job_categories = JobCategory.objects.filter(id__in=eval(str(validated_data.get('job_category'))))
-    #             instance.job_category.set()
-    #             instance.job_category.set(job_categories)
-                
-    #         except Exception as e:
-    #                 print(e) 
-    #     # Update the User model fields
-    #     if "user" in validated_data:
-    #         user_data = validated_data.pop('user')
-    #         user = instance.user
-    #         full_name=user_data.get("full_name")
-    #         user.full_name=full_name
-    #         user.first_name=full_name.split(" ")[0]
-    #         user.last_name="" if len(full_name.split(" "))==1 else " ".join(full_name.split(" ")[1:])
-    #         user.save()
-
-    #     year_of_experience = validated_data.get('year_of_experience', None)
-    #     if year_of_experience is not None:
-    #         instance.year_of_experience = year_of_experience
-        
-    #     return super().update(instance,validated_data)
-    
     def update(self, instance, validated_data):
-        latitude = self.initial_data.get("latitude")
-        longitude = self.initial_data.get("longitude")
+        latitude = self.initial_data.get("lat")
+        longitude = self.initial_data.get("lng")
         country = self.initial_data.get("country", "")
-        code = self.initial_data.get("code", "")
+        code = self.initial_data.get("state_code", "")
 
         location = None
         if latitude and longitude:
@@ -382,6 +331,16 @@ class ProfileSerializer(serializers.ModelSerializer):
                     country=country,
                     code=code
                 )
+
+        # Delete old profile_picture if a new one is uploaded
+        new_profile_picture = validated_data.get('profile_picture', None)
+        if new_profile_picture and instance.profile_picture:
+            instance.profile_picture.delete(save=False)
+
+        # Delete old cover_image if a new one is uploaded
+        new_cover_image = validated_data.get('cover_image', None)
+        if new_cover_image and instance.cover_image:
+            instance.cover_image.delete(save=False)
 
         for attr, value in validated_data.items():
             if attr != 'user':
@@ -433,50 +392,6 @@ class ChangePasswordSerializer(serializers.Serializer):
             })
         return data
 
-
-# from rest_framework import serializers
-# from django.contrib.auth.tokens import PasswordResetTokenGenerator
-# from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
-# from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-
-# class OTPSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-
-# class VerifyOTPSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     otp = serializers.CharField()
-
-# class ChangePasswordSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     old_password = serializers.CharField()
-#     new_password = serializers.CharField()
-
-# class PasswordResetSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-
-# class SetNewPasswordResetOtpSerializer(serializers.Serializer):
-#     password_reset_otp = serializers.CharField(write_only=True)
-#     email = serializers.EmailField(write_only=True)
-#     token = serializers.CharField()
-
-#     def validate(self, data):
-#         try:
-#             password_reset_otp = data.get('password_reset_otp')
-#             email = data.get("email")
-#             token = data.get('token')
-#             user = CustomUser.objects.get(email=email)
-#             if not PasswordResetTokenGenerator().check_token(user, token):
-#                 raise serializers.ValidationError('The reset link is invalid or has expired.')
-#             if password_reset_otp != user.password_reset_otp:
-#                 raise serializers.ValidationError('Invalid OTP')
-#             return data
-#         except DjangoUnicodeDecodeError:
-#             raise serializers.ValidationError('Invalid UID')
-
-#     def save(self):
-#         user = self.validated_data['user']
-#         user.save()
-#         return user
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:

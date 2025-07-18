@@ -523,7 +523,7 @@ class QMSResponseApiView(APIView):
                     html_message = html_content,
                     # html_message=f"{request.data['response']}",
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[data.qms.user.user.email,"swapnil.chopra@webskitters.in"],
+                    recipient_list=[data.qms.user.user.email],
                 )
             except Exception as e:
                 print("Mail sending failed:", e)

@@ -218,29 +218,6 @@ class ProfileAPIView(APIView):
         ],
         responses={200: ProfileSerializer(many=True)}
     )
-    # def get(self, request,user_type=None, pk=None):
-    #     if pk:
-    #         profile = get_object_or_404(Profile, pk=pk)
-    #         serializer = ProfileSerializer(profile)
-    #     else:
-    #         if user_type:
-    #             paginator = CustomPagination()
-    #             profiles = Profile.objects.filter(user__user_type=user_type).order_by("-id").order_by("-updated_at")
-    #             profiles = paginator.paginate_queryset(profiles, request)
-    #             serializer = ProfileSerializer(profiles, many=True)
-    #             return paginator.get_paginated_response(serializer.data)
-    #         else:
-    #             profiles = Profile.objects.all()
-    #             serializer = ProfileSerializer(profiles, many=True)
-
-    #     response = {
-    #         "status" : 200,
-    #         "type" : "success",
-    #         "message" : "data fetched successfully",
-    #         "data" : serializer.data
-    #     }    
-    #     return Response(response,status=status.HTTP_200_OK)
-
     def get(self, request, user_type=None, pk=None):
         if pk:
             profile = get_object_or_404(Profile, pk=pk)
@@ -271,46 +248,6 @@ class ProfileAPIView(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-
-    # def get(self, request, user_type=None, pk=None):
-    #     if pk:
-    #         profile = get_object_or_404(Profile, pk=pk) 
-    #         serializer = ProfileSerializer(profile)
-    #     else:
-    #         profiles = Profile.objects.filter(is_profile_updated=True)
-
-    #         if user_type:
-    #             profiles = profiles.filter(user__user_type=user_type)
-
-    #             search_query = request.query_params.get('search', None) 
-    #             if search_query:
-    #                 profiles = profiles.filter(
-    #                     Q(user__email_icontains=search_query) | 
-    #                     Q(user__full_name_icontains=search_query)
-    #                 )
-
-    #         profiles = profiles.order_by("-id", "-updated_at") 
-    #         paginator = CustomPagination()
-    #         paginated_profiles = paginator.paginate_queryset(profiles, request)
-
-    #         serializer = ProfileSerializer(paginated_profiles, many=True) 
-    #         return paginator.get_paginated_response(serializer.data)
-
-    #     response = {
-    #     "status": 200, "type": "success",
-    #     "message": "Data fetched successfully", "data": serializer.data
-    #     }
-    #     return Response(response, status=status.HTTP_200_OK)
-
-    # def post(self, request):
-    #     # data={**request.data}
-    #     print(type(request.data))
-    #     # data['user_id']=request.user.id
-    #     serializer = ProfileSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Create a new profile",
@@ -1541,61 +1478,6 @@ class PaymentStatusView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-# class ProfileDetails(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, user_type=None, pk=None):
-
-#         latitude = request.query_params.get("latitude")
-#         longitude = request.query_params.get("longitude")
-#         radius = request.query_params.get("radius", 10)
-#         user_type = request.query_params.get("user_type")
-#         if not user_type:
-#             return Response("user_type is required")
-#         print("latitudelatitude--------", latitude, longitude, radius, user_type)
-#         if pk:
-#             profile = get_object_or_404(Profile, pk=pk)
-#             serializer = ProfileSerializer(profile)
-#             response = {
-#                 "status": 200,
-#                 "type": "success",
-#                 "message": "Data fetched successfully",
-#                 "data": serializer.data,
-#             }
-#             return Response(response, status=status.HTTP_200_OK)
-
-#         # profiles = Profile.objects.all().order_by("updated_at")
-#         # Paginate profiles
-#         filtered_profiles = []
-
-#         if latitude and longitude:
-#             profiles = Profile.objects.filter(location__latitude=latitude, location__longitude=longitude)
-
-#             print("profiles", profiles)
-#             print(".exclude(request.user.id)---------", request.user.id)
-        
-#             profiles = profiles.filter(user__user_type=user_type)
-#             user_location = (float(latitude), float(longitude))
-#             profiles_data = []
-            
-#             for profile in profiles:
-#                 location = Location.objects.filter(latitude=latitude,longitude=longitude).first()
-#                 if location:
-#                     profile_location = (location.latitude, location.longitude)
-#                     if geodesic(user_location, profile_location).km <= float(radius):
-#                         filtered_profiles.append(profile)
-
-#             serializer = ProfileSerializer(filtered_profiles, many=True)
-#             return Response(serializer.data)
-
-#         # paginator = CustomPagination()
-#         # paginated_profiles = paginator.paginate_queryset(profiles, request)
-#         # serializer = ProfileSerializer(paginated_profiles, many=True)
-#         # profiles_data = serializer.data
-#         # return paginator.get_paginated_response(profiles_data)
-#         return Response([])
 
 
 class ProfileDetails(APIView):
@@ -1823,7 +1705,7 @@ class HandleSubscription(APIView):
         subscription_plan=request.data.get("subscriptionPlan")
         subscription_price=request.data.get("subscription_price",0)
         subscription_type=request.data.get("subscriptionType")
-        
+        user_type = request.user.user_type
 
         if subscription_type.lower() == "google":
             subscription_receipt = request.data.get("subscriptionReceipt", {})

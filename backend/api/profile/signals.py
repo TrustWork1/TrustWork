@@ -30,8 +30,8 @@ def project_post_save_handler(sender, instance, created, **kwargs):
             )
             notification.send_to_token()
 
-        sender_data = ProfileSerializer(sender_profile).data
-        sender_full_name = sender_data.get('full_name')
+        # sender_data = ProfileSerializer(sender_profile).data
+        # sender_full_name = sender_data.get('full_name')
         # for provider in related_providers:
         #     receiver_data = ProfileSerializer(provider).data
         #     receiver_full_name = receiver_data.get('full_name')

@@ -19,14 +19,9 @@ from django.urls import path,include
 from .MTN.collections_webhook import *
 from .MTN.disbursement_webhook import *
 from .stripe.stripe_webhook import *
-# from payment_handler.payment_gateways.MTN_MoMo.webhooks.collections_webhook import MtnCollectionWebhook
 urlpatterns = [
-    # path('webhooks/',include('payment_handler.payment_gateways.webhooks.urls')),
-
     path('mtn-collection',MtnCollectionWebhook.as_view()),
     path('mtn-disbursement',MtnDisbursementWebhook.as_view()),
-    # path("stripe-webhook/", ProcessStripeSession.as_view(), name="stripe_webhook"),
-    # path("stripe-webhook", stripe_webhook, name="stripe_webhook"),
-    # path("stripe/process-session", stripe_webhook, name="stripe_webhook"),
+    
     path("stripe/process-session/", ProcessStripeSession.as_view(), name="stripe_webhook"),
 ]

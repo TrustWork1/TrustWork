@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
@@ -472,10 +472,16 @@ class PackagesSectionCMSView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PackagesSectionView(APIView):
-    permission_classes=[IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method in ['POST', 'PUT', 'DELETE']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+    
     def get(self, request, pk=None):
+        download_section = DownloadSection.objects.last()
         if pk:
             try:
+                download_section = DownloadSection.objects.last()
                 plan = PricingPlan.objects.get(id=pk)
                 plan_features = PriceFeatures.objects.filter(pricing_plan=plan.id)
                 data = {
@@ -483,15 +489,19 @@ class PackagesSectionView(APIView):
                     "plan_name": plan.plan_name,
                     "description": plan.description,
                     "price": str(plan.price),
+                    "is_popular": plan.is_popular,
                     "billing_cycle": str(plan.billing_cycle),
                     "features": [
                         {
                             "id": feature.id,
-                            "features": feature.features,
-                            "is_active": feature.is_active
+                            "features": feature.features
                         }
                         for feature in plan_features
-                    ]
+                    ],
+                    "download_section": {
+                        "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
+                        "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
+                    }
                 }
                 return Response(data, status=status.HTTP_200_OK)
             except PricingPlan.DoesNotExist:
@@ -506,6 +516,7 @@ class PackagesSectionView(APIView):
                     "plan_name": plan.plan_name,
                     "description": plan.description,
                     "price": str(plan.price),
+                    "is_popular": plan.is_popular,
                     "billing_cycle": str(plan.billing_cycle),
                     "features": [
                         {
@@ -516,7 +527,11 @@ class PackagesSectionView(APIView):
                     ]
                 }
                 data.append(plan_data)
-            return Response({"plans": data}, status=status.HTTP_200_OK)
+            download_section = {
+                "playstore_link": download_section.app_download.playstore_link if download_section.app_download else None,
+                "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
+            }
+            return Response({"plans": data, "download_section": download_section}, status=status.HTTP_200_OK)
 
     def post(self, request):
         # Check if PricingPlanSection exists, else create
@@ -530,6 +545,7 @@ class PackagesSectionView(APIView):
             'plan_name': request.data.get('plan_name'),
             'description': request.data.get('description'),
             'price': request.data.get('price'),
+            'is_popular': request.data.get('is_popular'),
             'billing_cycle': request.data.get('billing_cycle')
         }
 
@@ -585,7 +601,7 @@ class PackagesSectionView(APIView):
                     pricing_plan=updated_plan
                 )
 
-            # Step 5: Prepare response
+            # response
             created_features = PriceFeatures.objects.filter(pricing_plan=updated_plan)
             features_serializer = PriceFeaturesSerializer(created_features, many=True)
 
@@ -687,6 +703,7 @@ class HomePageView(APIView):
                     "plan_name": plan.plan_name,
                     "description": plan.description,
                     "price": str(plan.price),
+                    "is_popular": plan.is_popular,
                     "billing_cycle": str(plan.billing_cycle),
                     "features": [
                         {

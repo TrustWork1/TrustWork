@@ -72,8 +72,6 @@ class CouponSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     previous_work=ProfilePreviousWorksSerializer(source="previous_works",many=True,read_only=True,required=False)
-    bank_details = BankDetailsSerializer(many=True, read_only=True, source='bankdetails_set')
-    user_documents = UserDocumentsSerializer(many=True, read_only=True, source='userdocuments_set') 
     last_login = serializers.DateTimeField(source='user.last_login', read_only=True)
     is_active = serializers.BooleanField(source='user.is_active', read_only=True)
     is_user_active = serializers.BooleanField(source='user.is_user_active', read_only=True)
@@ -81,64 +79,23 @@ class ProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     user_referal_code = serializers.CharField(source='user.user_referal_code', read_only=True)
-    total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
-    total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
-    referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
-    full_name = serializers.CharField(source='user.full_name')    
-    memberships = ProfileMembershipSerializer(many=True, read_only=True, source='profilemembership_set')  
+    full_name = serializers.CharField(source='user.full_name')
+    # bank_details = BankDetailsSerializer(many=True, read_only=True, source='bankdetails_set')
+    # user_documents = UserDocumentsSerializer(many=True, read_only=True, source='userdocuments_set') 
+    # total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
+    # total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
+    # referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
+    # memberships = ProfileMembershipSerializer(many=True, read_only=True, source='profilemembership_set')  
     user_type = serializers.CharField(source='user.get_user_type_display',read_only=True) 
     job_category = serializers.SerializerMethodField()
-    # year_of_experiance = serializers.SerializerMethodField()
     year_of_experience = serializers.CharField(required=False)
     latitude = serializers.SerializerMethodField()
     longitude = serializers.SerializerMethodField()
-    # radius = serializers.SerializerMethodField()
-    # job_category = JobCategorySerailizer(many=True, read_only=True)
     country = serializers.SerializerMethodField()
     completed_project = serializers.SerializerMethodField()
-    # service_provider = serializers.SerializerMethodField()
     feedback= serializers.SerializerMethodField()
     profile_rating= serializers.SerializerMethodField()
-    # coupons = serializers.SerializerMethodField()
     is_discount = serializers.BooleanField(source='user.is_discount', read_only=True)
-
-    # def get_job_category(self, obj):
-    #     # return obj.profilejobcategories_set.all().values("job_category__id").annotate(title=F("job_category__title"))
-    #     # return [category.job_category.id for category in obj.profilejobcategories_set.all()]
-    #     try:
-    #         # Fetch job categories and annotate them with feedback data
-    #         job_categories = obj.profilejobcategories_set.all().values(
-    #             "job_category__id",
-    #             "job_category__title"
-    #         )
-    #         ratings=[*job_categories]
-    #         for i in obj.profile_bid.filter(status__iexact="Accepted"):
-    #             response=dict()
-    #             data=Feedback.objects.filter(project=i.project).values()
-    #             for value_dict in data:
-    #                 if i.project.project_category.title in [x.get('job_category__title') for x in ratings]:
-
-    #                     response["rating"]+=int(value_dict['client_rating']) if value_dict['client_rating'] else int(value_dict['provider_rating'])
-    #                     response['times']=int(response['times'])+1
-    #                 else:
-    #                     response['times']=1
-    #                     response[i.project.project_category.title]=True
-    #                     response['job_category__id']=i.project.project_category.id
-    #                     response['job_category__title']=i.project.project_category.title
-    #                     response["rating"]=value_dict['client_rating'] if value_dict['client_rating'] else value_dict['provider_rating']
-                    
-    #             if response.get("rating"):
-    #                 response['rating']=int(response['rating'])/int(response['times'])
-    #             ratings.append(response)
-    #         return ratings
-    #     except Exception as e:
-
-    #         print(f"Error in get_job_category: {e}")
-    #         return []
-
-    # def get_coupons(self,obj):
-    #     coupons = Coupons.objects.filter(user=obj.user, is_active=True)
-    #     return CouponSerializer(coupons, many=True).data
     
     def get_job_category(self, obj):
         try:
@@ -220,11 +177,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             return obj.location.longitude
         except:
             return None
-    # def get_radius(self, obj):
-    #     try:
-    #         return obj.location.radius
-    #     except:
-    #         return " "
+
     def get_country(self, obj):
         try:
             return obj.location.country
@@ -269,13 +222,14 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields = ["total_referal_amount","total_referal_count","is_user_active","previous_work","phone_extension",
-          'user_referal_code', 'referred_by_code', 'last_login','is_active', 'email', 'first_name', 'last_name', 'full_name','notification_enabled',
+        fields = ["is_user_active","previous_work","phone_extension", 'user_referal_code', 'last_login',
+            'is_active', 'email', 'first_name', 'last_name', 'full_name','notification_enabled',
             'user_type', 'phone', 'address', 'profile_picture', 'cover_image', 'associated_organization','feedback',
-            'organization_registration_id', 'service_details', 'client_notes', 'profile_bio','year_of_experience',
-            'bank_details', 'user_documents', 'memberships',"user","id","status","job_category","street","profession","city","state","zip_code",
+            'organization_registration_id', 'client_notes', 'profile_bio','year_of_experience',
+            "user","id","status","job_category","street","profession","city","state","zip_code",
             "is_accepted_terms_conditions",'is_payment_verified', "is_profile_updated","profile_rating", "year_of_experiance" ,
-            "latitude", "longitude", "country", "completed_project", "is_discount"
+            "latitude", "longitude", "country", "completed_project", "is_discount",
+            #'bank_details','user_documents','memberships','service_details',"total_referal_amount","total_referal_count",'referred_by_code',
         ]
     
     def create(self, validated_data):

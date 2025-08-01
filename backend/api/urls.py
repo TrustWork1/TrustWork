@@ -1,6 +1,6 @@
 from django.urls import path,include
 from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView, ChangePasswordView, AdminLoginView
-from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, UserProfileAPIView, ProfileAPIView,ChangeProfileStatusView,ProfileAPIViewSearch,HandleSubscription, CouponsView, ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView #,HandleWithdraw
+from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, UserProfileAPIView, ProfileAPIView,ChangeProfileStatusView,ProfileAPIViewSearch,SendRequestToSubscribe, SendSubscriptionCode, HandleMtnSubscription, HandleSubscription, CouponsView, ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView #,HandleWithdraw
 from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, XafCurrency, onboarding_return, reauth_with_token
 from api.master.views import LocationApiView,JobCategoryApiView
 from api.project.views import ProjectList,ChangeProjectStatusView, StripeDisbursementStatus, ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
@@ -122,7 +122,6 @@ urlpatterns = [
     path('mobile/project/add/',MobileProjectList.as_view(),name='project'),
     # path('admin/mobile/project/view/',AdminMobileProjectList.as_view(),name='project'),
     path('mobile/category/add/',JobCategoryView.as_view(),name='project'),
-    # path('project/list/',ProjectList.as_view(),name='project')
     
     path('bid/list/',BidList.as_view(),name='bid'),
     path('bid/add/',BidList.as_view(),name='bid'),
@@ -135,7 +134,6 @@ urlpatterns = [
 
     path('mobile/bid/add/',MobileBidList.as_view(),name='bid'),
     path('mobile/project/view/list',MobileprojectActiveList.as_view(), name='project'),
-    # path("project/bid/<int:project_id>",ProjectBidApiView.as_view()),
 
     
     path('project/list/',ProjectList.as_view(),name='project'),
@@ -250,6 +248,9 @@ urlpatterns = [
     path('membership-payment/list/', PaymentApiView.as_view(), name='PaymentApiViewGet'),
     path('membership-payment-pending/list/', PendingPayment.as_view(), name='PaymentApiViewGet'),
     path("webhooks/",include('api.webhook_urls')),
+    path("send_subscription_request/",SendRequestToSubscribe.as_view()),
+    path("send_subscription_code/",SendSubscriptionCode.as_view()),
+    path("check_subscription_codes/",HandleMtnSubscription.as_view()),
     path("handle_subscription/",HandleSubscription.as_view()),
     # path("handle_withdraw/",HandleWithdraw.as_view()),
     # path('initiate-payment/', InitiatePaymentAPIView.as_view(), name='initiate-payment'),

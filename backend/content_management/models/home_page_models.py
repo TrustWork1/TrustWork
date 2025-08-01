@@ -95,6 +95,7 @@ class PricingPlan(models.Model):
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CHOICES, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    is_popular=models.BooleanField(default=False)
 
     def __str__(self):
         return self.plan_name

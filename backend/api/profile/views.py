@@ -1,11 +1,12 @@
-
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from profile_management.models import BankDetails,UserDocuments,MembershipPlans,ProfileMembership,Profile
+from profile_management.models import BankDetails,UserDocuments,MembershipPlans,ProfileMembership,Profile, Subscriptions, Coupons
 from .serializers import BankDetailsSerializer,UserDocumentsSerializer,MembershipPlansSerializer,ProfileMembershipSerializer,ProfilePreviousWorksSerializer,PreviousWorks
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
@@ -14,40 +15,39 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from master.models import JobCategory
 from django.db import transaction
-from .serializers import ProfileSerializer
 from .serializers import ProfilePaymentStatusSerializer
 from rest_framework.parsers import MultiPartParser,FormParser,JSONParser
 from geopy.distance import geodesic
 from master.models import Location
 from api.project.serializers import ProjectSerializer
 # from .serializers import ProfileCoverImageUpdateAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from geopy.distance import geodesic
 from customuser.models import CustomUser
-from project_management.models import Profile, Project, Bid
-from master.models import Location
+from project_management.models import Project, Bid
+from datetime import datetime, timedelta
+from django.utils import timezone
 import stripe, logging
 from django.db.models import Q
 from django.http import Http404
 from payment_handle.gateways.escrow import PaymentGatewayAPI
 from uuid import uuid4
+from utils import send_subscription_sms
+from api.pagination import CustomPagination, CustomPaginationProjectProfile
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework import generics
+from django.conf import settings
 import os
 import environ
 env = environ.Env()
 environ.Env.read_env(".env")
+
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 MTN_DISBURSEMTS_SECRET_KEY = os.getenv('MTN_DISBURSEMTS_SECRET_KEY')
 
-
-from rest_framework import generics, permissions
-from .serializers import ProfileSerializer
-from django.conf import settings
-User = get_user_model()
-from api.pagination import CustomPagination, CustomPaginationProjectProfile
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+
+User = get_user_model()
+
 
 class ProfileAPIViewSearch(APIView):
     permission_classes = [IsAuthenticated]
@@ -1384,7 +1384,7 @@ class ProfileMembershipAPIView(APIView):
 
 class ProfileDetailUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     @swagger_auto_schema(
@@ -1697,9 +1697,208 @@ class ProjectDetails(APIView):
 
         return filtered
 
-from profile_management.models import Subscriptions, Coupons
-from datetime import datetime, timedelta
-from django.utils import timezone
+class SendRequestToSubscribe(APIView):
+    def post(self, request):
+        data = request.data
+        email = data.get("email", "").strip()
+        phone_number = data.get("phone_number", "").strip()
+        frequency = data.get("subscription_frequency", "").strip().lower()
+        amt = round(float(data.get("amount", 0).strip()))
+        amount = str(amt)
+
+        if not phone_number.startswith("237") and len(phone_number) <= 9:
+            phone_number = "237"+ phone_number
+        
+        cycle_map = {
+            "week": "weekly",
+            "weekly": "weekly",
+            "month": "monthly",
+            "monthly": "monthly",
+            "year": "yearly",
+            "yearly": "yearly"
+        }
+        subscription_frequency = cycle_map.get(frequency)
+        if not subscription_frequency:
+            return Response({'error': 'Invalid Subscription Frequency.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        gateway=PaymentGatewayAPI()
+        try:
+            if len(phone_number) > 12:
+                return Response({'error': 'Invalid MTN Number.'}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                validate_email(email)
+            except ValidationError:
+                return Response({'error': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            body = {
+                "email": email,
+                "phone_number": phone_number,
+                "amount": amount,
+                "subscription_frequency": subscription_frequency
+            }
+            response = gateway.initialize_subscription(body)
+            # print("Response: ",response)
+
+            if not response:
+                return Response({'message': 'Invalid phone number.'}, status=status.HTTP_502_BAD_GATEWAY)
+
+            if isinstance(response, dict):
+                response_status = response.get("status", "").lower()
+                
+                if response_status == "failed":
+                    return Response({
+                        "error": "Subscription initiation failed.",
+                        "message": response.get("message", "Invalid phone number.")
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Return success
+                return Response({"message": "Payment request sent successfully."}, status=status.HTTP_200_OK)
+
+            return Response({'error': 'Unexpected error occured.'}, status=status.HTTP_502_BAD_GATEWAY)
+
+        except Exception as e:
+            return Response({'error': 'Server error.', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SendSubscriptionCode(APIView):
+    def post(self, request):
+        code = request.data.get("code", "")
+        email = request.data.get("email", "")
+        phone_no = request.data.get("phone_no", "")
+
+        if not code or not (email or phone_no):
+            return Response(
+                {"error": "Code and at least one of email or phone_no are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        email_sent = False
+        sms_sent = False
+
+        # Send email
+        if email:
+            try:
+                html_message = render_to_string('email_temp.html', {
+                    'title': 'Subscription Code',
+                    'otp': f'Your subscription code is {code}. Kindly use this code to complete your subscription.',
+                    'image': TRUSTWORK_BASE_API
+                })
+
+                send_mail(
+                    subject="Subscription Code",
+                    message="Please use this code to subscribe to TrustWork.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    html_message=html_message,
+                    fail_silently=False
+                )
+                email_sent = True
+            except Exception as e:
+                print("Error sending subscription code via email:", e)
+
+        # Send SMS
+        if phone_no:
+            try:
+                if not phone_no.startswith("+"):
+                    phone_no = "+" + phone_no
+                send_subscription_sms(phone_no, code)
+                sms_sent = True
+            except Exception as e:
+                print("Error sending subscription code via SMS:", e)
+
+        if email_sent or sms_sent:
+            return Response(
+                {"message": "Subscription code sent successfully."},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"error": "Failed to send subscription code."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class HandleMtnSubscription(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def post(self, request):
+        code = request.data.get("code", "").strip()
+        if not code:
+            return Response(
+                {"status": "400", "message": "Subscription code is required.", "type": "error", "data": None},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        gateway = PaymentGatewayAPI()
+        try:
+            data = gateway.mtn_subscription_code(code)
+
+            if data and not data.get("error"):
+                # print(data.get("email"))
+                frequency=data.get("subscription_frequency")
+                subscription_price=data.get("amount",0)
+                user_profile=request.user.profile
+
+                # user_type = request.user.user_type
+                # print("UserType: ",user_type)
+
+                Subscriptions.objects.filter(profile=user_profile, is_active=True).update(is_active=False)
+
+                days=0
+                if frequency.lower() == "weekly" or frequency.lower() == "weekly(discount)":
+                    days = 7
+                elif frequency.lower() == "monthly" or frequency.lower() == "monthly(discount)":
+                    days = 30
+                elif frequency.lower() == "yearly" or frequency.lower() == "yearly(discount)":
+                    days = 365
+                
+                expire_at = timezone.now() + timedelta(days=days)
+                Subscriptions.objects.create(
+                    profile=user_profile,
+                    subscription_frequency=frequency.lower(),
+                    subscription_plan="Membership_"+frequency.lower(),
+                    purchase_token="",
+                    expire_at=expire_at
+                )
+                
+                user_profile.is_payment_verified=True
+                referer_user=CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).last()
+                if referer_user:
+                    referer_user.total_referal_amount=float(referer_user.total_referal_amount)+float(subscription_price)*(5/100)
+                    referer_user.total_referal_count=int(referer_user.total_referal_count)+1
+                    referer_user.save()
+                user_profile.save()
+                coupon = Coupons.objects.filter(user=request.user, is_active=True).first()
+                if coupon:
+                    coupon.is_active = False
+                    coupon.save()
+
+                give_discount = CustomUser.objects.filter(user_referal_code=request.user.referred_by_code)
+                referred_user = give_discount.first()
+                # expire_date=timezone.now() + timedelta(days=30)
+                from_user = Coupons.objects.filter(from_user=request.user.id).exists()
+                
+                if give_discount.exists():
+                    if not from_user:
+                        Coupons.objects.create(user=referred_user, from_user=request.user.id)
+                        CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).update(is_discount=True)
+
+                has_active_coupon = Coupons.objects.filter(user=request.user, is_active=True).exists()
+                if not has_active_coupon:
+                    CustomUser.objects.filter(id=request.user.id).update(is_discount=False)
+                
+                return Response({"user_details": ProfileSerializer(request.user.profile).data})
+            else:
+                return Response(
+                    {"status": "404", "error": data.get("error", "No subscription found for the provided code."), "type": "error"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        except Exception as e:
+            return Response(
+                {"status": "500", "error": "Something went wrong", "type": "error", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class HandleSubscription(APIView):
     def post(self,request):
         subscription_plan=request.data.get("subscriptionPlan")

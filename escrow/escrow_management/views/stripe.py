@@ -340,7 +340,7 @@ class StripeDisbursementWebhook(APIView):
 
             Events.objects.create(
                 event_type="disbursement_success" if payment_status == "paid" else "disbursement_failed",
-                event_description="Payment Sent" if payment_status == "paid" else "Payment Failed",
+                event_description="Stripe Payment Sent" if payment_status == "paid" else "Stripe Payment Failed",
                 escrow=transaction.escrow
             )
 

@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView,Http404
 from project_management.models import Project, Bid,Feedback
-from .serializers import ProjectSerializer, BidSerializer #, BidSerializerMobilie
+from .serializers import ProjectSerializer, ProfileSerializer, BidSerializer #, BidSerializerMobilie
 from rest_framework.permissions import IsAuthenticated
 from api.pagination import CustomPagination, CustomPaginationProjectProfile, CustomProjectPagination
 from django.shortcuts import get_object_or_404
@@ -12,7 +12,6 @@ from profile_management.models import Profile
 from master.models import JobCategory
 from rest_framework import generics
 from django.db.models import Avg
-from .serializers import ProjectSerializer, ProfileSerializer
 from .serializers import JobCategorySerializer
 from django.db.models import Q
 from rest_framework.parsers import MultiPartParser,JSONParser,FormParser
@@ -47,20 +46,6 @@ class MobileProjectList(APIView):
             400: "Invalid request"
         }
     )
-    # def get(self, request):
-    #     projects = Project.objects.filter(client=Profile.objects.get(user=request.user)).order_by('-updated_at')
-    #     print(request.GET.get("status"))
-    #     if request.GET.get("status"):
-    #         projects=projects.filter(status=request.GET.get("status"))
-    #     paginator = CustomPagination()
-    #     projects_paginated = paginator.paginate_queryset(projects, request)
-    #     serializer = ProjectSerializer(projects_paginated, many=True)
-
-    #     return paginator.get_paginated_response(serializer.data)
-
-    #     # serializer = ProjectSerializer(projects, many=True)
-    #     # return Response(serializer.data)
-
     def get(self, request):
         client_profile = Profile.objects.get(user=request.user).id        
         projects = Project.objects.filter(client=client_profile).order_by('created_at')
@@ -135,9 +120,6 @@ class ProjectDetail(APIView):
         project = self.get_object(pk)
         serializer = ProjectSerializer(project)
         serializer.data.pop("client")
-
-        
-
 
         return Response(serializer.data)
 

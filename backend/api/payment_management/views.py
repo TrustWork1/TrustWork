@@ -88,6 +88,8 @@ class PendingPayment(APIView):
             for txn in transactions_qs:
                 key = (txn.bid_id, txn.project_id)
                 if key not in latest_per_pair:
+                    if txn.status.lower() == "failed":
+                        continue  # Skip failed transaction
                     latest_per_pair[key] = txn
 
             # Now apply filtering if search is given
@@ -118,8 +120,10 @@ class TransectionView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, pk=None):
         try:
-            # transaction = Transactions.objects.select_related('bid', 'bid__project').all()
-            transaction = Transactions.objects.all().exclude(Q(status="pending") & Q(transaction_type="collection"))
+            transaction = Transactions.objects.exclude(
+                Q(status="pending", transaction_type="collection") | Q(status=" ")
+            )
+            # transaction = Transactions.objects.all().exclude(Q(status="pending") & Q(transaction_type="collection")).exclude(status="failed")
             paginator = CustomPagination()
             paginated_projects = paginator.paginate_queryset(transaction, request)
             transaction_serializer = TransectionSerializer(paginated_projects, many=True)
@@ -133,7 +137,10 @@ class TransectionProjectView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None, pk=None):
         try:
-            transaction = Transactions.objects.filter(project__id=pk).exclude(Q(status="pending") & Q(transaction_type="collection"))
+            # transaction = Transactions.objects.filter(project__id=pk).exclude(Q(status="pending") & Q(transaction_type="collection"))
+            transaction = Transactions.objects.filter(project__id=pk).exclude(
+                Q(status="pending", transaction_type="collection") | Q(status=" ")
+            )
             paginator = CustomPagination()
             paginated_projects = paginator.paginate_queryset(transaction, request)
             transaction_serializer = TransectionSerializer(paginated_projects, many=True)

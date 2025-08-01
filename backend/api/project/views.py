@@ -45,40 +45,6 @@ class ProjectList(APIView):
         ],
         responses={200: ProjectSerializer(many=True)},
     )
-    # def get(self, request):
-    #     projects = Project.objects.all().order_by("-updated_at")
-    #     paginator = CustomPagination()
-    #     projects = paginator.paginate_queryset(projects, request)
-    #     user_profile = getattr(request.user, 'profile', None)
-    #     if not user_profile:
-    #         return Response({"detail": "Profile not found for the current user."}, status=400)
-    #     serializer = ProjectSerializer(projects, many=True)
-    #     for project, data in zip(projects, serializer.data):
-    #         can_send_bid = not Bid.objects.filter(project=project, service_provider=user_profile).exists()
-    #         data["can_send_bid"] = can_send_bid
-
-        
-    #     return paginator.get_paginated_response(serializer.data)
-
-    #     serializer = ProjectSerializer(projects, many=True)
-    #     return Response(serializer.data)
-    
-    # def get(self, request):
-    #     projects = Project.objects.filter(status="active").order_by("-updated_at")
-    #     paginator = CustomPagination()
-    #     paginated_projects = paginator.paginate_queryset(projects, request)
-
-    #     user_profile = getattr(request.user, 'profile', None)
-    #     if not user_profile:
-    #         return Response({"detail": "Profile not found for the current user."}, status=400)
-
-    #     serializer = ProjectSerializer(paginated_projects, many=True)
-        
-    #     for project, data in zip(paginated_projects, serializer.data):
-    #         can_send_bid = not Bid.objects.filter(project=project, service_provider=user_profile).order_by('-updated_at').exists()
-    #         data["can_send_bid"] = can_send_bid
-
-    #     return paginator.get_paginated_response(serializer.data)
     def get(self, request):
         # projects = Project.objects.filter(status="active").order_by("-updated_at") # Active Project List Showing
         search_query = request.query_params.get('search', '')
@@ -709,8 +675,8 @@ class ProjectBidApiView(APIView):
                 
                 if request.data.get("phone_number") and action == "accept":
                     try:
-                        phone_number=request.data.get("phone_number")
-                        if len(phone_number) <= 9:
+                        phone_number=request.data.get("phone_number", "").strip()
+                        if not phone_number.startswith("237") and len(phone_number) <= 9:
                             phone_number = "237"+ phone_number
                         gateway=PaymentGatewayAPI()
                         
@@ -730,6 +696,7 @@ class ProjectBidApiView(APIView):
                         # print("Response: ", response)
                         try:
                             payment_status=response['response']['status']
+                            # print("payment_status: ",payment_status)
                             if payment_status.lower() == "failed":
                                 Transactions.objects.create(escrow_id=response['escrow_id'],bid=bid,status='failed',project=bid.project,transaction_type="collection", payment_type="mtn")
                             if payment_status.lower() == "pending":

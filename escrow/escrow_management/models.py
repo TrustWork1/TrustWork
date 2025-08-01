@@ -1,5 +1,6 @@
 from django.db import models
 from user_management.models import BaseModel,User
+
 # Create your models here.
 
 class Escrow(BaseModel):
@@ -61,3 +62,11 @@ class StripePayment(models.Model):
     external_transaction_id = models.CharField(max_length=100,null=True, blank=True)
     payment_method = models.CharField(max_length=50, default='card', null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class MtnSubscriptionTransaction(BaseModel):
+    subscription_frequency=models.CharField(max_length=100,choices=[("weekly","weekly"),("monthly",'monthly'),("yearly","yearly")])
+    email = models.EmailField(null=True, blank=True)
+    amount=models.CharField(max_length=50)
+    payment_status = models.CharField(max_length=20, choices=[('paid', 'Paid'), ('failed', 'Failed'), ('pending', 'Pending')], default="pending")
+    unique_code = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    unique_code_status = models.CharField(max_length=100, null= True, blank=True, default="inactive")

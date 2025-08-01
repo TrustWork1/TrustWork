@@ -39,28 +39,35 @@ class InitiateDisbursementAPI(APIView):
         """
         create a new Escrow , get or create  user, event create, Transaction Create
         """
-        disbursement=MtnMoMoDisbursement()
+        try:
+            disbursement=MtnMoMoDisbursement()
 
-        amount=request.data.get("amount")
-        phone_number=request.data.get("phone_number")
-        escrow_id=request.data.get("escrow_id")
-        escrow_obj=Escrow.objects.get(id=escrow_id)
-        payee=escrow_obj.payee
-        external_callback_url=request.data.get("callback_url")
-        escrow_obj.external_callback_url=external_callback_url
-        escrow_obj.payment_method += ", mtn-momo"
-        escrow_obj.save()
-        with transaction.atomic():
-            Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)
-            response=disbursement.disburse(amount=amount, external_id=str(escrow_obj.id), phone_number=phone_number)
-            print(response)
-            status=disbursement.getTransactionStatus(response.get('ref'))
-            print(status)
-            Events.objects.create(event_type="disbursement_in_progress", event_description="", escrow=escrow_obj)
-            transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+            amount=request.data.get("amount")
+            phone_number=request.data.get("phone_number")
+            escrow_id=request.data.get("escrow_id")
+            escrow_obj=Escrow.objects.get(id=escrow_id)
+            payee=escrow_obj.payee
+            external_callback_url=request.data.get("callback_url")
+            escrow_obj.external_callback_url=external_callback_url
+            escrow_obj.payment_method += ", mtn-momo"
+            escrow_obj.save()
+            with transaction.atomic():
+                Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)
+                response=disbursement.disburse(amount=amount, external_id=str(escrow_obj.id), phone_number=phone_number)
+                # print("Response: ",response)
+                status_response=disbursement.getTransactionStatus(response.get('ref'))
+                # print("status_response: ",status_response)
+                Events.objects.create(event_type="disbursement_in_progress", event_description="", escrow=escrow_obj)
+                transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+            
+            return Response({"transaction_id":transaction_id.id, 'response':status_response})
         
-        
-        return Response({"transaction_id":transaction_id.id, 'response':status})
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": "An unexpected error occurred.",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class DisbursementTransactionStatusAPI(APIView):
     def get(self,request,txn_id):
@@ -82,15 +89,3 @@ class MtnAccountAddStatusAPI(APIView):
         disbursement=MtnMoMoDisbursement()
         response=disbursement.getAccountStatus(account_number=account_number)
         return Response(response, status=status.HTTP_200_OK)
-
-    
-# login(
-#     url="http://192.168.6.55/",
-#     usernameId="username",
-#     username="admin",
-#     passwordId="password",
-#     password="Admin@123",
-#     submit_button_selector="btn.btn-primary.login-btn",
-#     target_button_selector="btn"  
-# )
-

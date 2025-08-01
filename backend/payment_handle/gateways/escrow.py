@@ -119,34 +119,57 @@ class PaymentGatewayAPI:
         except requests.exceptions.RequestException as e:
             print(f"Error during account status: {e}")
             return None
+    
+    def initialize_subscription(self, data):
+        url = f"{self.base_url}/mtn-momo/initialize_subscription/"
+        headers = {"Content-Type": "application/json"}
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error during initialize subscription: {e}")
+            return None
+    
+    def mtn_subscription_code(self, code):
+        url = f"{self.base_url}/mtn-momo/check_subscription_code/"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "code": code
+        }
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error during initialize subscription: {e}")
+            return None
 
 # Example Usage
-if __name__ == "__main__":
-    api = PaymentGatewayAPI(base_url="http://127.0.0.1:8000")
+# if __name__ == "__main__":
+#     api = PaymentGatewayAPI(base_url="http://127.0.0.1:8000")
     
-    # Example data for collection initialization
-    payer = {
-        "mobile_number": "46733123452",
-        "email": "swapnil.chopra@webskitters.in"
-    }
+#     # Example data for collection initialization
+#     payer = {
+#         "mobile_number": "46733123452",
+#         "email": "swapnil.chopra@webskitters.in"
+#     }
     
-    payee = {
-        "mobile_number": "46733123452",
-        "email": "46546545"
-    }
+#     payee = {
+#         "mobile_number": "46733123452",
+#         "email": "46546545"
+#     }
 
-    # Initialize collection
-    collection_response = api.initialize_collection(100, "EUR", payer, payee, "1")
-    print("Collection Response:", collection_response)
+#     # Initialize collection
+#     collection_response = api.initialize_collection(100, "EUR", payer, payee, "1")
+#     print("Collection Response:", collection_response)
 
-    # Example data for disbursement
-    disbursement_response = api.initialize_disbursement("ff8f1ea4-8d10-48c5-b7e8-fd552ed1a402")
-    print("Disbursement Response:", disbursement_response)
+#     # Example data for disbursement
+#     disbursement_response = api.initialize_disbursement("ff8f1ea4-8d10-48c5-b7e8-fd552ed1a402")
+#     print("Disbursement Response:", disbursement_response)
 
-    # Example collection ID to check status
-    collection_status = api.get_collection_status("623eaeac-82e2-4ba2-925b-85d5d360b88a")
-    print("Collection Status:", collection_status)
+#     # Example collection ID to check status
+#     collection_status = api.get_collection_status("623eaeac-82e2-4ba2-925b-85d5d360b88a")
+#     print("Collection Status:", collection_status)
 
-    # Example disbursement ID to check status
-    disbursement_status = api.get_disbursement_status("623eaeac-82e2-4ba2-925b-85d5d360b88a")
-    print("Disbursement Status:", disbursement_status)
+#     # Example disbursement ID to check status
+#     disbursement_status = api.get_disbursement_status("623eaeac-82e2-4ba2-925b-85d5d360b88a")
+#     print("Disbursement Status:", disbursement_status)

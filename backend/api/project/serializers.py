@@ -416,8 +416,8 @@ class AdminProjectSerializer(serializers.ModelSerializer):
 
 class BidSerializer(serializers.ModelSerializer):
     client = serializers.SerializerMethodField()
-    project = ProjectSerializer(read_only=True)
-    # project = serializers.SerializerMethodField()
+    # project = ProjectSerializer(read_only=True)
+    project = serializers.SerializerMethodField()
     service_provider = serializers.SerializerMethodField()
     # can__send_bid = serializers.SerializerMethodField()
     bis_sent = serializers.SerializerMethodField()
@@ -436,8 +436,6 @@ class BidSerializer(serializers.ModelSerializer):
             return {"id":obj.service_provider.id,"full_name":obj.service_provider.user.full_name, "profile_picture":"", "email":obj.service_provider.user.email, "phone":obj.service_provider.phone, "profile_rating":obj.service_provider.profile_rating, "address":obj.service_provider.address}
 
     service_provider = ProfileSerializer(read_only=True)
-        # return [category.job_category.id for category in obj.profilejobcategories_set.all()]
-    # profile = ProfileSerializer(read_only=True)
     client_name = serializers.SerializerMethodField()
     def get_client_name(self, obj):
         full_name =obj.project.client.user.full_name
@@ -474,10 +472,10 @@ class BidSerializer(serializers.ModelSerializer):
             if has_active_bid:
                 raise serializers.ValidationError("You already have an active bid for this project. You cannot submit another bid until your current bid is rejected.")
         return data
-    # def get_project(self, obj):
-    #     project = list(Project.objects.filter(id=obj.project_id).values())[0]
-    #     project['bid_cost']=obj.project_total_cost
-    #     return project
+    def get_project(self, obj):
+        project = list(Project.objects.filter(id=obj.project_id).values())[0]
+        project['bid_cost']=obj.project_total_cost
+        return project
 
     # def get_can__send_bid(self, obj):
     #     try:

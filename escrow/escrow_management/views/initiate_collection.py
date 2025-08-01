@@ -40,41 +40,59 @@ class InitiatePaymentAPI(APIView):
         """
         create a new Escrow , get or create user, event create, Transaction Create
         """
-        collection=MtnMoMoCollection()
+        try:
+            collection=MtnMoMoCollection()
 
-                
-        # if not validate_json_structure(request.data):
-        #     return Response({"message":"Invalid Json"})
+                    
+            # if not validate_json_structure(request.data):
+            #     return Response({"message":"Invalid Json"})
+            
+            amount=request.data.get("amount")
+            phone_number=request.data.get("phone_number")
+            external_resource_id=request.data.get("external_resource_id")
+            external_callback_url=request.data.get("callback_url")
+            payer=request.data.get("payer")
+            payee=request.data.get("payee")
+            
+            payer,_=User.objects.get_or_create(phone_number=payer['mobile_number'], email=payer['email'])
+            payee,_=User.objects.get_or_create(phone_number=payee['mobile_number'], email=payee['email'])
+            
+            escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="mtn-momo")
+            Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
+            
+            response=collection.requestToPay(amount=amount, external_id=str(escrow.id), phone_number=phone_number)
+            # print("Response: ",response)
+            
+            if response.get('status_code') == 500:
+                escrow.status = "collection_failed"
+                escrow.save()
+                Events.objects.create(event_type="collection_failed", event_description="Payment initiation failed", escrow=escrow)
+                return Response({"response": {"status": "failed"}, "message": "Failed to initiate payment"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        amount=request.data.get("amount")
-        phone_number=request.data.get("phone_number")
-        external_resource_id=request.data.get("external_resource_id")
-        external_callback_url=request.data.get("callback_url")
-        payer=request.data.get("payer")
-        payee=request.data.get("payee")
+            Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
+            status_response=collection.getTransactionStatus(response.get('ref'))
+            # print("status_response: ",status_response)
+            
+            payment_status = status_response.get('status')
+            
+            if payment_status.lower() == "pending":
+                transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+            
+            elif payment_status.lower() == "failed":
+                escrow=Escrow.objects.get(id=escrow.id, external_resource_id=external_resource_id, payment_method="mtn-momo")
+                escrow.status = "collection_failed"
+                escrow.save()
+                transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="failed", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+                Events.objects.create(event_type="collection_failed", event_description=status_response['reason'], escrow=escrow)
+            
+            return Response({"transaction_id":transaction_id.id, 'response':status_response, "escrow_id":escrow.id})
         
-        payer,_=User.objects.get_or_create(phone_number=payer['mobile_number'], email=payer['email'])
-        payee,_=User.objects.get_or_create(phone_number=payee['mobile_number'], email=payee['email'])
-        
-        escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="mtn-momo")
-        Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
-        
-        response=collection.requestToPay(amount=amount, external_id=str(escrow.id), phone_number=phone_number)
-        Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
-        status=collection.getTransactionStatus(response.get('ref'))
-        payment_status = status['status']
-        # print("payment_status: ",payment_status)
-        if payment_status.lower() == "pending":
-            transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
-        
-        if payment_status.lower() == "failed":
-            escrow=Escrow.objects.get(id=escrow.id, external_resource_id=external_resource_id, payment_method="mtn-momo")
-            escrow.status = "collection_failed"
-            escrow.save()
-            transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="failed", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
-            Events.objects.create(event_type="collection_failed", event_description=status['reason'], escrow=escrow)
-        
-        return Response({"transaction_id":transaction_id.id, 'response':status, "escrow_id":escrow.id})
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": "An unexpected error occurred.",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TransactionStatusAPI(APIView):
     def get(self,request,txn_id):

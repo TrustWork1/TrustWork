@@ -177,11 +177,10 @@ class Coupons(AbstractModel):
         code_length = 8
         characters = string.ascii_uppercase + string.digits
         while True:
-            code = ''.join(random.choice(characters) for _ in range(code_length))
-            try:
-                Coupons.objects.get(coupon_code=code)
-            except:
+            code = ''.join(random.choices(characters, k=code_length))
+            if not Coupons.objects.filter(coupon_code=code).exists():
                 return code
+            
     def __str__(self):
         return self.coupon_code
 

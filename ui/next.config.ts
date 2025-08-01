@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     includePaths: [path.join(__dirname, 'styles')],
   },
   images: {
-    domains: ['trustwork-api.dedicateddevelopers.us'],
+    domains: [],
   },
   compress: true,
   devIndicators: {

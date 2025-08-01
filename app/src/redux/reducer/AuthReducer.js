@@ -41,6 +41,7 @@ const initialState = {
   CreatePaymentResponse: {},
   StripePaymentResponse: {},
   StripePaymentFailResponse: {},
+  PayCodeResponse: {},
 };
 
 const AuthSlice = createSlice({
@@ -455,6 +456,7 @@ const AuthSlice = createSlice({
       state.error = action.error;
       state.status = action.type;
     },
+
     /////////////////////// StripePaymentFail  ////////////////////
     StripePaymentFailRequest(state, action) {
       state.status = action.type;
@@ -464,6 +466,20 @@ const AuthSlice = createSlice({
       state.status = action.type;
     },
     StripePaymentFailFailure(state, action) {
+      state.error = action.error;
+      state.status = action.type;
+    },
+
+    /////////////////////// PayCode  ////////////////////
+    PayCodeRequest(state, action) {
+      state.status = action.type;
+    },
+    PayCodeSuccess(state, action) {
+      state.PayCodeResponse = action.payload;
+      state.status = action.type;
+      state.isPaymentVerified = action.payload?.data?.is_payment_verified;
+    },
+    PayCodeFailure(state, action) {
       state.error = action.error;
       state.status = action.type;
     },
@@ -598,6 +614,10 @@ export const {
   StripePaymentFailRequest,
   StripePaymentFailSuccess,
   StripePaymentFailFailure,
+
+  PayCodeRequest,
+  PayCodeSuccess,
+  PayCodeFailure,
 } = AuthSlice.actions;
 
 export default AuthSlice.reducer;

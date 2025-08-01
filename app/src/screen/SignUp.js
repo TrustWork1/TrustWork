@@ -198,15 +198,15 @@ const SignUp = props => {
         return;
       }
 
-      if (!companyName) {
-        showErrorAlert(errorMessages.ENTER_COMPANY_NAME);
-        return;
-      }
+      // if (!companyName) {
+      //   showErrorAlert(errorMessages.ENTER_COMPANY_NAME);
+      //   return;
+      // }
 
-      if (!licenseNo) {
-        showErrorAlert(errorMessages.ENTER_LICENSE_NUMBER);
-        return;
-      }
+      // if (!licenseNo) {
+      //   showErrorAlert(errorMessages.ENTER_LICENSE_NUMBER);
+      //   return;
+      // }
     }
 
     let obj = {

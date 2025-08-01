@@ -19,6 +19,8 @@ import {
   MembershipStatusSuccess,
   mtnPaymentFailure,
   mtnPaymentSuccess,
+  PayCodeFailure,
+  PayCodeSuccess,
   ProfileFailure,
   ProfileSuccess,
   providerDetailsFailure,
@@ -1163,6 +1165,50 @@ export function* StripePaymentFailSaga(action) {
   }
 }
 
+export function* PayCodeSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+
+  try {
+    let response = yield call(
+      postApi,
+      `check_subscription_codes/`,
+      action.payload,
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(PayCodeSuccess(response?.data));
+      // showErrorAlert(response?.data?.message);
+    } else {
+      yield put(PayCodeFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(PayCodeFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 500) {
+      yield put(PayCodeFailure(error));
+      console.log(error?.message);
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(PayCodeFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(PayCodeFailure(error));
+      showErrorAlert('Request Timed Out');
+    } else {
+      yield put(PayCodeFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+
 const watchFunction = [
   (function* () {
     yield takeLatest('Auth/userCheckRequest', userCheckSaga);
@@ -1250,6 +1296,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Auth/StripePaymentFailRequest', StripePaymentFailSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Auth/PayCodeRequest', PayCodeSaga);
   })(),
 ];
 export default watchFunction;

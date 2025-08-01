@@ -40,6 +40,7 @@ const EditProfile = props => {
   const [selectedImg, setSelectedImage] = useState('');
   const [selectedImgObj, setSelectedImgObj] = useState([]);
   const [userType, setUserType] = useState('');
+  const [licenseNo, setLicenseNo] = useState('');
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -50,6 +51,9 @@ const EditProfile = props => {
     setEmail(AuthReducer?.ProfileResponse?.data?.email);
     setPhone(AuthReducer?.ProfileResponse?.data?.phone);
     setCompanyName(AuthReducer?.ProfileResponse?.data?.associated_organization);
+    setLicenseNo(
+      AuthReducer?.ProfileResponse?.data?.organization_registration_id,
+    );
     setSelectedImage(
       AuthReducer?.ProfileResponse?.data?.profile_picture
         ? `${constants.IMAGE_URL}${AuthReducer?.ProfileResponse?.data?.profile_picture}`
@@ -142,6 +146,7 @@ const EditProfile = props => {
     obj.append('email', email);
     if (userType === 'Service Provider') {
       obj.append('associated_organization', companyName);
+      obj.append('organization_registration_id', licenseNo);
     }
 
     connectionrequest()
@@ -381,31 +386,59 @@ const EditProfile = props => {
                 />
               </View>
               {userType === 'Service Provider' && (
-                <TextIn
-                  show={companyName?.length > 0 ? true : false}
-                  value={companyName}
-                  isVisible={false}
-                  onChangeText={val => setCompanyName(val?.trimStart())}
-                  height={normalize(50)}
-                  width={normalize(280)}
-                  fonts={Fonts.FustatMedium}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  maxLength={60}
-                  marginTop={normalize(15)}
-                  marginBottom={normalize(10)}
-                  marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  label={'Company/Organization Name'}
-                  placeholder={'Enter Company/Organization Name'}
-                  //placeholderIcon={Icons.Email}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  //Eyeshow={true}
-                  paddingLeft={normalize(10)}
-                  paddingRight={normalize(10)}
-                />
+                <>
+                  <TextIn
+                    show={companyName?.length > 0 ? true : false}
+                    value={companyName}
+                    isVisible={false}
+                    onChangeText={val => setCompanyName(val?.trimStart())}
+                    height={normalize(50)}
+                    width={normalize(280)}
+                    fonts={Fonts.FustatMedium}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    maxLength={60}
+                    marginTop={normalize(15)}
+                    marginBottom={normalize(10)}
+                    marginLeft={normalize(10)}
+                    outlineTxtwidth={normalize(50)}
+                    label={'Company/Organization Name'}
+                    placeholder={'Enter Company/Organization Name'}
+                    //placeholderIcon={Icons.Email}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    //Eyeshow={true}
+                    paddingLeft={normalize(10)}
+                    paddingRight={normalize(10)}
+                  />
+
+                  <TextIn
+                    show={licenseNo?.length > 0 ? true : false}
+                    value={licenseNo}
+                    isVisible={false}
+                    onChangeText={val => setLicenseNo(val?.trimStart())}
+                    height={normalize(50)}
+                    width={normalize(280)}
+                    fonts={Fonts.FustatMedium}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    maxLength={50}
+                    marginTop={normalize(10)}
+                    marginBottom={normalize(10)}
+                    marginLeft={normalize(10)}
+                    outlineTxtwidth={normalize(50)}
+                    label={'Taxpayers Number'}
+                    placeholder={'Enter Taxpayers Number'}
+                    //placeholderIcon={Icons.Email}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    //Eyeshow={true}
+                    paddingLeft={normalize(10)}
+                    paddingRight={normalize(10)}
+                  />
+                </>
               )}
             </View>
             <View style={styles.btnMainContainer}>

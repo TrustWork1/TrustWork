@@ -203,7 +203,7 @@ const PendingBids = props => {
                     onPress={() => {
                       dispatch(
                         createChatRoomRequest({
-                          user_id: item?.project?.client?.id,
+                          user_id: item?.client?.id,
                         }),
                         setUserdata(item?.client),
                       );

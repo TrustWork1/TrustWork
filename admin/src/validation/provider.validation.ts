@@ -24,7 +24,7 @@ export const providerCreateValidationSchema = () =>
       .required()
       .label('Phone Number')
       .matches(/^[+]?[\d]+$/, 'Phone Number must be a valid number')
-      .min(10, 'Phone number must be at least 10 characters')
+      .min(9, 'Phone number must be at least 9 characters')
       .max(12, 'Phone number must be at most 12 characters'),
     address: yup.string().trim().required().label('Address'),
     street: yup.string().trim().optional().nullable(),
@@ -82,7 +82,7 @@ export const providerUpdateValidationSchema = () =>
       .required()
       .label('Phone Number')
       .matches(/^[+]?[\d]+$/, 'Phone Number must be a valid number')
-      .min(10, 'Phone number must be at least 10 characters')
+      .min(9, 'Phone number must be at least 9 characters')
       .max(12, 'Phone number must be at most 12 characters'),
     address: yup.string().trim().required().label('Address'),
     street: yup.string().trim().optional().nullable(),

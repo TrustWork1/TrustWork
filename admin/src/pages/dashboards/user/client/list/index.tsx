@@ -265,7 +265,7 @@ const ClientList = () => {
                 {username ?? `${first_name} ${last_name}`}
               </Typography>
               <Typography noWrap variant='body2' sx={{ color: 'text.disabled' }}>
-                {email}
+                {email || '---'}
               </Typography>
             </Box>
           </Box>
@@ -280,7 +280,7 @@ const ClientList = () => {
       renderCell: ({ row }: CellType) => {
         return (
           <Typography noWrap sx={{ fontWeight: 500, color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.phone}
+            {row.phone || '---'}
           </Typography>
         )
       }

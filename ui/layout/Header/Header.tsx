@@ -24,11 +24,11 @@ export default function Header() {
     },
     {
       name: 'Our Features',
-      route: '/#ourFeature',
+      route: 'javscript:void(0)',
     },
     {
       name: 'How It Works',
-      route: '/#howItWorks',
+      route: 'javscript:void(0)',
     },
     {
       name: 'About Us',
@@ -42,59 +42,15 @@ export default function Header() {
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const router = useRouter();
-  const [currentHash, setCurrentHash] = React.useState('');
   const [isHomePage, setIsHomePage] = React.useState(false);
-
-  React.useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      setIsHomePage(router.pathname === '/');
-
-      const hashIndex = url.indexOf('#');
-      const hash = hashIndex !== -1 ? url.substring(hashIndex) : '';
-      setCurrentHash(hash);
-    };
-
-    handleRouteChange(router.asPath);
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-
-    if (typeof window !== 'undefined') {
-      const handleHashChange = () => {
-        const hash = window.location.hash;
-        setCurrentHash(hash);
-      };
-
-      window.addEventListener('hashchange', handleHashChange);
-      return () => {
-        router.events.off('routeChangeComplete', handleRouteChange);
-        window.removeEventListener('hashchange', handleHashChange);
-      };
-    }
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router]);
-
-  const isActive = (route: string) => {
-    if (route === '/') {
-      return router.pathname === '/' && !currentHash;
-    }
-
-    if (route.includes('/#')) {
-      if (router.pathname === '/') {
-        const routeHash = route.substring(route.indexOf('#'));
-        return currentHash === routeHash;
-      }
-      return false;
-    }
-
-    return router.pathname === route;
-  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  React.useEffect(() => {
+    setIsHomePage(router.pathname === '/');
+  }, [router.pathname]);
 
   const drawer = (
     <DrawerContain onClick={handleDrawerToggle}>
@@ -143,7 +99,10 @@ export default function Header() {
             >
               {navItems.map(item => (
                 <ListItem disablePadding key={item?.route}>
-                  <Link href={item?.route} className={isActive(item.route) ? 'active' : ''}>
+                  <Link
+                    href={item?.route}
+                    className={router.pathname === item.route ? 'active' : ''}
+                  >
                     {item?.name}
                   </Link>
                 </ListItem>

@@ -173,6 +173,8 @@ const ProjectDetails = props => {
       });
   };
 
+  
+
   const listHeaderComponent = () => {
     return (
       <View>
@@ -286,6 +288,7 @@ const ProjectDetails = props => {
 
   const renderActiveComponent = (item, index) => {
     console.log(item);
+    console.log('image provider--->',`${constants.IMAGE_URL}${item?.service_provider?.profile_picture}`)
     return (
       <>
         {ProjectReducer?.projectDetailsResponse?.data?.transaction_status ==
@@ -310,7 +313,7 @@ const ProjectDetails = props => {
                     style={{flexDirection: 'row'}}>
                     <Image
                       source={
-                        item?.project?.client_profile_pic
+                        item?.service_provider?.profile_picture
                           ? {
                               uri: `${constants.IMAGE_URL}${item?.service_provider?.profile_picture}`,
                             }

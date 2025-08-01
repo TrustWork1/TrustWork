@@ -49,6 +49,23 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
 
+    {
+      sectionTitle: 'Subscription Packages Management'
+    },
+    {
+      title: 'Packages',
+      icon: 'streamline:subscription-cashflow',
+      subject: 'packages',
+      action: 'manage',
+      children: [
+        {
+          title: 'List',
+          path: '/dashboards/packages/list',
+          subject: 'packages',
+          action: 'read'
+        }
+      ]
+    },
     // {
     //   sectionTitle: 'Booking Management'
     // },
@@ -208,11 +225,11 @@ const navigation = (): VerticalNavItemsType => {
       subject: 'cms',
       action: 'manage'
     },
-    {
-      title: 'FAQs',
-      icon: 'tabler:messages',
-      path: '/dashboards/faqs/list'
-    },
+    // {
+    //   title: 'FAQs',
+    //   icon: 'tabler:messages',
+    //   path: '/dashboards/faqs/list'
+    // },
     {
       title: 'QMS',
       icon: 'tabler:brand-google-big-query',

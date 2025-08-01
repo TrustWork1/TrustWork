@@ -6,7 +6,7 @@ export interface IPricingCard {
   planName: string;
   aboutPlan: string;
   price: number;
-  billingCycle: string;
+  billingCycle: 'Week' | 'Month' | 'Year';
   features: string[];
 }
 

@@ -1,6 +1,5 @@
 import * as yup from 'yup'
 import validationConfig from './validationConfig'
-import regex from 'src/regex'
 
 export const loginSchema = yup.object().shape({
   email: yup.string().trim().lowercase().required().email(validationConfig.error.email.format).label('Email'),

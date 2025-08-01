@@ -23,7 +23,7 @@ export const createSchema = yup.object().shape({
     .string()
     .required('Phone Number is required')
     .matches(/^[+]?[\d]+$/, 'Phone Number must be a valid number')
-    .min(10, 'Phone number must be at least 10 characters')
+    .min(9, 'Phone number must be at least 9 characters')
     .max(12, 'Phone number must be at most 12 characters'),
 
   password: yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
@@ -59,7 +59,7 @@ export const updateSchema = yup.object().shape({
     .string()
     .required('Phone Number is required')
     .matches(/^[+]?[\d]+$/, 'Phone Number must be a valid number')
-    .min(10, 'Phone number must be at least 10 characters')
+    .min(9, 'Phone number must be at least 9 characters')
     .max(12, 'Phone number must be at most 12 characters'),
   permissions: yup
     .array()

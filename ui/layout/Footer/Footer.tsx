@@ -4,7 +4,6 @@ import Container from '@mui/material/Container';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React from 'react';
 
 const FooterWrap = styled(Box)`
   padding: 50px 0 30px;
@@ -102,11 +101,11 @@ const Footer = () => {
     },
     {
       name: 'Our Features',
-      route: '/#ourFeature',
+      route: 'javscript:void(0)',
     },
     {
       name: 'How It Works',
-      route: '/#howItWorks',
+      route: 'javscript:void(0)',
     },
     {
       name: 'Contact Us',
@@ -123,52 +122,6 @@ const Footer = () => {
   ];
 
   const router = useRouter();
-  const [currentHash, setCurrentHash] = React.useState('');
-
-  React.useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      const hashIndex = url.indexOf('#');
-      const hash = hashIndex !== -1 ? url.substring(hashIndex) : '';
-      setCurrentHash(hash);
-    };
-
-    handleRouteChange(router.asPath);
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-
-    if (typeof window !== 'undefined') {
-      const handleHashChange = () => {
-        const hash = window.location.hash;
-        setCurrentHash(hash);
-      };
-
-      window.addEventListener('hashchange', handleHashChange);
-      return () => {
-        router.events.off('routeChangeComplete', handleRouteChange);
-        window.removeEventListener('hashchange', handleHashChange);
-      };
-    }
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router]);
-
-  const isActive = (route: string) => {
-    if (route === '/') {
-      return router.pathname === '/' && !currentHash;
-    }
-
-    if (route.includes('/#')) {
-      if (router.pathname === '/') {
-        const routeHash = route.substring(route.indexOf('#'));
-        return currentHash === routeHash;
-      }
-      return false;
-    }
-
-    return router.pathname === route;
-  };
 
   return (
     <>
@@ -185,7 +138,10 @@ const Footer = () => {
                 <List disablePadding className='quick-links'>
                   {navItems.map((item, index) => (
                     <ListItem disablePadding key={index}>
-                      <Link href={item?.route} className={isActive(item.route) ? 'active' : ''}>
+                      <Link
+                        href={item?.route}
+                        className={router.pathname === item.route ? 'active' : ''}
+                      >
                         {item?.name}
                       </Link>
                     </ListItem>

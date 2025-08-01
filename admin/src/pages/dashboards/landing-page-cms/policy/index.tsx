@@ -34,9 +34,7 @@ const defaultValues: CmsFormData = {
 const PrivacyPolicy = () => {
   const theme = useTheme()
 
-  const queryClient = useQueryClient()
-
-  const { data, isLoading, refetch } = useQuery({
+  const { data, refetch } = useQuery({
     refetchOnMount: false,
     queryKey: [listOfUniqueKeys.termsPolicy.terms.content],
     queryFn: fetchPrivacyPolicyCmsContent,
@@ -46,14 +44,10 @@ const PrivacyPolicy = () => {
     return data?.data ?? undefined
   }, [data?.data])
 
-  console.log('cmsData', { cmsData })
-
   const {
     reset,
     control,
     handleSubmit,
-    setValue,
-    setError,
     formState: { errors }
   } = useForm<TermsPolicyValidationSchemaType>({ defaultValues, resolver: yupResolver(termsPolicyValidationSchema) })
 
@@ -79,13 +73,27 @@ const PrivacyPolicy = () => {
     }
   })
 
-  const onSubmit = (data: TermsPolicyValidationSchemaType) => {
-    const formData = new FormData()
-    formData.append('section_header', data.section_header)
-    formData.append('section_description', data.section_description)
-    formData.append('details', data.details)
+  const onSubmit = async (data: TermsPolicyValidationSchemaType) => {
+    try {
+      const formData = new FormData()
+      formData.append('section_header', data.section_header)
+      formData.append('section_description', data.section_description)
+      formData.append('details', data.details)
 
-    mutate(formData)
+      const response = await updatePrivacyPolicyCmsContent(formData)
+
+      if (String(response.status) === '200') {
+        toast.success(response.message || 'Content updated successfully')
+        await refetch()
+
+        // ✅ Optional: redirect to another page
+        // router.push('/admin/settings')
+      } else {
+        toast.error('Something went wrong')
+      }
+    } catch (error: unknown) {
+      toast.error(`Failed to update app content`)
+    }
   }
 
   return (

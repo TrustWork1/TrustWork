@@ -1,9 +1,7 @@
-import { fetchContactUsPageInfo, submitContactForm } from '@/api/functions/contactUs.cms';
 import InnerBanner from '@/components/InnerBanner/InnerBanner';
 import PageHeading from '@/components/PageHeading/PageHeading';
 import assest from '@/json/assest';
 import Wrapper from '@/layout/wrapper/Wrapper';
-import { contactUsValidationSchema, TContactUsForm } from '@/schema/contactUs.yup';
 import { ContactUsDeatailsWrap, ContactUsInner } from '@/styles/StyledComponents/ContactusStyled';
 import InputFieldCommon from '@/ui/CommonInput/CommonInput';
 import CustomButtonPrimary from '@/ui/CustomButtons/CustomButtonPrimary';
@@ -14,82 +12,17 @@ import SocialLinkdinIcon from '@/ui/Icon/SocialLinkdinIcon';
 import SocialXhandleIcon from '@/ui/Icon/SocialXhandleIcon';
 import SocialYoutubeIcon from '@/ui/Icon/SocialYoutubeIcon';
 import UserIcon from '@/ui/Icon/UserIcon';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, Container, Grid2, Paper, Stack, Typography } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
-import { InferGetServerSidePropsType } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
-export const getServerSideProps = async () => {
-  try {
-    const homePageRes = await fetchContactUsPageInfo();
-
-    if (!homePageRes) {
-      return { notFound: true };
-    }
-    return {
-      props: { ...homePageRes },
-    };
-  } catch (err) {
-    console.error('Error fetching homepage data:', err);
-    return { notFound: true };
-  }
-};
-
-export default function ConatctUs(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { contactUsInfo } = props;
-
-  console.log(contactUsInfo, 'contact us==>');
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
-
-  const latitude = contactUsInfo?.latitude;
-  const longitude = contactUsInfo?.longitude;
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<TContactUsForm>({
-    resolver: yupResolver(contactUsValidationSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      subject: '',
-      message: '',
-    },
-  });
-
-  const { mutateAsync: contactSubmit } = useMutation({
-    mutationKey: ['submitForm'],
-    mutationFn: submitContactForm,
-    onSuccess: () => {
-      toast.success("Your message has been sent successfully! We'll get back to you soon.");
-      reset();
-    },
-  });
-
-  const onSubmit = async (data: TContactUsForm) => {
-    try {
-      const formData = new FormData();
-      formData.append('full_name', data?.fullName);
-      formData.append('email', data?.email);
-      formData.append('subject', data?.subject);
-      formData.append('message', data?.message);
-      contactSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
-  };
+export default function ConatctUs() {
   return (
     <Wrapper>
       <ContactUsInner>
         <InnerBanner
-          heading={contactUsInfo?.section_header}
-          subTitle={contactUsInfo?.section_description}
+          heading='Contact Us'
+          subTitle='Nulla non enim tortor est euismod tempus maecenas vel adipiscing. Eget accumsan urna gravida placerat egestas dolor. Sed molestie.'
         />
         <ContactUsDeatailsWrap>
           <Box className='contact-top-sec'>
@@ -104,8 +37,10 @@ export default function ConatctUs(props: InferGetServerSidePropsType<typeof getS
               <Grid2 container spacing={{ md: 1, xs: 3 }} alignItems='center'>
                 <Grid2 size={{ lg: 7, md: 6, xs: 12 }}>
                   <PageHeading
-                    title={contactUsInfo?.section_header}
-                    suTitle={[contactUsInfo?.section_description]}
+                    title='Feel free to contact with us for more details'
+                    suTitle={[
+                      'Lorem ipsum dolor sit amet consectetur. Nullam dui nisl venenatis massa nulla sem. Nam vel lectus etiam eu ut pulvinar.',
+                    ]}
                     alignItem='left'
                     className='sec-heading'
                   />
@@ -117,35 +52,39 @@ export default function ConatctUs(props: InferGetServerSidePropsType<typeof getS
                     <Grid2 size={{ md: 6, xs: 6 }}>
                       <Box className='getin-box'>
                         <Typography variant='h6'>Call Center</Typography>
-                        <Typography variant='body2'>{contactUsInfo?.call_center_number}</Typography>
+                        <Typography variant='body2'>800 230458936</Typography>
+                        <Link href='tel:+(123) 234 - 5676 - 1800'>+(123) 234 - 5676 - 1800</Link>
                       </Box>
                     </Grid2>
                     <Grid2 size={{ md: 6, xs: 6 }}>
                       <Box className='getin-box'>
                         <Typography variant='h6'>Our Location</Typography>
-                        <Typography variant='body2'>{contactUsInfo?.location}</Typography>
+                        <Typography variant='body2'>
+                          USA, New York - 1060 <br />
+                          St. First Avenue 1
+                        </Typography>
                       </Box>
                     </Grid2>
                     <Grid2 size={{ md: 6, xs: 6 }}>
                       <Box className='getin-box'>
                         <Typography variant='h6'>Email</Typography>
-                        <Link href='mailto:example@gmail.com'>{contactUsInfo?.email}</Link>
+                        <Link href='mailto:example@gmail.com'>example@gmail.com</Link>
                       </Box>
                     </Grid2>
                     <Grid2 size={{ md: 6, xs: 6 }}>
                       <Box className='getin-box social-media-links'>
                         <Typography variant='h6'>Social Network</Typography>
                         <Stack direction={'row'} spacing={1.5} className='logo-container'>
-                          <Link href={contactUsInfo?.social_links?.facebook_url || '/'}>
+                          <Link href='/'>
                             <SocialFacebookIcon />
                           </Link>
-                          <Link href={contactUsInfo?.social_links?.x_url || '/'}>
+                          <Link href='/'>
                             <SocialXhandleIcon />
                           </Link>
-                          <Link href={contactUsInfo?.social_links?.linkedin_url || '/'}>
+                          <Link href='/'>
                             <SocialLinkdinIcon />
                           </Link>
-                          <Link href={contactUsInfo?.social_links?.youtube_url || '/'}>
+                          <Link href='/'>
                             <SocialYoutubeIcon />
                           </Link>
                         </Stack>
@@ -155,48 +94,24 @@ export default function ConatctUs(props: InferGetServerSidePropsType<typeof getS
                 </Grid2>
                 <Grid2 size={{ lg: 5, md: 6, xs: 12 }}>
                   <Paper elevation={0} className='form-container'>
-                    <Typography variant='h6'>{contactUsInfo?.get_in_touch_title}</Typography>
+                    <Typography variant='h6'>Get In Touch</Typography>
                     <Typography variant='body2' sx={{ margin: '20px 0px 30px 0px' }}>
-                      {contactUsInfo?.get_in_touch_description}
+                      Lorem ipsum dolor sit amet consectetur. Lacus ornare neque sem sollicitudin
+                      sit.
                     </Typography>
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form>
                       <Grid2 container spacing={1.25}>
                         <Grid2 size={{ xs: 12 }}>
-                          <InputFieldCommon
-                            placeholder='Full Name'
-                            endAdornment={<UserIcon />}
-                            {...register('fullName')}
-                            error={!!errors.fullName}
-                            helperText={errors.fullName?.message}
-                          />
+                          <InputFieldCommon placeholder='Full Name' endAdornment={<UserIcon />} />
                         </Grid2>
                         <Grid2 size={{ xs: 12 }}>
-                          <InputFieldCommon
-                            placeholder='Email'
-                            endAdornment={<MailIcon />}
-                            {...register('email')}
-                            error={!!errors.email}
-                            helperText={errors.email?.message}
-                          />
+                          <InputFieldCommon placeholder='Email' endAdornment={<MailIcon />} />
                         </Grid2>
                         <Grid2 size={{ xs: 12 }}>
-                          <InputFieldCommon
-                            placeholder='Subject'
-                            endAdornment={<NoteIcon />}
-                            {...register('subject')}
-                            error={!!errors.subject}
-                            helperText={errors.subject?.message}
-                          />
+                          <InputFieldCommon placeholder='Subject' endAdornment={<NoteIcon />} />
                         </Grid2>
                         <Grid2 size={{ xs: 12 }}>
-                          <InputFieldCommon
-                            placeholder='Your Message'
-                            multiline
-                            rows={6}
-                            {...register('message')}
-                            error={!!errors.message}
-                            helperText={errors.message?.message}
-                          />
+                          <InputFieldCommon placeholder='Your Message' multiline rows={6} />
                         </Grid2>
                         <Grid2 size={{ xs: 12 }}>
                           <CustomButtonPrimary
@@ -204,10 +119,8 @@ export default function ConatctUs(props: InferGetServerSidePropsType<typeof getS
                             variant='contained'
                             className='send-Btn'
                             color='primary'
-                            type='submit'
-                            disabled={isSubmitting}
                           >
-                            {isSubmitting ? 'Sending...' : 'Send Message'}
+                            Send Message
                           </CustomButtonPrimary>
                         </Grid2>
                       </Grid2>
@@ -232,22 +145,10 @@ export default function ConatctUs(props: InferGetServerSidePropsType<typeof getS
               alt='lines'
               className='float-right-bg-map'
             />
-
             <Container fixed>
-              {/* <Box className='map-section' sx={{ borderRadius: '10px', overflow: 'hidden' }}>
-                <LocationMap
-                  apiKey={googleMapsApiKey}
-                  latitude={Number(latitude)}
-                  longitude={Number(longitude)}
-                  locationName={contactUsInfo?.location}
-                  zoom={16}
-                />
-              </Box> */}
-              <Box
-                className='map-section'
-                sx={{ borderRadius: '10px', overflow: 'hidden' }}
-                dangerouslySetInnerHTML={{ __html: contactUsInfo?.map_url || '' }}
-              />
+              <Box className='map-section' sx={{ borderRadius: '10px', overflow: 'hidden' }}>
+                <Image src={assest.mapImage} alt='map' width={1140} height={442} />
+              </Box>
             </Container>
           </Box>
         </ContactUsDeatailsWrap>

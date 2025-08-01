@@ -26,6 +26,7 @@ import NavigationService from '../../navigators/NavigationService';
 import {
   logoutRequest,
   MembershipListRequest,
+  PayCodeRequest,
   SubscriptionRequest,
 } from '../../redux/reducer/AuthReducer';
 import Images from '../../themes/Images';
@@ -35,6 +36,9 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 import * as RNIap from 'react-native-iap';
+import css from '../../themes/css';
+import Modal from 'react-native-modal';
+import TextIn from '../../components/TextIn';
 
 let status = '';
 // YOUR_APP_SPECIFIC_SHARED_SECRET  c8600eea07e04f0f8042d2e79b1c4a2e
@@ -62,10 +66,12 @@ const UserMembershipPlan = props => {
   ];
 
   const [selectedFeatureIndex, setSelectedFeatureIndex] = useState();
+  const [payCode, setPayCode] = useState('');
   const [planList, setPlanList] = useState([]);
   const [buyPlan, setBuyPlan] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState({});
   const [isloading, setIsloading] = useState(false);
+  const [codeModal, setCodeModal] = useState(false);
   //////////////////////// In-app start ///////////////////////////////
   const {
     getProducts,
@@ -334,6 +340,10 @@ const UserMembershipPlan = props => {
     }
   }, [isFocused]);
 
+  const codeSubmit = () => {
+    dispatch(PayCodeRequest({code: payCode}));
+  };
+
   const getMembershipList = () => {
     connectionrequest()
       .then(() => {
@@ -372,8 +382,84 @@ const UserMembershipPlan = props => {
       case 'Auth/SubscriptionFailure':
         status = AuthReducer.status;
         break;
+
+      case 'Auth/PayCodeRequest':
+        status = AuthReducer.status;
+        break;
+      case 'Auth/PayCodeSuccess':
+        status = AuthReducer.status;
+        setCodeModal(false);
+
+        setTimeout(() => {
+          AuthReducer?.roleType === 'provider'
+            ? NavigationService.navigate('ProviderBottomTabNav')
+            : NavigationService.navigate('UserBottomTabNav');
+        }, 500);
+
+        break;
+      case 'Auth/PayCodeFailure':
+        status = AuthReducer.status;
+        break;
     }
   }
+  const OpenCodeModal = () => {
+    return (
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: Colors.themeWhite,
+          padding: normalize(10),
+          borderRadius: normalize(15),
+        }}>
+        <Text style={styles.headerTxtModal}>
+          {'Have a Code? Enter it Below'}
+        </Text>
+        <View style={[css.m4]}>
+          <TextIn
+            show={payCode?.length > 0 ? true : false}
+            value={payCode}
+            isVisible={false}
+            onChangeText={val => {
+              setPayCode(val);
+            }}
+            height={normalize(50)}
+            width={normalize(200)}
+            fonts={Fonts.FustatMedium}
+            borderColor={Colors.themeBoxBorder}
+            borderWidth={1}
+            maxLength={16}
+            keyboardType={'number-pad'}
+            marginBottom={normalize(10)}
+            outlineTxtwidth={normalize(50)}
+            label={'Payment Code'}
+            placeholder={'Enter Payment Code'}
+            //placeholderIcon={Icons.Email}
+            placeholderTextColor={Colors.themePlaceholder}
+            borderRadius={normalize(6)}
+            fontSize={14}
+            //Eyeshow={true}
+            paddingLeft={normalize(10)}
+            paddingRight={normalize(10)}
+          />
+
+          <View style={[css.mt3]}>
+            <NextBtn
+              loading={AuthReducer?.status == 'Auth/PayCodeRequest'}
+              height={normalize(40)}
+              title={'Verify Code'}
+              borderColor={Colors.themeGreen}
+              color={Colors.themeWhite}
+              backgroundColor={Colors.themeGreen}
+              onPress={() => {
+                codeSubmit();
+              }}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -596,12 +682,55 @@ const UserMembershipPlan = props => {
                       //     });
                     }}
                   />
+
+                  <View style={[css.row, css.mt4]}>
+                    <Text
+                      style={[
+                        {
+                          color: Colors.themeBlack,
+                          fontFamily: Fonts.FustatMedium,
+                          fontSize: normalize(14),
+                        },
+                      ]}>
+                      I have a code for payment
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setCodeModal(true);
+                      }}>
+                      <Text
+                        style={[
+                          {
+                            color: Colors.themeGreen,
+                            fontFamily: Fonts.FustatSemiBold,
+                            fontSize: normalize(14),
+                          },
+                        ]}>
+                        {' '}
+                        Click
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </ScrollView>
             </SafeAreaView>
           </View>
         </View>
       </ImageBackground>
+      <Modal
+        propagateSwipe
+        visible={codeModal}
+        backdropOpacity={0}
+        useNativeDriverForBackdrop={true}
+        animationIn="slideInDown"
+        animationOut="slideOutDown"
+        useNativeDriver={true}
+        swipeDirection={['down']}
+        avoidKeyboard={true}
+        style={styles.modalContainer}
+        onBackdropPress={() => setCodeModal(false)}>
+        {OpenCodeModal()}
+      </Modal>
     </View>
   );
 };
@@ -775,6 +904,24 @@ const styles = StyleSheet.create({
   },
   selectedFeatureText: {
     color: '#388E3C', // Darker color for selected text
+  },
+
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    margin: 0,
+    width: '100%',
+  },
+  headerTxtModal: {
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(14),
+    color: Colors.themeBlack,
+    lineHeight: normalize(17),
+    textAlign: 'center',
+    paddingVertical: normalize(5),
+    paddingHorizontal: normalize(10),
   },
 });
 

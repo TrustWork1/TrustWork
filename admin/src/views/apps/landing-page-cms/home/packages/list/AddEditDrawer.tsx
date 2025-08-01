@@ -4,7 +4,15 @@
 import { ChangeEvent, ElementType, useCallback, useEffect, useState } from 'react'
 
 // ** MUI Imports
-import { Grid, MenuItem, TextField, Checkbox, FormControlLabel, IconButton as MuiIconButton } from '@mui/material'
+import {
+  Grid,
+  MenuItem,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  IconButton as MuiIconButton,
+  Switch
+} from '@mui/material'
 import Box, { BoxProps } from '@mui/material/Box'
 import Button, { ButtonProps } from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
@@ -53,6 +61,7 @@ interface PackageData {
   price: string
   billing_cycle: string
   features: Feature[]
+  is_popular: string
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
@@ -67,15 +76,9 @@ const defaultValues: PackageData = {
   description: '',
   price: '',
   billing_cycle: '',
-  features: [{ features: '', is_active: 'true' }]
+  features: [{ features: '', is_active: 'true' }],
+  is_popular: 'false'
 }
-
-const ButtonStyled = styled(Button)<ButtonProps & { component?: ElementType; htmlFor?: string }>(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    textAlign: 'center'
-  }
-}))
 
 const SidebarAddEdit = (props: SidebarAddEditType) => {
   // ** Props
@@ -96,8 +99,6 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     resolver: yupResolver(validationSchema())
   })
 
-  console.log(errors)
-
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'features'
@@ -109,10 +110,12 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
   // ** Populate the form fields when data is available
   useEffect(() => {
     if (props.fullRowDetails && mode === 'edit') {
+      console.log('props.fullRowDetails', props.fullRowDetails)
       setValue('plan_name', props.fullRowDetails.plan_name)
       setValue('description', props.fullRowDetails.description)
       setValue('price', props.fullRowDetails.price)
       setValue('billing_cycle', props.fullRowDetails.billing_cycle)
+      setValue('is_popular', props.fullRowDetails.is_popular)
 
       // Clear default features and set from data
       if (props.fullRowDetails.features && props.fullRowDetails.features.length > 0) {
@@ -133,6 +136,8 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
     }
   })
 
+  console.log('getValues', getValues())
+
   // ** Mutation for storing new package
   const storeMutator = useMutation({
     mutationKey: [[listOfUniqueKeys.home.packages.save]],
@@ -151,6 +156,7 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
       formData.append('description', data.description)
       formData.append('price', data.price)
       formData.append('billing_cycle', data.billing_cycle)
+      formData.append('is_popular', data.is_popular)
 
       formData.append('features', JSON.stringify(data.features))
 
@@ -348,24 +354,23 @@ const SidebarAddEdit = (props: SidebarAddEditType) => {
                       />
                     )}
                   />
-
-                  {/* <Controller
-                    name={`features.${index}.is_active`}
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <FormControlLabel
-                        control={
-                          <Checkbox 
-                            checked={value === 'true'} 
-                            onChange={e => onChange(e.target.checked ? 'true' : 'false')}
-                          />
-                        }
-                        label="Active"
-                      />
-                    )}
-                  /> */}
                 </Box>
               ))}
+              <Controller
+                name='is_popular'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={!!value} // ensures it's a boolean
+                        onChange={e => onChange(e.target.checked)}
+                      />
+                    }
+                    label='Most Popular'
+                  />
+                )}
+              />
             </Grid>
           </Grid>
 

@@ -12,15 +12,16 @@ import Icon from 'src/@core/components/icon'
 
 interface TableHeaderAddFeaturesProps {
   value: string
-  toggle: () => void
+  toggle?: () => void
   handleFilter: (val: string) => void
   clearFilter: () => void
+  noAdd?: boolean
 }
 
 const TableHeaderAddFeatures = (props: TableHeaderAddFeaturesProps) => {
   // ** Props
   // const { value, toggle, handleFilter, clearFilter } = props
-  const { toggle } = props
+  const { toggle, noAdd = false } = props
 
   return (
     <Box
@@ -41,12 +42,14 @@ const TableHeaderAddFeatures = (props: TableHeaderAddFeaturesProps) => {
     >
       {/* <CustomTextField value={value} placeholder='Search Category' onChange={e => handleFilter(e.target.value)} />
       {!!value?.length && <CancelIcon onClick={clearFilter} />} */}
-      <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button onClick={toggle} variant='contained' sx={{ '& svg': { mr: 2 } }}>
-          <Icon fontSize='1.125rem' icon='tabler:plus' />
-          Add New Plan
-        </Button>
-      </Box>
+      {!noAdd && (
+        <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+          <Button onClick={toggle} variant='contained' sx={{ '& svg': { mr: 2 } }}>
+            <Icon fontSize='1.125rem' icon='tabler:plus' />
+            Add New Plan
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }

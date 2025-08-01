@@ -1,8 +1,12 @@
-import { globalCatchError } from '@/lib/functions/_helpers.lib';
+import {
+  globalCatchError,
+  globalCatchSucess,
+  globalCatchWarning,
+} from '@/lib/functions/_helpers.lib';
 import { BaseApiResponse } from '@/typescript/interface/common.interface';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { parseCookies } from 'nookies';
-import { baseUrlApi } from '../endpoints';
+import { baseUrlApi, sucessNotificationEndPoints } from '../endpoints';
 
 const axiosInstance = axios.create({
   baseURL: baseUrlApi,
@@ -23,13 +27,13 @@ axiosInstance.interceptors.response.use(
   (res: AxiosResponse<BaseApiResponse>) => {
     // only show success notification on this routes
 
-    // if (sucessNotificationEndPoints.includes(res?.config?.url as string)) {
-    //   if (res?.data?.status !== 200) {
-    //     globalCatchWarning(res);
-    //   } else {
-    //     globalCatchSucess(res);
-    //   }
-    // }
+    if (sucessNotificationEndPoints.includes(res.config.url as string)) {
+      if (res?.data?.status !== 200) {
+        globalCatchWarning(res);
+      } else {
+        globalCatchSucess(res);
+      }
+    }
 
     return res;
   },

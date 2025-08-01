@@ -9,22 +9,13 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import Image from 'next/image'
+import { useQuery } from '@tanstack/react-query'
 import { MouseEvent, useCallback, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
-import {
-  deleteAppFeaturesCmsList,
-  deletePackagesList,
-  fetchAppFeaturesCmsList,
-  fetchPackagesList
-} from 'src/services/functions/home-cms.api'
+import { fetchPackagesList } from 'src/services/functions/home-cms.api'
 import AddEditDrawer from 'src/views/apps/landing-page-cms/home/packages/list/AddEditDrawer'
 import TableHeaderAddFeatures from 'src/views/apps/landing-page-cms/home/packages/list/TableHeader'
-
-import ConfirmDialog from 'src/@core/components/dialog'
-import { globalSuccess } from 'src/lib/functions/_helpers.lib'
 
 export type RowData = {
   id: number
@@ -51,7 +42,6 @@ const RowOptions = ({ toggleMode }: { toggleMode: () => void }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const rowOptionsOpen = Boolean(anchorEl)
-  const queryClient = useQueryClient()
 
   // ** Mutations for deleting app feature
 
@@ -211,14 +201,14 @@ const AddPackagesList = () => {
     <Grid container spacing={6.5}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='List of App Features' className='secondaryDesign' />
+          <CardHeader title='Subscription Packages' className='secondaryDesign' />
           <Divider sx={{ m: '0 !important' }} />
           <TableHeaderAddFeatures
             value={value}
             handleFilter={handleFilter}
-            noAdd
             toggle={() => (toggleAddEditDrawer(), setMode('add'), setProvider(''), setFullRowDetails(undefined))}
             clearFilter={() => setValue('')}
+            noAdd
           />
           <DataGrid
             autoHeight

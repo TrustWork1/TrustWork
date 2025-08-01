@@ -468,13 +468,13 @@ const ProfileProvider = props => {
                 title={'Help & Support'}
                 onPress={() => NavigationService.navigate('HelpSupport')}
               />
-              <ProfileDataCard
+              {/* <ProfileDataCard
                 logo={Icons.switch}
                 title={'Switch To Client Account'}
                 onPress={() => {
                   dispatch(SwitchAccountRequest());
                 }}
-              />
+              /> */}
               <ProfileDataCard
                 logo={Icons.logout}
                 title={'Logout'}

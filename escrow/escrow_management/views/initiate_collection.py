@@ -9,6 +9,7 @@ import re
 from rest_framework import status
 from django.conf import settings
 import stripe
+from uuid import UUID
 
 def validate_json_structure(data):
     if not isinstance(data, dict):
@@ -70,6 +71,8 @@ class InitiatePaymentAPI(APIView):
                 return Response({"response": {"status": "failed"}, "message": "Failed to initiate payment"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
             Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
+            escrow.reference_id = UUID(response.get('ref'))
+            escrow.save()
             status_response=collection.getTransactionStatus(response.get('ref'))
             # print("status_response: ",status_response)
             

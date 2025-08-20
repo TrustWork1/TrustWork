@@ -91,7 +91,7 @@ urlpatterns = [
     # path('bids/',BidsApiView.as_view(),name='bids'),
 
     # path('projects/',ProjectApiView.as_view(),name='project-list'),
-    path('user/<str:user_type>/list', ProfileAPIView.as_view(), name='profile-detail-list'),
+    # path('user/<str:user_type>/list', ProfileAPIView.as_view(), name='profile-detail-list'),
     path('user/<str:user_type>/details/<int:pk>/', ProfileAPIView.as_view(), name='profile-detail'),
 
     path('user/<str:user_type>/list', UserProfileAPIView.as_view(), name='profile-detail-list'),
@@ -134,13 +134,10 @@ urlpatterns = [
 
     path('mobile/bid/add/',MobileBidList.as_view(),name='bid'),
     path('mobile/project/view/list',MobileprojectActiveList.as_view(), name='project'),
-
     
     path('project/list/',ProjectList.as_view(),name='project'),
     path('project/add/',ProjectList.as_view(),name='project'),
-    path('project/details/<int:pk>',ProjectDetail.as_view(),name='project'),
-    path('project/edit/<int:pk>/',ProjectDetail.as_view(),name='project'),
-    path('project/delete/<int:pk>/',ProjectDetail.as_view(),name='project'),
+
     path('project/status/change/<int:pk>/',ChangeProjectStatusView.as_view(),name='project'),
     path('stripe-payment-status/',StripeDisbursementStatus.as_view(),name='project'),
     path('admin/project/details/<int:pk>/',AdminProjectDetail.as_view(),name='project'),

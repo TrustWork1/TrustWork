@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from .home_page_views import replace_file_field
 from content_management.models.home_page_models import DownloadSection
 from content_management.models.aboutus_page_models import *
 from api.content_management_servies.serializers.aboutus_page_serializers import *
@@ -100,14 +101,17 @@ class AboutUsSectionView(APIView):
             if not about_us:
                 return Response({"error": "About Us Section not found"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Handle both images separately
+            new_image1 = request.FILES.get('image1')
+            new_image2 = request.FILES.get('image2')
+
+            replace_file_field(about_us, 'image1', new_image1)
+            replace_file_field(about_us, 'image2', new_image2)
+
             serializer = AboutUsSerializer(about_us, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 data = serializer.data
-                if about_us.image1:
-                    data['image1'] = request.build_absolute_uri(about_us.image1.url)
-                if about_us.image2:
-                    data['image2'] = request.build_absolute_uri(about_us.image2.url)
                 return Response(data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -193,6 +197,13 @@ class TrustUsSectionView(APIView):
             return Response({"message": "WhyYouTrustUs Section does not exist. Use POST to create."},
                             status=status.HTTP_404_NOT_FOUND)
         
+        # Handle both images separately
+        new_image1 = request.FILES.get('section_image')
+        new_image2 = request.FILES.get('image')
+
+        replace_file_field(trustus_section, 'section_image', new_image1)
+        replace_file_field(trustus_section, 'image', new_image2)
+
         serializer = WhyYouTrustUsSectionSerializer(trustus_section, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -272,18 +283,25 @@ class TrustUsFeatureView(APIView):
             return Response(feature_serializer.data, status=status.HTTP_201_CREATED)
 
     def put(self, request, pk=None):
-        if pk:
-            try:
-                feature = WhyYouTrustUsFeature.objects.get(id=pk)
-                feature.title = request.data.get('title', feature.title)
-                feature.description = request.data.get('description', feature.description)
-                if 'icon' in request.FILES:
-                    feature.icon = request.FILES['icon']
-                feature.save()
-            except WhyYouTrustUsFeature.DoesNotExist:
-                return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not pk:
+            return Response({"error": "Feature ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": "Why-You-Trust-Us Feature updated successfully"}, status=status.HTTP_200_OK)
+        try:
+            feature = WhyYouTrustUsFeature.objects.get(id=pk)
+        except WhyYouTrustUsFeature.DoesNotExist:
+            return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Handle icon replacement
+        new_icon = request.FILES.get('icon')
+        replace_file_field(feature, 'icon', new_icon)
+
+        # Use serializer for partial updates
+        serializer = WhyYouTrustUsFeatureSerializer(feature, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Why-You-Trust-Us Feature updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Why You Trush us(Features) in About-Us Page",
@@ -308,6 +326,7 @@ class TrustUsFeatureView(APIView):
     def delete(self, request, pk=None):
         try:
             feature = WhyYouTrustUsFeature.objects.get(id=pk)
+            replace_file_field(feature, 'icon', new_file=None)
             feature.delete()
             return Response({"message": "Why-You-Trust-Us Feature deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except WhyYouTrustUsFeature.DoesNotExist:

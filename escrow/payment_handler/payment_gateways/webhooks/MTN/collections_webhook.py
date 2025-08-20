@@ -7,6 +7,10 @@ from uuid import UUID
 from time import sleep
 import string, random
 from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
+
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 
 class MtnCollectionWebhook(APIView):
@@ -28,6 +32,9 @@ class MtnCollectionWebhook(APIView):
         sleep(2)
 
         try:
+            logger.info("MTN Callback url calling")
+            logger.debug(f"request_data: {request_data}")
+            logger.info("-" * 80)
             print("MTN Callback url calling")
             print("request_data: ",request_data)
             external_id = request_data.get("externalId")
@@ -69,7 +76,9 @@ class MtnCollectionWebhook(APIView):
                 escrow.collection_date = timezone.now()
                 escrow.save()
 
-                transaction = Transactions.objects.filter(escrow=escrow, transaction_type="collection").last()
+                transaction = (
+                    Transactions.objects.filter(escrow=escrow, transaction_type="collection").order_by("-created_at").first()
+                )
                 if transaction:
                     transaction.status = "completed" if status == "SUCCESSFUL" else "failed"
                     transaction.save()

@@ -223,6 +223,7 @@ class ContactUsView(APIView):
                 "location": contact_us.location,
                 "social_links": {
                     "facebook_url": contact_us.facebook_url,
+                    "instagram_url": contact_us.instagram_url,
                     "x_url": contact_us.x_url,
                     "linkedin_url": contact_us.linkedin_url,
                     "youtube_url": contact_us.youtube_url,

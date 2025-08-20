@@ -10,7 +10,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         validator = URLValidator()
-        url_fields = ['facebook_url', 'x_url', 'linkedin_url', 'youtube_url']
+        url_fields = ['facebook_url', 'instagram_url', 'x_url', 'linkedin_url', 'youtube_url']
         for field in url_fields:
             url = attrs.get(field)
             if url:

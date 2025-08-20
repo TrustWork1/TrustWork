@@ -165,3 +165,30 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,  # <- keep Django's logging separate
+    "formatters": {
+        "default": {
+            "format": "[{asctime}] {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "subscription_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "project_log.log",   # store in project root
+            "formatter": "default",
+        },
+    },
+    "loggers": {
+        # Only your subscription view logger
+        "escrow_management.views.initialize_subscription": {
+            "handlers": ["subscription_file"],
+            "level": "DEBUG",
+            "propagate": False,   # <- prevents Django/urllib3 noise
+        },
+    },
+}

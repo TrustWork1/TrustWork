@@ -196,7 +196,9 @@ class LoginView(APIView):
                 user = authenticate(request, phone=serializer.data['phone'], password=serializer.data['password']) # , fcmtoken=serializer.data['fcmtoken'], devicetype=serializer.data['devicetype']
 
             if user is not None:
-                if user.is_active:
+                if user.profile.status == "deleted":
+                    return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+                elif user.is_active:
                     user.fcmtoken=request.data.get("deviceToken",'')
                     user.devicetype=request.data.get("deviceType",'')
                     user.save()
@@ -786,7 +788,6 @@ class UserProfileCreateView(APIView):
         }
     )
     def post(self, request):
-        # print(request.data)
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             referal_code=request.data.get("referred_by_code","")
@@ -794,19 +795,13 @@ class UserProfileCreateView(APIView):
                 referer_user=CustomUser.objects.filter(user_referal_code=referal_code).last()
                 if not referer_user:                    
                     return Response({"error":"Invalid Referal code"}, status=status.HTTP_400_BAD_REQUEST)
-            user = serializer.save(referred_by_code=request.data.get("referred_by_code",''))
-            response_data = serializer.data
+            user = serializer.save(referred_by_code=referal_code)
+            response_data = UserProfileSerializer(user).data
             # response_data['year_of_experiance'] = request.data.get('year_of_experiance')
             return Response(response_data, status=status.HTTP_200_OK)
+        
         error_message = list(serializer.errors.values())[0][0]  # Get the first error message
-        # error_string = f'{{"error": "{error_message}"}}'
-
         return Response({"error": f"{error_message}"}, status=status.HTTP_400_BAD_REQUEST)
-        # serializer = UserProfileSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def send_otp_email(email, otp):
         subject = 'Your Registration OTP'

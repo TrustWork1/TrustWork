@@ -6,7 +6,11 @@ import json
 import re
 from django.db import transaction
 from rest_framework import status
+import logging
+from uuid import UUID
 
+
+logger = logging.getLogger(__name__)
 
 
 class InitiateSubscription(APIView):
@@ -31,9 +35,14 @@ class InitiateSubscription(APIView):
             if response.get('status_code') == 500:
                 subscription.delete()
                 return Response({"status": "failed", "message": "Failed to send request."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+            subscription.reference_id = UUID(response.get('ref_id'))
+            subscription.save()
             status_response=collection.getTransactionStatus(response.get('ref_id'))
             # print("status_response: ",status_response)
+            logger.info("MTN Subscription Details:")
+            logger.debug(f"status_response: {status_response}")
+            logger.info("-" * 80)
             
             payment_status = status_response.get('status')
             if payment_status.lower() == "failed":

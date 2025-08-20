@@ -13,6 +13,7 @@ class Escrow(BaseModel):
     payee=models.ForeignKey(User,on_delete=models.DO_NOTHING,related_name='payee')
     external_callback_url=models.CharField(max_length=255,null=True)
     payment_method=models.CharField(max_length=100,choices=[('mtn-momo','mtn-momo'),('stripe','stripe')],default='mtn-momo')
+    reference_id = models.UUIDField(blank=True,null=True)
     
 
 class Events(BaseModel):
@@ -70,3 +71,4 @@ class MtnSubscriptionTransaction(BaseModel):
     payment_status = models.CharField(max_length=20, choices=[('paid', 'Paid'), ('failed', 'Failed'), ('pending', 'Pending')], default="pending")
     unique_code = models.CharField(max_length=20, null=True, blank=True, unique=True)
     unique_code_status = models.CharField(max_length=100, null= True, blank=True, default="inactive")
+    reference_id = models.UUIDField(blank=True,null=True)

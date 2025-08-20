@@ -36,6 +36,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import generics
 from django.conf import settings
+import json
 import os
 import environ
 env = environ.Env()
@@ -176,7 +177,7 @@ class UserProfileAPIView(APIView):
             profile = get_object_or_404(Profile, pk=pk)
             serializer = ProfileSerializer(profile)
         else:
-            profiles = Profile.objects.exclude(status="inactive").order_by("-updated_at")
+            profiles = Profile.objects.exclude(status="deleted").exclude(status="inactive").order_by("-updated_at")
             if user_type:
                 profiles = profiles.filter(user__user_type=user_type)
             
@@ -223,7 +224,7 @@ class ProfileAPIView(APIView):
             profile = get_object_or_404(Profile, pk=pk)
             serializer = ProfileSerializer(profile)
         else:
-            profiles = Profile.objects.all().order_by("-updated_at")
+            profiles = Profile.objects.exclude(status="deleted").order_by("-updated_at")
             if user_type:
                 profiles = profiles.filter(user__user_type=user_type)
             
@@ -269,12 +270,92 @@ class ProfileAPIView(APIView):
             if 'user' not in data:
                 email = data.get('email')
                 phone = data.get('phone')
-                print(phone)
-                print(email)
+                
                 existing_user = User.objects.filter(email=email).first()
-                existing_phone = Profile.objects.filter(phone=phone).exists()
-                print(existing_phone)
-                if existing_user and existing_phone:
+                existing_profile = Profile.objects.filter(user=existing_user).order_by('-id').first() if existing_user else None
+                existing_phone = Profile.objects.filter(phone=phone).exclude(status="deleted").exists()
+
+                if existing_user and existing_profile and existing_profile.status == "deleted":
+                    existing_user.user_type = user_type
+                    existing_user.is_active = True
+                    random_password = get_random_string(length=10)
+                    existing_user.set_password(random_password)
+                    full_name = data.get("full_name")
+                    existing_user.full_name = full_name
+                    existing_user.first_name = full_name.split(" ")[0]
+                    existing_user.last_name = "" if len(full_name.split(" ")) == 1 else " ".join(full_name.split(" ")[1:])
+                    existing_user.save()
+
+                    # Reset profile status to active
+                    existing_profile.status = "active"
+                    existing_profile.year_of_experiance = 0
+                    existing_profile.is_payment_verified = False
+                    existing_profile.is_profile_updated = False
+                    existing_profile.save()
+
+                    # Assign group
+                    group_name = user_type.capitalize()
+                    group, _ = Group.objects.get_or_create(name=group_name)
+                    existing_user.groups.clear()
+                    existing_user.groups.add(group)
+
+                    html_message = render_to_string('email_temp.html', {
+                            'title': 'Your Account Has Been Created',
+                            'otp': f'Hello {existing_user.email}, your account has been created. Your password is {random_password}',
+                            'image': TRUSTWORK_BASE_API
+                    })
+
+                    try:
+                        send_mail(
+                            subject='Your Account Has Been Created',
+                            message=f'Hello {existing_user.email}, your account has been created. Your password is {random_password}',
+                            html_message=html_message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[existing_user.email],
+                            fail_silently=True,
+                        )
+                    except:
+                        pass
+
+                    request.data['user'] = existing_user.id
+                    job_category_ids = data.get("job_category", [])
+                    if isinstance(job_category_ids, str):
+                        try:
+                            job_category_ids = json.loads(job_category_ids)
+                        except:
+                            job_category_ids = []
+                    data["job_category"] = job_category_ids
+
+                    # Update the existing profile with new data
+                    serializer = ProfileSerializer(existing_profile, data=data, partial=True)
+                    if serializer.is_valid():
+                        updated_profile = serializer.save()
+
+                        try:
+                            job_category_ids = data.get('job_category', [])
+                            if isinstance(job_category_ids, str):
+                                job_category_ids = json.loads(job_category_ids)
+                            elif isinstance(job_category_ids, list):
+                                pass
+                            else:
+                                job_category_ids = []
+
+                            job_categories = JobCategory.objects.filter(id__in=job_category_ids)
+                            updated_profile.job_category.set(job_categories)
+                        except Exception as e:
+                            print(e)
+                            pass
+
+                        return Response({
+                            "status": 200,
+                            "type": "success",
+                            "message": "Dprofile created successfully",
+                            "data": serializer.data
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                elif existing_user and existing_phone:
                     return Response({
                         "status": 400,
                         "type": "error",
@@ -284,7 +365,7 @@ class ProfileAPIView(APIView):
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
-                if existing_user:
+                elif existing_user and existing_profile and existing_profile.status != "deleted":
                     return Response({
                         "status": 400,
                         "type": "error",
@@ -294,7 +375,7 @@ class ProfileAPIView(APIView):
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
-                if existing_phone:
+                elif existing_phone:
                     return Response({
                         "status": 400,
                         "type": "error",
@@ -303,7 +384,8 @@ class ProfileAPIView(APIView):
                             "user": ["An account with this phone already exists."]
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
-                if email:
+                
+                elif email and not existing_user:
                     user, created = User.objects.get_or_create(email=email)
 
                     if created:
@@ -344,10 +426,10 @@ class ProfileAPIView(APIView):
 
             else:
                 user = request.user
-            # request.data._mutable=True
+            
             request.data['user_type']=user_type
-            # print(request.data)
             serializer = ProfileSerializer(data=request.data)
+
             if serializer.is_valid():
                 data=serializer.save()
                 try:
@@ -450,15 +532,13 @@ class ProfileAPIView(APIView):
     def delete(self, request, pk=None,user_type=None):
         try:
             profile = get_object_or_404(Profile, pk=pk)
-            profile.user.is_active = False
-            profile.user.save()
-            profile.status = "inactive"
-            profile.save()
+            profile.delete()
+            profile.user.delete()
 
             return Response({
                 "status": 200,
                 "type": "success",
-                "message": "Profile deactivated successfully"
+                "message": "Profile deleted successfully"
             }, status=status.HTTP_200_OK)
 
         except Http404:
@@ -469,12 +549,17 @@ class ProfileAPIView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
-            print("Error:", str(e))
+            profile = get_object_or_404(Profile, pk=pk)
+            profile.user.is_active = False
+            profile.user.save()
+            profile.status = "deleted"
+            profile.save()
+
             return Response({
-                "status": 400,
-                "type": "error",
-                "message": str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+                "status": 200,
+                "type": "success",
+                "message": "Profile deleted successfully"
+            }, status=status.HTTP_200_OK)
 
 
 # class JobCategoryUpdateView(APIView):
@@ -1533,7 +1618,7 @@ class ProfileDetails(APIView):
             )
         
         if user_type.lower() == "client":
-            providers=Profile.objects.filter(user__user_type='provider').exclude(status="inactive").order_by('-created_at')
+            providers=Profile.objects.filter(user__user_type='provider').exclude(status="deleted").exclude(status="inactive").order_by('-created_at')
             
             filtered_users= self.filter_by_location(providers, latitude, longitude, radius)
             
@@ -1549,7 +1634,7 @@ class ProfileDetails(APIView):
 
         elif user_type.lower() == "provider":
             # projects = Project.objects.filter(bid__service_provider=user_profile).select_related("client")
-            clients = Profile.objects.filter(user__user_type='client').exclude(status="inactive").order_by('-created_at')
+            clients = Profile.objects.filter(user__user_type='client').exclude(status="deleted").exclude(status="inactive").order_by('-created_at')
 
             filtered_users = self.filter_by_location(clients, latitude, longitude, radius)
 
@@ -1653,9 +1738,10 @@ class ProjectDetails(APIView):
             user_category_ids = user_profile.job_category.all().values_list("id", flat=True)
 
             # Base query
-            projects = Project.objects.filter(project_category__in=user_category_ids).exclude(
-                status__in=["completed", "ongoing", "myoffer", "inactive"]
-            ).exclude(client=request.user.profile.id).order_by('-created_at')
+            excluded_statuses = ["completed", "ongoing", "myoffer", "inactive"]
+            projects = (Project.objects.filter(project_category__in=user_category_ids).exclude(
+                Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=request.user.profile.id)).order_by("-created_at")
+            )
 
             # Filter by location
             filtered_projects = self.filter_by_location(projects, latitude, longitude, radius)
@@ -1706,7 +1792,8 @@ class SendRequestToSubscribe(APIView):
         amt = round(float(data.get("amount", 0).strip()))
         amount = str(amt)
 
-        if not phone_number.startswith("237") and len(phone_number) <= 9:
+        # if not phone_number.startswith("237") and len(phone_number) <= 9:
+        if not phone_number.startswith("237"):
             phone_number = "237"+ phone_number
         
         cycle_map = {
@@ -1723,7 +1810,7 @@ class SendRequestToSubscribe(APIView):
 
         gateway=PaymentGatewayAPI()
         try:
-            if len(phone_number) > 12:
+            if len(phone_number) > 13:
                 return Response({'error': 'Invalid MTN Number.'}, status=status.HTTP_400_BAD_REQUEST)
             try:
                 validate_email(email)

@@ -76,7 +76,7 @@ def send_subscription_sms(phone_number, code):
     conn.request("POST", "/sms/send", payload, headers)
     res = conn.getresponse()
     data = res.read()
-    print("PRINTING SMS: ",data.decode("utf-8"))
+    # print("PRINTING SMS: ",data.decode("utf-8"))
 
 # send_otp_sms("+237675708549", "1234")
 # send_otp_sms("+237694041826", "9876")

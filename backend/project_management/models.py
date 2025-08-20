@@ -27,6 +27,8 @@ class Project(AbstractModel):
     status=models.CharField(max_length=50,choices=[("active","active"),("ongoing","ongoing"),("completed","completed"),("inactive","inactive"),("block","block"), ("myoffer", "myoffer"),('Rejected',"Rejected")],default="active")
     bid_count= models.IntegerField(default=0)
     can_send_bid= models.BooleanField(default=False)
+    project_type=models.CharField(max_length=50,null=True, blank=True, default="normal")
+    
     def __str__(self):
         return f'{self.project_title}'
 

@@ -16,6 +16,21 @@ env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 
+def replace_file_field(instance, field_name, new_file):
+    old_file = getattr(instance, field_name)
+    if old_file and old_file.name:
+        old_path = old_file.path
+        if os.path.isfile(old_path):
+            try:
+                os.remove(old_path)
+            except Exception as e:
+                print(f"Error deleting old file: {e}")
+            # print("Old file deleted.")
+    
+    if new_file:
+        setattr(instance, field_name, new_file)
+        # print("New file added.")
+
 class AppInfoView(APIView):
     permission_classes=[IsAuthenticated]
     def get(self, request, pk=None):
@@ -87,8 +102,11 @@ class AppInfoView(APIView):
         app_info.tagline = request.data.get('tagline', app_info.tagline)
         app_info.title = request.data.get('title', app_info.title)
         app_info.description = request.data.get('description', app_info.description)
-        if 'image' in request.FILES:
-            app_info.image = request.FILES['image']
+        
+        # Handle image replacement
+        new_image = request.FILES.get('image')
+        replace_file_field(app_info, 'image', new_image)
+
         app_info.save()
 
         serializer = AppInfoSerializer(app_info)
@@ -180,24 +198,29 @@ class FeaturesView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def put(self, request, pk=None):
-        if pk:
-            try:
-                feature = Feature.objects.get(id=pk)
-                feature.title = request.data.get('title', feature.title)
-                feature.description = request.data.get('description', feature.description)
+        if not pk:
+            return Response({"error": "Feature ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-                if 'icon' in request.FILES:
-                    feature.icon = request.FILES.get('icon')
+        try:
+            feature = Feature.objects.get(id=pk)
+        except Feature.DoesNotExist:
+            return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
 
-                feature.save()
-            except Feature.DoesNotExist:
-                return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Update fields
+        feature.title = request.data.get('title', feature.title)
+        feature.description = request.data.get('description', feature.description)
 
+        # Handle icon replacement
+        new_icon = request.FILES.get('icon')
+        replace_file_field(feature, 'icon', new_icon)
+
+        feature.save()
         return Response({"message": "Feature updated successfully"}, status=status.HTTP_200_OK)
 
     def delete(self, request, pk=None):
         try:
             feature = Feature.objects.get(id=pk)
+            replace_file_field(feature, 'icon', new_file=None)
             feature.delete()
             return Response({"message": "Feature deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Feature.DoesNotExist:
@@ -212,16 +235,17 @@ class HowItWorksSectionView(APIView):
         
         serializer = HowItWorksSectionSerializer(howitworks_section)
         data = serializer.data
-        if howitworks_section.image:
-            data['image'] = TRUSTWORK_BASE_API+howitworks_section.image.url
+        if howitworks_section.media:
+            data['media'] = TRUSTWORK_BASE_API+howitworks_section.media.url
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request):
         # Check if HowItWorksSection already exists
         if HowItWorksSection.objects.exists():
             return Response({"message": "HowItWorksSection already exists. Use PUT to update."},
-                            status=status.HTTP_400_BAD_REQUEST)
-        
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = HowItWorksSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -232,9 +256,15 @@ class HowItWorksSectionView(APIView):
     def put(self, request):
         howitworks_section = HowItWorksSection.objects.first()
         if not howitworks_section:
-            return Response({"message": "HowItWorksSection does not exist. Use POST to create."},
-                            status=status.HTTP_404_NOT_FOUND)
-        
+            return Response(
+                {"message": "HowItWorksSection does not exist. Use POST to create."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if media is being updated
+        new_media = request.FILES.get('media', None)
+        replace_file_field(howitworks_section, 'media', new_media)
+
         serializer = HowItWorksSectionSerializer(howitworks_section, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -288,22 +318,29 @@ class HowItWorksView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def put(self, request, pk=None):
-        if pk:
-            try:
-                step = HowItWorksStep.objects.get(id=pk)
-                step.title = request.data.get('title', step.title)
-                step.description = request.data.get('description', step.description)
-                if 'icon' in request.FILES:
-                    step.icon = request.FILES.get('icon')
-                step.save()
-            except HowItWorksStep.DoesNotExist:
-                return Response({"error": "Step not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not pk:
+            return Response({"error": "Step ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            step = HowItWorksStep.objects.get(id=pk)
+        except HowItWorksStep.DoesNotExist:
+            return Response({"error": "Step not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Update text fields
+        step.title = request.data.get('title', step.title)
+        step.description = request.data.get('description', step.description)
+
+        # Handle icon replacement
+        new_icon = request.FILES.get('icon')
+        replace_file_field(step, 'icon', new_icon)
+
+        step.save()
         return Response({"message": "Step updated successfully"}, status=status.HTTP_200_OK)
 
     def delete(self, request, pk=None):
         try:
             step = HowItWorksStep.objects.get(id=pk)
+            replace_file_field(step, 'icon', new_file=None)
             step.delete()
             return Response({"message": "Step deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except HowItWorksStep.DoesNotExist:
@@ -345,12 +382,13 @@ class ReferralSectionView(APIView):
             if not referral:
                 return Response({"error": "Referral Section not found"}, status=status.HTTP_404_NOT_FOUND)
 
+            new_image = request.FILES.get('image')
+            replace_file_field(referral, 'image', new_image)
+
             serializer = ReferralSectionSerializer(referral, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 data = serializer.data
-                if referral.image:
-                    data['image'] = request.build_absolute_uri(referral.image.url)
                 return Response(data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -423,20 +461,24 @@ class DownloadSectionView(APIView):
         # Update DownloadSection
         download_section.title = request.data.get('title', download_section.title)
         download_section.description = request.data.get('description', download_section.description)
-        if 'image' in request.FILES:
-            download_section.image = request.FILES['image']
+        
+        new_image = request.FILES.get('image')
+        replace_file_field(download_section, 'image', new_image)
+
         download_section.save()
 
         serializer = DownloadSectionSerializer(download_section)
         data = serializer.data
-        if download_section.image:
-            data['image'] = request.build_absolute_uri(download_section.image.url)
         data['playstore_link'] = app_download.playstore_link
         data['appstore_link'] = app_download.appstore_link
         return Response(data, status=status.HTTP_200_OK)
 
 class PackagesSectionCMSView(APIView):
-    permission_classes=[IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method in ['POST', 'PUT']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+    
     def get(self, request):
         package_section = PricingPlanSection.objects.first()
         if not package_section:
@@ -679,7 +721,7 @@ class HomePageView(APIView):
                 "id": howitworks_section.id,
                 "header": howitworks_section.header,
                 "description": howitworks_section.description,
-                "image": TRUSTWORK_BASE_API+howitworks_section.image.url if howitworks_section.image else None,
+                "media": TRUSTWORK_BASE_API+howitworks_section.media.url if howitworks_section.media else None,
                 "steps": [
                     {
                         "id": step.id,

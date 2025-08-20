@@ -236,11 +236,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
         Create or get the project location and set it to the project.
         """
-        latitude = self.initial_data.get("lat")
-        longitude = self.initial_data.get("lng")
+        latitude = self.initial_data.get("latitude", "")
+        longitude = self.initial_data.get("longitude", "")
         country = self.initial_data.get("country", "")
         code = self.initial_data.get("state_code", "")
-        print("self.initial_data", self.initial_data)
+        # print("self.initial_data", self.initial_data)
         location = Location.objects.filter(
             latitude=latitude,
             longitude=longitude,
@@ -265,8 +265,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         return profile
     
     def update(self, instance, validated_data):
-        latitude = self.initial_data.get("lat")
-        longitude = self.initial_data.get("lng")
+        latitude = self.initial_data.get("latitude", "")
+        longitude = self.initial_data.get("longitude", "")
         country = self.initial_data.get("country", "")
         code = self.initial_data.get("state_code", "")
 
@@ -313,7 +313,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         if "user" in validated_data:
             user_data = validated_data.pop('user')
             user = instance.user
-            full_name = user_data.get("full_name")
+            if isinstance(user_data, dict):
+                full_name = user_data.get("full_name")
+            else:
+                full_name = getattr(user_data, "full_name", None)
             if full_name:
                 user.full_name = full_name
                 user.first_name = full_name.split(" ")[0]

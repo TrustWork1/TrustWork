@@ -24,10 +24,14 @@ from django.db import IntegrityError
 from django.db import transaction
 from project_management.models import Notification
 import json
+import os, requests
+from datetime import timedelta
+from django.utils import timezone
 from django.core.files.storage import default_storage
 import stripe
 from django.conf import settings
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 
 class ProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -217,20 +221,43 @@ class ProjectDetail(APIView):
     def get(self, request, pk):
         # project = self.get_object(pk)
         project = Project.objects.get(id=pk)
-        transaction_status = Transactions.objects.filter(project=project).last()
+        last_transaction = Transactions.objects.filter(project=project).last()
         message=Messages.objects.filter(Q(chat_room__user1=request.user.profile,chat_room__user2=project.client)|Q(chat_room__user2=request.user.profile,chat_room__user1=project.client))
-        if transaction_status:
-            transaction_status=transaction_status.status
-        else:
-            transaction_status=""
+        
+        if last_transaction:
+            transaction_status=last_transaction.status
+
+            # Update transition status after 30 minutes(if not payed)
+            if (transaction_status.lower() == "in_progress" and 
+                last_transaction.created_at + timedelta(minutes=30) < timezone.now()
+            ):
+                try:
+                    escrow_id = str(last_transaction.escrow_id)
+                    escrow_url = f"{ESCROW_BASE_API}/mtn-momo/escrow_payment_status/{escrow_id}/"
+                    escrow_response = requests.put(escrow_url)
+
+                    if escrow_response.status_code == 200:
+                        response_data = escrow_response.json()
+                        escrow_data = response_data.get("status_response")
+                        
+                        if escrow_data.get("status").upper() == "FAILED":
+                            last_transaction.status = "failed"
+                            last_transaction.save()
+                    else:
+                        print(f"Escrow Transition update failed: {escrow_response.status_code} {escrow_response.text}")
+                except Exception as e:
+                    print(f"Escrow API error: {e}")
+        
+        
         if message.last():
             message=MessagesSerializer(message.last()).data
         else:
             message=""
+        
         serializer = ProjectSerializer(project)
         data = serializer.data
         # data.pop("client")
-        # data['transaction_status'] = transaction_status       # payment status
+
         data['last_message'] = message
         # conversation = Conversation.objects.get(project=project)
         # message= Message.objects.filter(conversation=conversation).order_by("-sent_at").first()
@@ -676,7 +703,8 @@ class ProjectBidApiView(APIView):
                 if request.data.get("phone_number") and action == "accept":
                     try:
                         phone_number=request.data.get("phone_number", "").strip()
-                        if not phone_number.startswith("237") and len(phone_number) <= 9:
+                        # if not phone_number.startswith("237") and len(phone_number) <= 9:
+                        if not phone_number.startswith("237"):
                             phone_number = "237"+ phone_number
                         gateway=PaymentGatewayAPI()
                         
@@ -1041,10 +1069,11 @@ class ServiceProviderHomeView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         search_query = request.query_params.get('search', '')
-        
-        projects = Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(
-            status__in=["completed", "ongoing", "myoffer", "inactive"]
-        ).exclude(client=request.user.profile.id).order_by("created_at")
+        excluded_statuses = ["completed", "ongoing", "myoffer", "inactive"]
+
+        projects = (Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(
+            Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=request.user.profile.id)).order_by("created_at")
+        )
         
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)

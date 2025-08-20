@@ -399,7 +399,7 @@ class ProviderViewProject(APIView):
         client_profile = self.request.user.profile
         # print("client_profile", client_profile)
         # status_filter = self.request.query_params.get("status")
-        query = Bid.objects.filter(project__in=Project.objects.filter(client=client_profile, status__iexact='active')) # | Bid.objects.filter() # Accepted
+        query = Bid.objects.filter(project__in=Project.objects.filter(client=client_profile, status__iexact='active')).exclude(service_provider__status='deleted').exclude(service_provider__status='inactive')  # Accepted
         # query = Project.objects.filter(client=client_profile, status__iexact='active')
         query = query.order_by('created_at')
         # return Response(query)
@@ -477,7 +477,7 @@ class CreateAndOfferProjectAPIView(APIView):
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            project = serializer.save(client=client_profile,project_category=JobCategory.objects.get(id=project_data.get("project_category")), status="myoffer")#.exclude(status__in="completed")
+            project = serializer.save(client=client_profile,project_category=JobCategory.objects.get(id=project_data.get("project_category")), status="myoffer", project_type="myoffer")#.exclude(status__in="completed")
             
             document=request.FILES['document']
             if document:

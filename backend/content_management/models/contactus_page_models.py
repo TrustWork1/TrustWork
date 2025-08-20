@@ -10,6 +10,7 @@ class ContactUs(models.Model):
     email = models.EmailField(blank=True, null=True)
     location = models.CharField(max_length=500, blank=True, null=True)
     facebook_url = models.TextField(blank=True, null=True)
+    instagram_url = models.TextField(blank=True, null=True)
     x_url = models.TextField(blank=True, null=True)
     linkedin_url = models.TextField(blank=True, null=True)
     youtube_url = models.TextField(blank=True, null=True)

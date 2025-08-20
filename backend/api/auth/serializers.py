@@ -312,7 +312,6 @@ from profile_management.models import  Profile
 
 class UserProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True)
-    
     phone = serializers.CharField(required=False,write_only=True,allow_blank=True)
     profession = serializers.CharField(required=False)
     email=serializers.EmailField(required=False,allow_blank=True)
@@ -358,6 +357,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             )
         except Exception as e:
             print(f"[EMAIL ERROR] OTP mail sending failed: {e}")
+    
     def validate(self, data):
         email = data.get('email',"")
         phone = data.get('phone',"")
@@ -366,25 +366,35 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not email and not phone:
             raise serializers.ValidationError("Either email or phone number must be provided.")
 
-        # Check if email already exists
-        if email and CustomUser.objects.filter(email=email).exists():
-            raise serializers.ValidationError({"email": "Account with this email already exists."})
+        # Check if email exists and is not deleted
+        if email:
+            existing_user = CustomUser.objects.filter(email=email).first()
+            if existing_user:
+                if existing_user.profile.status != "deleted":
+                    raise serializers.ValidationError({"email": "Account with this email already exists."})
 
-        # Check if phone already exists
-        if phone and Profile.objects.filter(phone=phone).exists():
-            raise serializers.ValidationError({"phone": "Account with this phone already exists."})
+        # Check if phone exists and is not deleted
+        if phone:
+            existing_profile = Profile.objects.filter(phone=phone).first()
+            if existing_profile and existing_profile.status != "deleted":
+                raise serializers.ValidationError({"phone": "Account with this phone already exists."})
 
         return data
+    
     def create(self, validated_data):
         otp = str(random.randint(1000, 9999))
 
         user_type = validated_data['user_type']
         latitude = validated_data.pop('latitude', None)
         longitude = validated_data.pop('longitude', None)
-        print(validated_data)
+        country = self.initial_data.get("country", "")
+        code = self.initial_data.get("state_code", "")
+        
+        email = validated_data.get('email')
+        phone = validated_data.get('phone')
+        phone_extension = validated_data.get('phone_extension', "")
         # Extract fields specific to the profile
         profile_data = {
-            # 'full_name': validated_data.pop('full_name'),
             'phone': validated_data.pop('phone', ''),
             "phone_extension": validated_data.pop("phone_extension", "")
         }
@@ -394,35 +404,91 @@ class UserProfileSerializer(serializers.ModelSerializer):
             profile_data['associated_organization'] = validated_data.pop('associated_organization')
             profile_data['organization_registration_id'] = validated_data.pop('organization_registration_id')
 
-        # Create the CustomUser instance
-        user = CustomUser(**validated_data)
-        full_name=validated_data.get("full_name")
-        user.full_name=full_name
-        user.first_name=full_name.split(" ")[0]
-        user.last_name="" if len(full_name.split(" "))==1 else " ".join(full_name.split(" ")[1:])
-        # self.send_otp_email( email=validated_data['email'],otp=otp)
-        if profile_data.get("phone_extension") and profile_data.get("phone"):
-            send_otp_sms(profile_data.get("phone_extension")+profile_data.get("phone"),otp)
-        if validated_data.get("email"):
-            
-            self.send_otp_email( email=validated_data['email'],otp=otp)
-        user.otp = otp
+        full_name = validated_data.pop("full_name", "")
+        validated_data["first_name"] = full_name.split(" ")[0]
+        validated_data["last_name"] = " ".join(full_name.split(" ")[1:]) if len(full_name.split(" ")) > 1 else ""
+        validated_data["full_name"] = full_name
 
-        user.set_password(validated_data['password'])
-        user.save()
+        # Check for soft-deleted user by email or phone
+        existing_user = None
+        if email:
+            existing_user = CustomUser.objects.filter(email=email).first()
+        elif phone:
+            profile = Profile.objects.filter(phone=phone).first()
+            if profile:
+                existing_user = profile.user
 
-        # Create the Profile instance
-        profile = Profile.objects.create(user=user, **profile_data)
+        if existing_user and existing_user.profile.status == "deleted":
+            # Reactivate user
+            user = existing_user
+            user.first_name = validated_data["first_name"]
+            user.last_name = validated_data["last_name"]
+            user.full_name = validated_data["full_name"]
+            user.user_type = user_type
+            user.set_password(validated_data["password"])
+            user.otp = otp
+            user.is_active = True
+            user.save()
 
-        # if latitude and longitude:
-        #     location = Location.objects.create(latitude=latitude, longitude=longitude)
-        #     profile.location = location
-        #     profile.save()
+            # Update profile
+            profile = user.profile
+            profile.status = "active"
+            profile.year_of_experiance = 0
+            profile.is_payment_verified = False
+            profile.is_profile_updated = False
+            profile.phone = profile_data.get("phone", profile.phone)
+            profile.phone_extension = profile_data.get("phone_extension", profile.phone_extension)
 
-        if latitude and longitude:
-            location = Location.objects.create(latitude=latitude, longitude=longitude)
-            profile.location = location
+            if user_type == 'provider':
+                profile.profession = profile_data.get("profession", profile.profession)
+                profile.associated_organization = profile_data.get("associated_organization", profile.associated_organization)
+                profile.organization_registration_id = profile_data.get("organization_registration_id", profile.organization_registration_id)
+
+            # Update or create location
+            if latitude and longitude:
+                location = Location.objects.filter(
+                    latitude=latitude, longitude=longitude, country=country, code=code
+                ).last()
+                if not location:
+                    location = Location.objects.create(
+                        latitude=latitude, longitude=longitude, country=country, code=code
+                    )
+                profile.location = location
+
             profile.save()
-            location.save()
-        print(latitude, "latitude checking")
+
+        else:
+            # Create the CustomUser instance
+            user = CustomUser(**validated_data)
+            user.otp = otp
+            user.set_password(validated_data['password'])
+            user.save()
+
+            # Create the Profile instance
+            profile = Profile.objects.create(user=user, **profile_data)
+
+            if latitude and longitude:
+                location = Location.objects.filter(
+                    latitude=latitude,
+                    longitude=longitude,
+                    country= country, 
+                    code= code
+                ).last()
+                if not location:
+                    location = Location.objects.create(
+                        latitude=latitude,
+                        longitude=longitude,
+                        country= country, 
+                        code= code
+                    )
+                profile.location = location
+                profile.save()
+                # location.save()
+        
+        # Send OTP
+        if phone and phone_extension:
+            send_otp_sms(phone_extension + phone, otp)
+        if email:
+            self.send_otp_email(email=email, otp=otp)
+
         return user

@@ -532,14 +532,28 @@ class ProfileAPIView(APIView):
     def delete(self, request, pk=None,user_type=None):
         try:
             profile = get_object_or_404(Profile, pk=pk)
-            profile.delete()
-            profile.user.delete()
 
-            return Response({
-                "status": 200,
-                "type": "success",
-                "message": "Profile deleted successfully"
-            }, status=status.HTTP_200_OK)
+            # Try hard delete
+            try:
+                profile.delete()
+                profile.user.delete()
+                return Response({
+                    "status": 200,
+                    "type": "success",
+                    "message": "Profile deleted successfully"
+                }, status=status.HTTP_200_OK)
+
+            except Exception:
+                # Fallback to soft delete
+                profile.user.is_active = False
+                profile.user.save()
+                profile.status = "deleted"
+                profile.save()
+                return Response({
+                    "status": 200,
+                    "type": "success",
+                    "message": "Profile soft deleted successfully"
+                }, status=status.HTTP_200_OK)
 
         except Http404:
             return Response({
@@ -548,19 +562,21 @@ class ProfileAPIView(APIView):
                 "message": "Profile not found"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        except Exception as e:
-            profile = get_object_or_404(Profile, pk=pk)
-            profile.user.is_active = False
-            profile.user.save()
-            profile.status = "deleted"
-            profile.save()
 
-            return Response({
-                "status": 200,
-                "type": "success",
-                "message": "Profile deleted successfully"
-            }, status=status.HTTP_200_OK)
-
+class DummyUserDelete(APIView):
+    def get(self, request):
+        return Response({
+            "status": 200,
+            "type": "success",
+            "message": "User deleted successfully"
+        }, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        return Response({
+            "status": 200,
+            "type": "success",
+            "message": "User deleted successfully"
+        }, status=status.HTTP_200_OK)
 
 # class JobCategoryUpdateView(APIView):
 #     permission_classes=[IsAuthenticated]
@@ -1811,7 +1827,7 @@ class SendRequestToSubscribe(APIView):
         gateway=PaymentGatewayAPI()
         try:
             if len(phone_number) > 13:
-                return Response({'error': 'Invalid MTN Number.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Invalid Cameroon MTN number.'}, status=status.HTTP_400_BAD_REQUEST)
             try:
                 validate_email(email)
             except ValidationError:
@@ -1827,7 +1843,7 @@ class SendRequestToSubscribe(APIView):
             # print("Response: ",response)
 
             if not response:
-                return Response({'message': 'Invalid phone number.'}, status=status.HTTP_502_BAD_GATEWAY)
+                return Response({'message': 'Invalid Cameroon MTN number.'}, status=status.HTTP_502_BAD_GATEWAY)
 
             if isinstance(response, dict):
                 response_status = response.get("status", "").lower()
@@ -1835,7 +1851,7 @@ class SendRequestToSubscribe(APIView):
                 if response_status == "failed":
                     return Response({
                         "error": "Subscription initiation failed.",
-                        "message": response.get("message", "Invalid phone number.")
+                        "message": response.get("message", "Invalid Cameroon MTN number.")
                     }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Return success

@@ -43,8 +43,9 @@ const ContactInfoContent = () => {
     location: '',
     facebook_url: '',
     x_url: '',
-    linkedin_url: '',
-    youtube_url: '',
+    instagram_url: '',
+    // linkedin_url: '',
+    // youtube_url: '',
     map_url: '',
     longitude: '',
     latitude: '',
@@ -76,8 +77,9 @@ const ContactInfoContent = () => {
       location: cmsData?.location || '',
       facebook_url: cmsData?.facebook_url || '',
       x_url: cmsData?.x_url || '',
-      linkedin_url: cmsData?.linkedin_url || '',
-      youtube_url: cmsData?.youtube_url || '',
+      instagram_url: cmsData?.instagram_url || '',
+      // linkedin_url: cmsData?.linkedin_url || '',
+      // youtube_url: cmsData?.youtube_url || '',
       map_url: cmsData?.map_url || '',
       longitude: cmsData?.longitude || '',
       latitude: cmsData?.latitude || '',
@@ -110,8 +112,9 @@ const ContactInfoContent = () => {
     formData.append('location', data.location)
     formData.append('facebook_url', data.facebook_url)
     formData.append('x_url', data.x_url)
-    formData.append('linkedin_url', data.linkedin_url)
-    formData.append('youtube_url', data.youtube_url)
+    formData.append('instagram_url', data.instagram_url)
+    // formData.append('linkedin_url', data.linkedin_url)
+    // formData.append('youtube_url', data.youtube_url)
     formData.append('map_url', data.map_url)
     formData.append('longitude', data.longitude)
     formData.append('latitude', data.latitude)
@@ -249,7 +252,7 @@ const ContactInfoContent = () => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={4}>
                     <Controller
                       name='facebook_url'
                       control={control}
@@ -265,7 +268,7 @@ const ContactInfoContent = () => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={4}>
                     <Controller
                       name='x_url'
                       control={control}
@@ -280,8 +283,23 @@ const ContactInfoContent = () => {
                       )}
                     />
                   </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name='instagram_url'
+                      control={control}
+                      render={({ field }: { field: { value: string } }) => (
+                        <TextField
+                          fullWidth
+                          label='Instagram URL'
+                          {...field}
+                          error={!!errors.instagram_url}
+                          helperText={errors.instagram_url?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  {/* <Grid item xs={12} sm={6}>
                     <Controller
                       name='linkedin_url'
                       control={control}
@@ -311,7 +329,7 @@ const ContactInfoContent = () => {
                         />
                       )}
                     />
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item xs={12}>
                     <Controller

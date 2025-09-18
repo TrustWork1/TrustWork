@@ -16,6 +16,9 @@ declare module '@mui/material/styles' {
       downloadAppBG: string;
       maskBorder: string;
       borderColor: string;
+      color5F616D: string;
+      color020512: string;
+      colorD1E9C4: string;
     };
   }
   interface PaletteOptions {

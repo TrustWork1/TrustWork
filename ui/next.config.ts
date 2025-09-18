@@ -8,11 +8,20 @@ const nextConfig: NextConfig = {
     includePaths: [path.join(__dirname, 'styles')],
   },
   images: {
-    domains: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'trustwork-api.dedicateddevelopers.us',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.trustwork.live',
+      },
+    ],
   },
   compress: true,
   devIndicators: {
-    buildActivityPosition: 'bottom-right',
+    position: 'bottom-right',
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

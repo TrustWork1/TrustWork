@@ -31,6 +31,7 @@ pycountry = "^24.6.1"
 twilio = "^9.4.5"
 pyclean = "^3.1.0"
 whitenoise = "^6.9.0"
+django-csp = "^4.0"
 
 [build-system]
 requires = ["poetry-core"]

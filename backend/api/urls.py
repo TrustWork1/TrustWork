@@ -17,6 +17,8 @@ from api.content_management_servies.views.aboutus_page_views import AboutUsSecti
 from api.content_management_servies.views.terms_condition_page_views import TermsConditionsSectionView, TermsConditionsView
 from api.content_management_servies.views.privacy_policy_page_views import PrivacyPolicySectionView, PrivacyPolicyView
 from api.content_management_servies.views.contactus_page_views import ContactUsDetailsView, ContactUsFormView, ContactUsView
+from api.profile.views import DummyUserDelete
+
 urlpatterns = [
     path('home-page/', HomePageView.as_view(), name='home-page'),
     path('aboutus-page/', AboutUsView.as_view(), name='aboutus-page'),
@@ -273,4 +275,6 @@ urlpatterns = [
     
     path('onboarding-return', onboarding_return, name='onboarding_return'),
     path("reauth/<uuid:token>/", reauth_with_token, name="reauth_with_token"),
+
+    path('user/delete/', DummyUserDelete.as_view(), name='user/delete/'),
 ]

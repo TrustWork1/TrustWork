@@ -507,7 +507,7 @@ class QMSResponseApiView(APIView):
 
             # Render the email body from the HTML template
             answer = request.data['response']
-            clean_answer = re.sub(r'<\/?p>', '', answer)
+            clean_answer = re.sub(r'^<p>|</p>$', '', answer.strip())
 
             html_content = render_to_string('email_temp.html', {
                 'title': 'Trustwork Support',

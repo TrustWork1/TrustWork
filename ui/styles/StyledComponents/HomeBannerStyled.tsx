@@ -37,7 +37,12 @@ export const HomeBannerBox = styled(Box)`
 
         .left-grid {
           width: 100%;
-          max-width: 506px;
+          max-width: 520px;
+          padding-top: 50px;
+
+          @media (max-width: 1199px) {
+            padding-top: 0px;
+          }
 
           @media (max-width: 899px) {
             max-width: 50%;
@@ -54,15 +59,20 @@ export const HomeBannerBox = styled(Box)`
             padding: 10px 22px;
             border-radius: 100px;
             margin-bottom: 5px;
+            white-space: inherit;
 
             .MuiChip-label {
               padding: 0;
               font-size: 16px;
+              white-space: inherit;
+              overflow: inherit;
+              text-overflow: inherit;
             }
           }
 
           h1 {
             margin-bottom: 15px;
+            font-size: 55px;
 
             @media (max-width: 1199px) {
               font-size: 42px;
@@ -104,7 +114,7 @@ export const HomeBannerBox = styled(Box)`
 
         .right-grid {
           width: 100%;
-          max-width: calc(100% - 506px);
+          max-width: calc(100% - 520px);
           text-align: right;
           margin-top: -100px;
 

@@ -27,7 +27,7 @@ export interface IHomeModel {
     id: number;
     header: string;
     description: string;
-    image: string;
+    media: string;
     steps: {
       id: number;
       title: string;
@@ -72,6 +72,8 @@ export interface IHomeModel {
     image: string;
   };
 
+  DownloadLinks: { appStore: string; playStore: string };
+
   HomePageResponse: {
     data: {
       app_info: IHomeModel['AppInfo'];
@@ -80,6 +82,7 @@ export interface IHomeModel {
       pricing_plan_section: IHomeModel['PricingPlanSection'];
       referral_section: IHomeModel['ReferralSection'];
       download_section: IHomeModel['DownloadSection'];
+      download_links: IHomeModel['DownloadLinks'];
     };
   } & BaseApiResponse;
 }

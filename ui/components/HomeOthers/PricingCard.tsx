@@ -6,7 +6,7 @@ export interface IPricingCard {
   planName: string;
   aboutPlan: string;
   price: number;
-  billingCycle: 'Week' | 'Month' | 'Year';
+  billingCycle: string;
   features: string[];
 }
 
@@ -27,7 +27,7 @@ const PricingCard: React.FC<IPricingCard> = ({
           {aboutPlan}
         </Typography>
         <Typography variant='body2'>
-          <span>${price}</span>/{billingCycle}
+          <span>XAF {price}</span>/{billingCycle}
         </Typography>
         <List disablePadding>
           {features.map((feature, index) => (

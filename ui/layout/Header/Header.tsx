@@ -1,5 +1,7 @@
+import ErrorBoundary from '@/components/Error/ErrorBoundary';
 import assest from '@/json/assest';
 import { DrawerContain, HeaderDrawer, HeaderWrap } from '@/styles/StyledComponents/HeaderWrapper';
+import { IHomeModel } from '@/typescript/interface/home.interface';
 import CustomButtonPrimary from '@/ui/CustomButtons/CustomButtonPrimary';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Container, Stack } from '@mui/material';
@@ -16,7 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 
-export default function Header() {
+export default function Header({ downloadUrls }: { downloadUrls?: IHomeModel['DownloadLinks'] }) {
   const navItems = [
     {
       name: 'Home',
@@ -24,12 +26,17 @@ export default function Header() {
     },
     {
       name: 'Our Features',
-      route: 'javscript:void(0)',
+      route: '/#ourFeature',
+    },
+    {
+      name: 'Subscription',
+      route: '/subscription',
     },
     {
       name: 'How It Works',
-      route: 'javscript:void(0)',
+      route: '/#howItWorks',
     },
+
     {
       name: 'About Us',
       route: '/about-us',
@@ -42,15 +49,59 @@ export default function Header() {
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const router = useRouter();
+  const [currentHash, setCurrentHash] = React.useState('');
   const [isHomePage, setIsHomePage] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      setIsHomePage(router.pathname === '/');
+
+      const hashIndex = url.indexOf('#');
+      const hash = hashIndex !== -1 ? url.substring(hashIndex) : '';
+      setCurrentHash(hash);
+    };
+
+    handleRouteChange(router.asPath);
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+
+    if (typeof window !== 'undefined') {
+      const handleHashChange = () => {
+        const hash = window.location.hash;
+        setCurrentHash(hash);
+      };
+
+      window.addEventListener('hashchange', handleHashChange);
+      return () => {
+        router.events.off('routeChangeComplete', handleRouteChange);
+        window.removeEventListener('hashchange', handleHashChange);
+      };
+    }
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router]);
+
+  const isActive = (route: string) => {
+    if (route === '/') {
+      return router.pathname === '/' && !currentHash;
+    }
+
+    if (route.includes('/#')) {
+      if (router.pathname === '/') {
+        const routeHash = route.substring(route.indexOf('#'));
+        return currentHash === routeHash;
+      }
+      return false;
+    }
+
+    return router.pathname === route;
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
-  React.useEffect(() => {
-    setIsHomePage(router.pathname === '/');
-  }, [router.pathname]);
 
   const drawer = (
     <DrawerContain onClick={handleDrawerToggle}>
@@ -83,14 +134,14 @@ export default function Header() {
         <Container fixed>
           <Toolbar>
             <Link href='/' className='headerLogo'>
-              <Image src={assest.logo_img} width={188} height={55} alt='Logo' />
+              <Image src={assest.logo_img} width={230} height={55} alt='Logo' />
             </Link>
             <List
               disablePadding
               sx={{
                 display: {
                   xs: 'none',
-                  md: 'flex',
+                  lg: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-end',
                 },
@@ -99,24 +150,57 @@ export default function Header() {
             >
               {navItems.map(item => (
                 <ListItem disablePadding key={item?.route}>
-                  <Link
-                    href={item?.route}
-                    className={router.pathname === item.route ? 'active' : ''}
-                  >
+                  <Link href={item?.route} className={isActive(item.route) ? 'active' : ''}>
                     {item?.name}
                   </Link>
                 </ListItem>
               ))}
             </List>
             <Stack direction='row' alignItems='center' flexWrap='wrap' className='hdr_rgt'>
-              <CustomButtonPrimary type='button' variant='contained' color='primary'>
-                Download App
-              </CustomButtonPrimary>
+              <ErrorBoundary>
+                <React.Suspense fallback={'Loading.....'}>
+                  <CustomButtonPrimary
+                    type='button'
+                    variant='contained'
+                    color='primary'
+                    disabled={!downloadUrls?.playStore?.trim()}
+                    onClick={() => {
+                      if (!downloadUrls) return;
+
+                      const userAgent =
+                        navigator.userAgent ||
+                        navigator.vendor ||
+                        (window as Window & { opera?: string }).opera ||
+                        '';
+
+                      let urlToOpen = '';
+
+                      if (
+                        /iPad|iPhone|iPod/.test(userAgent) &&
+                        !(window as Window & { MSStream?: unknown }).MSStream
+                      ) {
+                        urlToOpen = downloadUrls.appStore;
+                      } else if (/android/i.test(userAgent)) {
+                        urlToOpen = downloadUrls.playStore;
+                      } else if (downloadUrls.playStore) {
+                        urlToOpen = downloadUrls.playStore;
+                      }
+
+                      if (urlToOpen) {
+                        window.open(urlToOpen, '_blank');
+                      }
+                    }}
+                  >
+                    Download App
+                  </CustomButtonPrimary>
+                </React.Suspense>
+              </ErrorBoundary>
+
               <IconButton
                 color='inherit'
                 aria-label='open drawer'
                 onClick={handleDrawerToggle}
-                sx={{ display: { md: 'none' } }}
+                sx={{ display: { lg: 'none' } }}
                 disableRipple
                 className='menu-btn'
               >

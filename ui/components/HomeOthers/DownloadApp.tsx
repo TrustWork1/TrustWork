@@ -3,8 +3,9 @@ import { DownloadAppWrapper } from '@/styles/StyledComponents/DownloadAppWrapper
 import { Box, Button, ButtonGroup, Container, Grid2, useMediaQuery, useTheme } from '@mui/material';
 import Image from 'next/image';
 import PageHeading from '../PageHeading/PageHeading';
+import { IHomeModel } from '@/typescript/interface/home.interface';
 
-export const DownloadApp = () => {
+export const DownloadApp = ({ downloadInfo }: { downloadInfo: IHomeModel['DownloadSection'] }) => {
   const theme = useTheme();
   const isSmScreen = useMediaQuery(theme.breakpoints.down('lg'));
   return (
@@ -15,16 +16,19 @@ export const DownloadApp = () => {
             <Grid2 size={{ lg: 6, xs: 12 }}>
               <Box className='download-banner-content'>
                 <Box className='pageHeading'>
-                  <PageHeading
-                    title='Download App'
-                    suTitle='Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s'
-                  />
+                  <PageHeading title={downloadInfo?.title} suTitle={downloadInfo?.description} />
                 </Box>
                 <ButtonGroup>
-                  <Button disableRipple>
+                  <Button
+                    disableRipple
+                    onClick={() => window.open(`${downloadInfo?.playstore_link}`, '_blank')}
+                  >
                     <Image src={assest.downloadPlayStore} width={185} height={61} alt='gplay' />
                   </Button>
-                  <Button disableRipple>
+                  <Button
+                    disableRipple
+                    onClick={() => window.open(`${downloadInfo?.appstore_link}`, '_blank')}
+                  >
                     <Image src={assest.downloadAppleStore} width={185} height={61} alt='appstore' />
                   </Button>
                 </ButtonGroup>
@@ -33,7 +37,12 @@ export const DownloadApp = () => {
             {!isSmScreen && (
               <Grid2 size={{ lg: 6, xs: 12 }}>
                 <figure className='iphoneImg'>
-                  <Image src={assest.iphone12Img} alt='iphone12Img' width={430} height={515} />
+                  <Image
+                    src={downloadInfo?.image || assest.iphone12Img}
+                    alt='iphone12Img'
+                    width={430}
+                    height={515}
+                  />
                 </figure>
               </Grid2>
             )}

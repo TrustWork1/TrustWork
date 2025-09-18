@@ -30,10 +30,10 @@ class EscrowTransactionStatus(APIView):
 
             collection=MtnMoMoCollection()
             status_response=collection.getTransactionStatus(reference_id)
-            payment_status = status_response.get('status')
+            payment_status = status_response.get('status', '').upper()
             reason = status_response.get('reason')
 
-            if payment_status.upper() == "FAILED":
+            if payment_status == "FAILED":
                 # Update escrow
                 escrow.status = "collection_failed"
                 escrow.collection_date = timezone.now()
@@ -47,6 +47,20 @@ class EscrowTransactionStatus(APIView):
                 Events.objects.create(
                     event_type="collection_failed",
                     event_description=f"MTN Collection from backend with status: {reason}",
+                    escrow=escrow
+                )
+            elif payment_status == "SUCCESSFUL":
+                escrow.status = "collection_success"
+                escrow.collection_date = timezone.now()
+                escrow.save()
+
+                if transaction:
+                    transaction.status = "completed"
+                    transaction.save()
+                
+                Events.objects.create(
+                    event_type=escrow.status,
+                    event_description=f"MTN Collection callback received with status: {status}",
                     escrow=escrow
                 )
 

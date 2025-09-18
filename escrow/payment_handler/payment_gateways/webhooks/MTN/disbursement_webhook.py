@@ -7,6 +7,9 @@ from uuid import UUID
 from time import sleep
 from django.utils import timezone
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
+import logging
+
+logger = logging.getLogger("payment_handler.payment_gateways.webhooks.MTN.disbursement_webhook")
 
 class MtnDisbursementWebhook(APIView):
     '''
@@ -26,6 +29,9 @@ class MtnDisbursementWebhook(APIView):
         sleep(2)
 
         try:
+            logger.info("MTN Callback url calling")
+            logger.debug(f"request_data: {request_data}")
+            logger.info("-" * 80)
             print("MTN Callback url calling")
             print("request_data: ",request_data)
             external_id = request_data.get("externalId")
@@ -57,13 +63,15 @@ class MtnDisbursementWebhook(APIView):
             try:
                 requests.post(url, json=request_data, headers=headers)
             except requests.exceptions.RequestException as e:
+                logger.error(f"Error during disbursement response sending: {e}")
                 print(f"Error during disbursement response sending: {e}")
                 pass
 
-            return Response({"status": status})
+            return Response({"status": status}, status=200)
 
         except Escrow.DoesNotExist:
-            return Response({"error": "Escrow not found"}, status=404)
+            logger.error(f"Escrow not found for externalId={external_id}")
+            return Response({"status": "ignored", "reason": "Escrow_not_found"}, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)

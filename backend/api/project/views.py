@@ -227,9 +227,9 @@ class ProjectDetail(APIView):
         if last_transaction:
             transaction_status=last_transaction.status
 
-            # Update transition status after 30 minutes(if not payed)
+            # Update transition status after 10 minutes(if not payed)
             if (transaction_status.lower() == "in_progress" and 
-                last_transaction.created_at + timedelta(minutes=30) < timezone.now()
+                last_transaction.created_at + timedelta(minutes=10) < timezone.now()
             ):
                 try:
                     escrow_id = str(last_transaction.escrow_id)
@@ -239,9 +239,19 @@ class ProjectDetail(APIView):
                     if escrow_response.status_code == 200:
                         response_data = escrow_response.json()
                         escrow_data = response_data.get("status_response")
+                        tx_status = escrow_data.get("status").upper()
                         
-                        if escrow_data.get("status").upper() == "FAILED":
+                        if tx_status == "FAILED":
                             last_transaction.status = "failed"
+                            last_transaction.save()
+                        elif tx_status == "SUCCESSFUL":
+                            last_transaction.status = "completed"
+                            last_transaction.bid.status = "Accepted"
+                            last_transaction.bid.is_accepted = True
+                            last_transaction.project.status = "ongoing"
+
+                            last_transaction.bid.save()
+                            last_transaction.project.save()
                             last_transaction.save()
                     else:
                         print(f"Escrow Transition update failed: {escrow_response.status_code} {escrow_response.text}")
@@ -488,7 +498,7 @@ class ChangeProjectStatusView(APIView):
                 default_storage.delete(project.document.name)
                 # print("Project File Deleted")
             project.document = None
-        
+
         if request.data.get("status")=="completed":
             try:
                 latest_transaction = Transactions.objects.filter(project=project, transaction_type="collection").order_by('-created_at').first()
@@ -504,6 +514,7 @@ class ChangeProjectStatusView(APIView):
                 receiver_profile = bid.service_provider
                 bank_details = BankDetails.objects.get(user_profile=receiver_profile, is_primary=True)
                 gateway=PaymentGatewayAPI()
+                tx_status = "in_progress"
 
                 if bank_details.payment_type == "stripe":
                     stripe_account_id=bank_details.stripe_account_id
@@ -517,6 +528,7 @@ class ChangeProjectStatusView(APIView):
                         transaction_type="disbursement",
                         payment_type="stripe"
                     )
+                    project.save()
 
                 elif bank_details.payment_type == "mtn":
                     mtn_number= bank_details.bank_account_number[1:]
@@ -525,31 +537,44 @@ class ChangeProjectStatusView(APIView):
                     project_total_cost=round(float(currency.xaf_currency) * amount)
                     # print("amount: ",amount)
                     # print("project_total_cost: ",project_total_cost)
+
                     response = gateway.initialize_disbursement(escrow_id=escrow_id, phone_number=mtn_number, amount=project_total_cost)
                     print("Payment response: ",response)
+
+                    if response.get("status_code") == 500:
+                        tx_status = "failed"
+
+                    elif response.get("response", {}).get("status"):
+                        tx_status = response["response"]["status"].lower()
+                        if tx_status in ["successful", "pending"]:
+                            project.save()
+
+                    elif response.get("response", {}).get("code"):
+                        tx_status = "failed"
+
                     Transactions.objects.create(
                         escrow_id=escrow_id,
-                        status='in_progress',
+                        status=tx_status,
                         project=project,
                         bid=bid,
                         transaction_type="disbursement",
                         payment_type="mtn"
                     )
-
-                sender_profile = Profile.objects.get(user=request.user)
-                # print("Sender",sender_profile)
-                # print("Receiver",receiver_profile)
-                # print("Full name",receiver_profile.user.full_name)
-                
-                notification = Notification.objects.create(
-                    sender=sender_profile,
-                    receiver=receiver_profile,
-                    title="Project Completed",
-                    message=f"The project '{project.project_title}' has been marked as completed.",
-                    object_type="project completed",
-                    project_id=project.id,
-                    bid_id=bid.id
-                )
+                if tx_status != "failed":
+                    sender_profile = Profile.objects.get(user=request.user)
+                    # print("Sender",sender_profile)
+                    # print("Receiver",receiver_profile)
+                    # print("Full name",receiver_profile.user.full_name)
+                    
+        #             notification = Notification.objects.create(
+        #                 sender=sender_profile,
+        #                 receiver=receiver_profile,
+        #                 title="Project Completed",
+        #                 message=f"The project '{project.project_title}' has been marked as completed.",
+        #                 object_type="project completed",
+        #                 project_id=project.id,
+        #                 bid_id=bid.id
+        #             )
             
             except BankDetails.DoesNotExist:
                 return Response({
@@ -563,8 +588,6 @@ class ChangeProjectStatusView(APIView):
                     "message": "An unexpected error occurred.",
                     "details": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        project.save()
 
         response = {
             "status" : 202,

@@ -13,10 +13,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import environ
 import os
+from csp.constants import NONE, SELF
 
 import firebase_admin.firestore
 import firebase_admin.firestore_async 
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 environ.Env.read_env(".env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@30x)4m8pomq1$$t(0q)x(z_)cxupioj7ig1+9^+bynxwrjze^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -55,6 +58,7 @@ INSTALLED_APPS = [
     "master",
     "content_management",
    'drf_yasg','chat_management','channels',
+   "csp",
     
 ]
 
@@ -90,6 +94,8 @@ MIDDLEWARE = [
     # 'core.middlewares.reponse_middleware.ResponseMiddleware',
     'core.middlewares.renderer_middleware.CustomFinalResponseMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    "csp.middleware.CSPMiddleware",
+    "core.middlewares.permissions_policy_middleware.PermissionsPolicyMiddleware",
 ]
 CORS_ALLOW_ALL_ORIGINS=True
 ROOT_URLCONF = 'core.urls'
@@ -136,7 +142,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Stripe settings
 STRIPE_TEST_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
@@ -232,7 +238,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'customuser.CustomUser'
 
 AUTHENTICATION_BACKENDS = ['customuser.backends.EmailBackend', 'customuser.backends.PhoneBackend']
-MEDIA_ROOT="media/"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env("EMAIL_HOST")
@@ -243,7 +248,6 @@ EMAIL_HOST_PASSWORD =env("EMAIL_HOST_PASSWORD")
 
 # Default email for sending OTP
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # FIREBASE_CREDENTIALS = credentials.Certificate("/home/webskitters/Desktop/Projects/trustwork-backend/credentials/ServiceAccountKey.json")
 # firebase_admin.initialize_app(FIREBASE_CREDENTIALS, {
@@ -256,3 +260,46 @@ from firebase_admin import credentials
 cred = credentials.Certificate("./credentials/ServiceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if DEBUG:
+    # Local/dev mode
+    SECURE_SSL_REDIRECT = False     # don’t force HTTPS in dev
+    SESSION_COOKIE_SECURE = False   # cookies can be sent over HTTP
+    CSRF_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0         # disable HSTS in dev
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+else:
+    # Production
+    SECURE_SSL_REDIRECT = True      # force HTTPS
+    SESSION_COOKIE_SECURE = True    # secure cookies
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+# Security headers
+# SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# CSP (django-csp style!)
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": (NONE,),   # block everything by default
+        "script-src": (SELF, "https://cdn.jsdelivr.net"),
+        "style-src": (SELF, "https://cdn.jsdelivr.net"),
+        "img-src": (SELF, "data:"),
+        "media-src": (SELF,),            # allow audio/video from self (/media/)
+        "object-src": (SELF,),   # allow PDFs, other embeds
+        "frame-src": (SELF,),    # allow iframes from media
+        "connect-src": (SELF,),
+    }
+}
+
+
+# X-Frame-Options (same-origin is typical)
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# Referrer Policy
+SECURE_REFERRER_POLICY = "same-origin"

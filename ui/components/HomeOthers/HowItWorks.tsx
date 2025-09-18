@@ -1,34 +1,25 @@
 import assest from '@/json/assest';
 import { HowItWorksWrapper } from '@/styles/StyledComponents/HowItWorksWrapper';
-import { DownloadIcon } from '@/ui/Icon/DownloadIcon';
-import { PaymentIcon } from '@/ui/Icon/PaymentIcon';
-import { RocketIcon } from '@/ui/Icon/RocketIcon';
+import { IHomeModel } from '@/typescript/interface/home.interface';
 import { Box, Container, Grid2 } from '@mui/material';
 import Image from 'next/image';
 import PageHeading from '../PageHeading/PageHeading';
+import VideoComp from '../Video/VideoComp';
 import { WorkCard } from './WorkCard';
 
-export const HowItWorks = () => {
-  const workCardDetails = [
-    {
-      icon: <DownloadIcon />,
-      cardTitle: 'Download App',
-      cardDes: 'Ornare dolor ut tempus at molestie laoreet commodo vel. Ligula erat',
-    },
-    {
-      icon: <RocketIcon />,
-      cardTitle: 'Start Project ',
-      cardDes: 'Ornare dolor ut tempus at molestie laoreet commodo vel. Ligula erat',
-    },
-    {
-      icon: <PaymentIcon />,
-      cardTitle: 'Get Payment',
-      cardDes: 'Ornare dolor ut tempus at molestie laoreet commodo vel. Ligula erat',
-    },
-  ];
+export const HowItWorks = ({
+  howItWorksInfo,
+}: {
+  howItWorksInfo: IHomeModel['HowItWorksSection'];
+}) => {
+  const workCardDetails = howItWorksInfo?.steps?.map(item => ({
+    icon: <img src={item.icon} alt={item.title} />,
+    cardTitle: item?.title,
+    cardDes: item?.description,
+  }));
 
   return (
-    <HowItWorksWrapper className='cmn-gap'>
+    <HowItWorksWrapper className='cmn-gap' id='howItWorks'>
       <Image
         src={assest.howItWorks_FloatShape}
         alt='howItWorks_TopRightShape'
@@ -37,24 +28,28 @@ export const HowItWorks = () => {
         className='howItWorks_FloatShape'
       />
       <Container fixed sx={{ position: 'relative', zIndex: 1 }}>
-        <Grid2 container spacing={{ md: 2.62, xs: 2 }} alignItems='center'>
+        <Grid2 container spacing={{ md: 4, xs: 2 }}>
           <Grid2 size={{ md: 6, xs: 12 }}>
             <figure className='how-it-fig'>
-              <Image
-                src={assest.howItWorksiPhone}
+              {/* <Image
+                src={howItWorksInfo?.image || assest.howItWorksiPhone}
                 alt='howItWorksiPhone'
                 width={578}
                 height={665}
+              /> */}
+              <VideoComp
+                src={howItWorksInfo?.media || assest.howItWorksiPhone}
+                isAutoPlay={true}
+                width={522}
+                height={665}
+                label=''
               />
             </figure>
           </Grid2>
-          <Grid2 size={{ md: 6, xs: 12 }}>
+          <Grid2 size={{ md: 6, xs: 12 }} alignSelf='center'>
             <Box className='rgt-part'>
               <Box className='pageHeading'>
-                <PageHeading
-                  title='How Its Work'
-                  suTitle='Interdum est pellentesque ut et nec libero vitae eget. Tempus nisl commodo proin ac nam vulputate cursus. Lectus aliquam duis cursus habitant adipiscing sollicitudin nec odio.'
-                />
+                <PageHeading title={howItWorksInfo?.header} suTitle={howItWorksInfo?.description} />
               </Box>
               {workCardDetails.map((item, index) => (
                 <Box key={index} className='work_card_list'>

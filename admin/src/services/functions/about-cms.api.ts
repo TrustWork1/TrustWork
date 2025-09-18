@@ -46,7 +46,7 @@ export const fetchWhyTrustUsCmsList = async () => {
 
 export const saveWhyTrustUsCmsList = async (data: IAboutCmsModel['WhyTrustUsContentPayload']) => {
   const url = `${whyTrustUs.content}`
-  const res = await axiosInstance.post<IAboutCmsModel['WhyTrustUsContentResponse']>(url, data, {
+  const res = await axiosInstance.put<IAboutCmsModel['WhyTrustUsContentResponse']>(url, data, {
     headers: {
       'Content-Type': 'application/form-data'
     }

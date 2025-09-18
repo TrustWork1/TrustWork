@@ -110,7 +110,7 @@ export const howItWorksContentValidationSchema = yup.object({
       return value ? !value.startsWith(' ') : true
     }),
 
-  image: yup.mixed().required('Image is required')
+  video: yup.mixed().required('Video is required')
 })
 
 export type HowItWorksContentValidationSchemaType = yup.InferType<typeof howItWorksContentValidationSchema>

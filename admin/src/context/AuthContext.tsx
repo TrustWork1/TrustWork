@@ -25,7 +25,7 @@ import useLogout from 'src/hooks/admin/useLogout'
 // ** Defaults
 const defaultProvider: AuthValuesType = {
   user: null,
-  loading: true,
+  loading: false,
   setUser: () => null,
   setLoading: () => Boolean,
   login: () => Promise.resolve(),
@@ -73,12 +73,14 @@ const AuthProvider = ({ children }: Props) => {
     axios
       .post(authConfig.loginEndpoint, params)
       .then(async response => {
+        setLoading(true)
         response.data
           ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data?.data?.accessToken)
           : null
         response.data
           ? window.localStorage.setItem(authConfig.sessionData, JSON.stringify(response.data?.data?.UserData))
           : null
+        setLoading(false)
         setUser({ ...response.data?.data?.UserData })
         const returnUrl = router.query.returnUrl
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
@@ -88,6 +90,7 @@ const AuthProvider = ({ children }: Props) => {
 
       .catch(err => {
         if (errorCallback) errorCallback(err)
+        setLoading(false)
       })
   }
 

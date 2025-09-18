@@ -49,7 +49,7 @@ const HowItWorks = () => {
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState(0)
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 
@@ -71,7 +71,7 @@ const HowItWorks = () => {
           fontWeight: 600
         }}
       >
-        How-It-Works Section
+        Why You Trust Us Section
       </Typography>
       <Box
         sx={{

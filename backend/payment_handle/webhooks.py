@@ -102,7 +102,7 @@ class EscrowDisbursementWebhook(APIView):
             transaction=Transactions.objects.filter(escrow_id=external_id, transaction_type="disbursement").last()
 
             if status == "SUCCESSFUL":
-                transaction.status="disbursement_completed"
+                transaction.status="completed"
                 transaction.project.status="completed"
                 transaction.project.save()
                 transaction.save()
@@ -117,7 +117,7 @@ class EscrowDisbursementWebhook(APIView):
                     bid_id=transaction.bid.id
                 )
             else:
-                transaction.status="disbursement_failed"
+                transaction.status="failed"
                 # transaction.project.status="completed"
                 # transaction.project.save()
                 transaction.save()

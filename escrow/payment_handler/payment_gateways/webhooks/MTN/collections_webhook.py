@@ -9,7 +9,7 @@ import string, random
 from django.utils import timezone
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("payment_handler.payment_gateways.webhooks.MTN.collections_webhook")
 
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 
@@ -46,7 +46,15 @@ class MtnCollectionWebhook(APIView):
 
             if payeenote == "SUBSCRIPTION":
                 # Handle subscription payment
-                subscription = MtnSubscriptionTransaction.objects.get(id=UUID(external_id))
+                try:
+                    subscription = MtnSubscriptionTransaction.objects.get(id=UUID(external_id))
+                except MtnSubscriptionTransaction.DoesNotExist:
+                    logger.error(f"Subscription not found for externalId={external_id}")
+                    return Response({"status": "ignored", "reason": "subscription_not_found"}, status=200)
+                
+                if subscription.payment_status in ["used", "paid"]:
+                    return Response({"status": "ignored", "reason": "already_subscription_paid"}, status=200)
+                
                 subscription.payment_status = "paid" if status == "SUCCESSFUL" else "failed"
                 subscription.save()
 
@@ -63,14 +71,19 @@ class MtnCollectionWebhook(APIView):
                             "email": subscription.email,
                             "phone_no": phone_no
                         }
-                        response = requests.post(url, json=body, headers=headers)
+                        requests.post(url, json=body, headers=headers)
                     except requests.exceptions.RequestException as e:
+                        logger.exception("Error sending subscription code")
                         print(f"Error during sending subscription code: {e}")
-                return Response({"status": status})
+                return Response({"status": status}, status=200)
             
             else:
                 # Handle escrow collection
-                escrow = Escrow.objects.get(id=UUID(external_id))
+                try:
+                    escrow = Escrow.objects.get(id=UUID(external_id))
+                except Escrow.DoesNotExist:
+                    logger.error(f"Escrow not found for externalId={external_id}")
+                    return Response({"status": "ignored", "reason": "Escrow_not_found"}, status=200)
 
                 escrow.status = "collection_success" if status == "SUCCESSFUL" else "collection_failed"
                 escrow.collection_date = timezone.now()
@@ -94,17 +107,13 @@ class MtnCollectionWebhook(APIView):
                     headers = {"Content-Type": "application/json"}
                     requests.post(url, json=request_data, headers=headers)
                 except requests.exceptions.RequestException as e:
+                    logger.error(f"Error during collection response sending: {e}")
                     print(f"Error during collection response sending: {e}")
 
-                return Response({"status": status})
-
-        except Escrow.DoesNotExist:
-            return Response({"error": "Escrow not found"}, status=404)
-
-        except MtnSubscriptionTransaction.DoesNotExist:
-            return Response({"error": "Subscription not found"}, status=404)
+                return Response({"status": status}, status=200)
         
         except Exception as e:
+            logger.exception("Unexpected error in MTN callback handler")
             return Response({"error": str(e)}, status=500)
     
     @staticmethod

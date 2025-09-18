@@ -1,20 +1,20 @@
 import { borderRadius } from '@/mui-theme/themeConstant';
-import CloseIcon from '@mui/icons-material/Close';
-import Box from '@mui/material/Box';
-import Dialog from '@mui/material/Dialog';
+import { CustomDialog } from '@/styles/StyledComponents/CustomDialog';
+import { Box, IconButton, Typography } from '@mui/material';
 import DialogContent from '@mui/material/DialogContent';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import CloseIcon from '../Icon/CloseIcon';
 
 interface MuiModalWrapperProps {
   open: boolean;
   onClose?: () => void;
   scroll?: 'paper' | 'body';
   children: React.JSX.Element | React.JSX.Element[];
-  title: string;
+  title?: string;
+  subTitle?: string;
+  isModalHead?: boolean;
+  className?: string;
 }
 
 export default function MuiModalWrapper({
@@ -22,13 +22,16 @@ export default function MuiModalWrapper({
   onClose,
   scroll,
   children,
+  isModalHead,
   title,
+  subTitle,
+  className,
 }: MuiModalWrapperProps) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Dialog
+    <CustomDialog
       fullScreen={fullScreen}
       open={open}
       onClose={onClose}
@@ -39,17 +42,24 @@ export default function MuiModalWrapper({
           borderRadius,
         },
       }}
+      className={className}
     >
-      <Box>
-        <Stack direction='row' justifyContent='space-between' alignItems='center' spacing={2}>
-          <Typography>{title}</Typography>
-          <IconButton onClick={onClose} autoFocus>
-            <CloseIcon />
-          </IconButton>
-        </Stack>
-      </Box>
+      <IconButton onClick={onClose} className='dialog-close-btn'>
+        <CloseIcon IconColor='currentcolor' />
+      </IconButton>
 
-      <DialogContent>{children}</DialogContent>
-    </Dialog>
+      <DialogContent>
+        {isModalHead && (
+          <Box className='modalHead'>
+            <Typography variant='h4'>{title}</Typography>
+            <Typography variant='body1' className='subTitle'>
+              {subTitle}
+            </Typography>
+          </Box>
+        )}
+
+        {children}
+      </DialogContent>
+    </CustomDialog>
   );
 }

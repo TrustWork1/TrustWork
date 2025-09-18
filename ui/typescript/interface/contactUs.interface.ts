@@ -5,6 +5,11 @@ export interface IContactModelData {
   title: string;
   description: string;
   call_center_number: string;
+  download_section: {
+    playstore_link: string;
+    appstore_link: string;
+  };
+
   email: string;
   location: string;
   latitude: string;
@@ -12,8 +17,9 @@ export interface IContactModelData {
   social_links: {
     facebook_url: string | null;
     x_url: string | null;
-    linkedin_url: string | null;
-    youtube_url: string | null;
+    instagram_url: string | null;
+    // linkedin_url: string | null;
+    // youtube_url: string | null;
   };
   map_url: string;
   get_in_touch_title: string;

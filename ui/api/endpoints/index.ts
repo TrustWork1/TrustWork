@@ -1,28 +1,27 @@
-export const baseUrl = process.env.NEXT_APP_BASE_URL;
-export const baseUrlApi = `${process.env.NEXT_APP_BASE_URL}/api/`;
-export const baseUrlMedia = process.env.NEXT_APP_BASE_URL;
+export const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+export const baseUrlApi = `${process.env.NEXT_PUBLIC_BASE_URL}/api/`;
+export const baseUrlMedia = process.env.NEXT_PUBLIC_IMAGE_BASE_URL;
 
 export const mediaUrl = (url: string) => {
   return `${baseUrlMedia}/uploads/${url}`;
 };
 
 export const endpoints = {
-  auth: {
-    signup: 'user/existence',
-    signUpProfile: 'user/signup',
-    login: 'user/login',
-    profileDetails: 'user/profile/get',
-    profileUpdate: 'user/profile/update',
-  },
   cms: {
-    about: 'aboutpolicy/details',
-    faq: 'faq/all',
+    homePage: '/home-page/',
+    aboutUsPage: '/aboutus-page/',
+    contactUs: '/contactus-page/',
+    contactUsFormSubmit: '/contactus-form/',
+    termCondition: '/terms-conditions-page/',
+    privacyPolicy: '/privacy-policy-page/',
+  },
+  subscription: {
+    list: '/app-packages/',
+    cms: '/app-packages-cms/',
+    request: '/send_subscription_request/',
   },
 };
 
 export const sucessNotificationEndPoints = [
-  // endpoints.auth.signup,
-  endpoints.auth.signUpProfile,
-  endpoints.auth.login,
-  endpoints.auth.profileUpdate,
+  // endpoints.subscription.request,
 ];

@@ -1,6 +1,6 @@
 import { PaletteMode } from '@mui/material';
 import type { ThemeOptions } from '@mui/material/styles';
-import { Fustat } from 'next/font/google';
+import { Figtree, Fustat } from 'next/font/google';
 import { defaultPalette } from './palettes/defaultPalette';
 
 /**
@@ -14,6 +14,13 @@ import { defaultPalette } from './palettes/defaultPalette';
 
 export const fustat = Fustat({
   weight: ['200', '300', '400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fustat',
+});
+
+export const figtree = Figtree({
+  weight: ['300', '400', '500', '600', '700', '800'],
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-fustat',

@@ -39,4 +39,9 @@ export default {
   missionImage: '/assets/images/mission-image.png',
   aboutFloatLeft: '/assets/images/about-float-left.png',
   aboutFloatRight: '/assets/images/about-float-right.png',
+  greenTickImg: '/assets/images/greenTickImg.png',
+  paymentSuccessLftImg: '/assets/images/paymentSuccessLftImg.png',
+  paymentSuccessRgtImg: '/assets/images/paymentSuccessRgtImg.png',
+  greyBg: '/assets/images/greyBg.png',
+  holdMobile: '/assets/images/holdMobile.png',
 };

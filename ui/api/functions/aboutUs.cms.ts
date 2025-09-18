@@ -18,5 +18,9 @@ export const fetchAboutPageData = async () => {
     whyYouTrustUs: data?.why_you_trust_us || ({} as IAboutModel['WhyYouTrustUs']),
     aboutUsOtherDetails,
     download: data?.download_section || ({} as IAboutModel['DownloadSection']),
+    downloadUrls: {
+      appStore: data?.download_section?.appstore_link,
+      playStore: data?.download_section?.playstore_link,
+    } as IAboutModel['DownloadLinks'],
   };
 };

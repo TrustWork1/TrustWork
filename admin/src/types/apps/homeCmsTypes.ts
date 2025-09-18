@@ -43,7 +43,7 @@ export type IHomeCmsModel = {
     id?: number
     header: string
     description: string
-    image: string
+    media: string
   }
   HowItWorksStepsPayload: FormData
   HowItWorksStepsList: {

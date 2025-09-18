@@ -10,6 +10,20 @@ export const KnowMoreAboutWrap = styled(Box)`
     padding-top: 50px;
   }
 
+  .know-left {
+    padding-top: 30px;
+    max-width: 538px;
+    width: 100%;
+
+    @media (max-width: 1199px) {
+      max-width: 100%;
+    }
+
+    @media (max-width: 899px) {
+      padding-bottom: 50px;
+    }
+  }
+
   .know-right {
     max-width: 538px;
     margin-left: auto;
@@ -162,7 +176,7 @@ export const WhyUsWrap = styled(Box)`
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-fill-color: transparent;
+    /* text-fill-color: transparent; */
     margin-top: -45px;
     z-index: 7;
     position: relative;
@@ -243,7 +257,7 @@ export const WhyUsWrap = styled(Box)`
         rgba(255, 255, 255, 0.7) 0%,
         rgba(255, 255, 255, 0) 100%
       );
-      -webkit-background-clip: text;
+      /* -webkit-background-clip: text; */
       -webkit-text-fill-color: transparent;
       text-align: center;
       line-height: 180px;

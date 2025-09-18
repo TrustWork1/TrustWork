@@ -7,6 +7,8 @@ from django.db import transaction
 import json
 import re
 from rest_framework import status
+from uuid import UUID
+
 disbursement=MtnMoMoDisbursement()
 
 def validate_json_structure(data):
@@ -45,23 +47,84 @@ class InitiateDisbursementAPI(APIView):
             amount=request.data.get("amount")
             phone_number=request.data.get("phone_number")
             escrow_id=request.data.get("escrow_id")
+            external_callback_url=request.data.get("callback_url")
+
             escrow_obj=Escrow.objects.get(id=escrow_id)
             payee=escrow_obj.payee
-            external_callback_url=request.data.get("callback_url")
+            
             escrow_obj.external_callback_url=external_callback_url
             escrow_obj.payment_method += ", mtn-momo"
             escrow_obj.save()
+
             with transaction.atomic():
-                Events.objects.create(event_type="disbursement_initialized", event_description="", escrow=escrow_obj)
+                Events.objects.create(event_type="disbursement_initialized", event_description="Disbursement request initialized", escrow=escrow_obj)
                 response=disbursement.disburse(amount=amount, external_id=str(escrow_obj.id), phone_number=phone_number)
                 # print("Response: ",response)
+
+                if response.get("status_code") == 500:
+                    escrow_obj.status = "disbursement_failed"
+                    escrow_obj.save()
+                    Events.objects.create(
+                        event_type="disbursement_failed",
+                        event_description="Failed to initiate disbursement",
+                        escrow=escrow_obj
+                    )
+                    return Response(
+                        {"response": {"status": "failed"}, "message": "Failed to initiate disbursement"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+                escrow_obj.disbursement_ref_id = UUID(response.get('ref'))
+                escrow_obj.save()
+
+                transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
                 status_response=disbursement.getTransactionStatus(response.get('ref'))
                 # print("status_response: ",status_response)
-                Events.objects.create(event_type="disbursement_in_progress", event_description="", escrow=escrow_obj)
-                transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
-            
-            return Response({"transaction_id":transaction_id.id, 'response':status_response})
-        
+                
+                Events.objects.create(
+                    event_type="disbursement_in_progress",
+                    event_description="Disbursement is pending confirmation",
+                    escrow=escrow_obj
+                )
+
+                payment_status = status_response.get("status", "").lower()
+
+                if payment_status == "failed" or not payment_status:
+                    escrow_obj.status = "disbursement_failed"
+                    escrow_obj.save()
+                    transaction_id.status = "failed"
+                    transaction_id.save()
+
+                    Events.objects.create(
+                        event_type="disbursement_failed",
+                        event_description=status_response.get("reason", "Unknown failure"),
+                        escrow=escrow_obj
+                    )
+
+                elif payment_status == "successful":
+                    escrow_obj.status = "disbursement_success"
+                    escrow_obj.save()
+                    transaction_id.status = "completed"
+                    transaction_id.save()
+
+                    Events.objects.create(
+                        event_type="disbursement_successful",
+                        event_description="Funds successfully disbursed",
+                        escrow=escrow_obj
+                    )
+
+            return Response({
+                "transaction_id": transaction_id.id,
+                "response": status_response,
+                "escrow_id": escrow_obj.id
+            })
+
+        except Escrow.DoesNotExist:
+            return Response({
+                "status": "error",
+                "message": "Invalid Escrow ID",
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             return Response({
                 "status": "error",

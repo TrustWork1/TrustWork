@@ -145,7 +145,9 @@ export const ContactUsDeatailsWrap = styled(Box)`
     .map-section {
       position: relative;
       z-index: 2;
-
+      iframe {
+        width: 100%;
+      }
       img {
         width: 100%;
         object-fit: cover;

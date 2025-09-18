@@ -13,7 +13,8 @@ class Escrow(BaseModel):
     payee=models.ForeignKey(User,on_delete=models.DO_NOTHING,related_name='payee')
     external_callback_url=models.CharField(max_length=255,null=True)
     payment_method=models.CharField(max_length=100,choices=[('mtn-momo','mtn-momo'),('stripe','stripe')],default='mtn-momo')
-    reference_id = models.UUIDField(blank=True,null=True)
+    collection_ref_id = models.UUIDField(blank=True,null=True)
+    disbursement_ref_id = models.UUIDField(blank=True,null=True)
     
 
 class Events(BaseModel):

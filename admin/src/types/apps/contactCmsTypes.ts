@@ -12,8 +12,9 @@ export type IContactCmsModel = {
     location: string
     facebook_url: string
     x_url: string
-    linkedin_url: string
-    youtube_url: string
+    instagram_url: string
+    // linkedin_url: string
+    // youtube_url: string
     map_url: string
     longitude: string
     latitude: string

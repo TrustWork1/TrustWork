@@ -6,6 +6,8 @@ class AboutUs(models.Model):
     section_description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    title2 = models.CharField(max_length=255, blank=True, null=True)
+    description2 = models.TextField(blank=True, null=True)
     image1 = models.ImageField(upload_to='aboutus_page/', blank=True, null=True)
     image2 = models.ImageField(upload_to='aboutus_page/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)

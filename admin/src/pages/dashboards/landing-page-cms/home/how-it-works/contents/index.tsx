@@ -1,31 +1,27 @@
 // ** React Imports
+import { IHomeCmsModel } from '@/type/apps/homeCmsTypes'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { Button, CardContent, TextField } from '@mui/material'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { IHomeCmsModel } from '@/type/apps/homeCmsTypes'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { Button, CardContent, TextField } from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
 import CustomDropzone from 'src/@core/components/react-drop-zone'
+import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
 import LoadingComp from 'src/pages/components/LoadingComp/LoadingComp'
-import {
-  fetchHowItWorksCmsContent,
-  updateAppInfoCmsList,
-  updateHowItWorksCmsContent
-} from 'src/services/functions/home-cms.api'
+import { fetchHowItWorksCmsContent, updateHowItWorksCmsContent } from 'src/services/functions/home-cms.api'
 import {
   howItWorksContentValidationSchema,
   HowItWorksContentValidationSchemaType
 } from 'src/validation/homeCms.validation'
-import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
-import toast from 'react-hot-toast'
 
 const HowItWorksContents = () => {
-  const [imagePreview, setImagePreview] = useState<string | undefined>(undefined)
+  const [videoPreview, setVideoPreview] = useState<string | undefined>(undefined)
   const { data, isLoading, refetch } = useQuery({
     refetchOnMount: false,
     queryKey: [listOfUniqueKeys.home.howItworks.contentFetch],
@@ -36,12 +32,10 @@ const HowItWorksContents = () => {
     return data?.data ?? undefined
   }, [data?.data])
 
-  console.log('cmsData', { cmsData })
-
   const initialDatas = {
     header: '',
     description: '',
-    image: undefined
+    video: undefined
   }
 
   const {
@@ -61,9 +55,9 @@ const HowItWorksContents = () => {
     reset({
       header: cmsData?.header || '',
       description: cmsData?.description || '',
-      image: cmsData?.image || undefined
+      video: cmsData?.media || undefined
     })
-    setImagePreview(cmsData?.image ?? undefined)
+    setVideoPreview(cmsData?.media ?? undefined)
   }, [data?.data])
 
   const { mutate, isPending } = useMutation({
@@ -83,20 +77,20 @@ const HowItWorksContents = () => {
     const formData = new FormData()
     formData.append('header', data.header)
     formData.append('description', data.description)
-    if (data.image && typeof data.image !== 'string') {
-      formData.append('image', data.image as File)
+    if (data.video && typeof data.video !== 'string') {
+      formData.append('media', data.video as File)
     }
     mutate(formData)
   }
 
   const handleDrop = (file: File) => {
-    setImagePreview(URL.createObjectURL(file))
-    setValue('image', file as any)
-    clearErrors('image')
+    setVideoPreview(URL.createObjectURL(file))
+    setValue('video', file as any)
+    clearErrors('video')
   }
-  const onDelete = () => {
-    setImagePreview(undefined)
-    setValue('image', undefined as any)
+  const onVideoDelete = () => {
+    setVideoPreview(undefined)
+    setValue('video', undefined as any)
   }
 
   return (
@@ -147,17 +141,18 @@ const HowItWorksContents = () => {
 
                   <Grid item xs={12}>
                     <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                      Upload Image
+                      Upload Video
                     </Typography>
                     <CustomDropzone
                       onDrop={handleDrop}
-                      accept={['image/jpeg', 'image/png']}
-                      maxSize={5000000} // 5MB
-                      errorMessage='Invalid file type. Please upload an image (JPG, JPEG, PNG) only.'
-                      preview={imagePreview}
-                      onDelete={onDelete}
+                      accept={['video/mp4', 'video/webm', 'video/ogg']}
+                      maxSize={50000000} // 50MB
+                      errorMessage='Invalid file type. Please upload a video (MP4, WEBM, OGG) only.'
+                      preview={videoPreview}
+                      onDelete={onVideoDelete}
+                      fileType='video'
                     />
-                    {!!errors?.image && <Typography color='error'>{errors?.image?.message}</Typography>}
+                    {!!errors?.video && <Typography color='error'>{errors?.video?.message}</Typography>}
                   </Grid>
 
                   <Grid item xs={12}>

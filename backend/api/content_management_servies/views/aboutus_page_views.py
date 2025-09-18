@@ -350,6 +350,8 @@ class AboutUsView(APIView):
                 "section_description": about_us.section_description,
                 "title": about_us.title,
                 "description": about_us.description,
+                "title2": about_us.title2,
+                "description2": about_us.description2,
                 "image1": TRUSTWORK_BASE_API+about_us.image1.url if about_us.image1 else None,
                 "image2": TRUSTWORK_BASE_API+about_us.image2.url if about_us.image2 else None
             }

@@ -30,6 +30,21 @@ export const aboutInfoValidationSchema = yup.object({
     .test('no-leading-space', 'Description cannot start with a space', value => {
       return value ? !value.startsWith(' ') : true
     }),
+  title2: yup
+    .string()
+    .trim()
+    .required('Secondary Title is required')
+    .test('no-leading-space', 'Secondary Title cannot start with a space', value => {
+      return value ? !value.startsWith(' ') : true
+    }),
+
+  description2: yup
+    .string()
+    .trim()
+    .required('Secondary Description is required')
+    .test('no-leading-space', 'Secondary Description cannot start with a space', value => {
+      return value ? !value.startsWith(' ') : true
+    }),
 
   image1: yup.mixed().required('Image is required'),
   image2: yup.mixed().required('Image is required')

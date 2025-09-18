@@ -54,6 +54,7 @@ type InputFieldCommonProps = StandardTextFieldProps & {
   isPassword?: boolean;
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  inputattributes?: React.InputHTMLAttributes<HTMLInputElement>;
 };
 
 const InputFieldCommon = forwardRef<HTMLInputElement, InputFieldCommonProps>(
@@ -74,6 +75,9 @@ const InputFieldCommon = forwardRef<HTMLInputElement, InputFieldCommonProps>(
         variant={others.variant ?? 'outlined'}
         type={isPassword ? (showPassword ? 'text' : 'password') : others?.type}
         slotProps={{
+          htmlInput: {
+            ...others.inputattributes,
+          },
           input: {
             inputRef: ref,
             startAdornment: startAdornment && (

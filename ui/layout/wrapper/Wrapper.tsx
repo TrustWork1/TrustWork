@@ -1,5 +1,6 @@
 import Seo from '@/components/Seo/Seo';
 import useOnlineStatus from '@/hooks/utils/useDetectOnline';
+import { IHomeModel } from '@/typescript/interface/home.interface';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -9,10 +10,11 @@ import Header from '../Header/Header';
 
 interface wrapperProps {
   children: React.ReactNode;
+  downloadUrls?: IHomeModel['DownloadLinks'];
 }
 
 const Wrapper = (props: wrapperProps) => {
-  const { children } = props;
+  const { children, downloadUrls = { appStore: '', playStore: '' } } = props;
 
   const [open, setOpen] = React.useState(false);
   const handleClose = () => {
@@ -24,7 +26,7 @@ const Wrapper = (props: wrapperProps) => {
   return (
     <>
       <Seo title={'Home page'} canonical='' description='' url='' image='' />
-      <Header />
+      <Header downloadUrls={downloadUrls} />
       <Box className='body_content'>{children}</Box>
       <Footer />
       <Backdrop

@@ -16,16 +16,28 @@ export const HowItWorksWrapper = styled(Box)`
     }
   }
 
-  .rgt-part {
+  /* .rgt-part {
     @media (max-width: 899px) {
       margin-top: 50px;
     }
-  }
+  } */
 
   .how-it-fig {
-    @media (max-width: 899px) {
+    /* @media (max-width: 899px) {
       max-width: 50%;
       margin: 0 auto;
+    } */
+    .videoWrapperIn {
+      width: 100%;
+      height: auto;
+    }
+    video {
+      width: 100%;
+      max-height: 590px;
+      height: auto;
+      @media (max-width: 599px) {
+        max-height: 400px;
+      }
     }
   }
 `;

@@ -11,14 +11,18 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+from csp.constants import NONE, SELF
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 import environ
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 environ.Env.read_env(".env")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -26,7 +30,7 @@ environ.Env.read_env(".env")
 SECRET_KEY = 'django-insecure-jx!pq__53@&3vh&24r%23zarv1m+7kbsg&yr41d%c_3%+j(*je'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -62,7 +66,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'escrow_management',
     'user_management',
-    'rest_framework'
+    'rest_framework',
+    'django_celery_results',
+    "csp",
 ]
 
 REST_FRAMEWORK = {
@@ -79,6 +85,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "csp.middleware.CSPMiddleware",
+    "core.middlewares.permissions_policy_middleware.PermissionsPolicyMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -166,9 +174,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_TASK_IGNORE_RESULT = False
+
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,  # <- keep Django's logging separate
+    "disable_existing_loggers": False,  # keep Django logs separate
     "formatters": {
         "default": {
             "format": "[{asctime}] {levelname} {name} {message}",
@@ -179,16 +193,89 @@ LOGGING = {
         "subscription_file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": "project_log.log",   # store in project root
+            "filename": "subscription.log",   # separate log file
+            "formatter": "default",
+        },
+        "webhook_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "webhook.log",   # separate log file
+            "formatter": "default",
+        },
+        "disbursement_webhook_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "disbursement_webhook.log",   # separate log file
+            "formatter": "default",
+        },
+        "task_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "celery_task.log",   # separate log file
             "formatter": "default",
         },
     },
     "loggers": {
-        # Only your subscription view logger
         "escrow_management.views.initialize_subscription": {
             "handlers": ["subscription_file"],
             "level": "DEBUG",
-            "propagate": False,   # <- prevents Django/urllib3 noise
+            "propagate": False,
+        },
+        "payment_handler.payment_gateways.webhooks.MTN.collections_webhook": {
+            "handlers": ["webhook_file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "payment_handler.payment_gateways.webhooks.MTN.disbursement_webhook": {
+            "handlers": ["disbursement_webhook_file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "escrow_management.tasks": {
+            "handlers": ["task_file"],
+            "level": "DEBUG",
+            "propagate": False,
         },
     },
 }
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if DEBUG:
+    # Local/dev mode
+    SECURE_SSL_REDIRECT = False     # don’t force HTTPS in dev
+    SESSION_COOKIE_SECURE = False   # cookies can be sent over HTTP
+    CSRF_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0         # disable HSTS in dev
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+else:
+    # Production
+    SECURE_SSL_REDIRECT = True      # force HTTPS
+    SESSION_COOKIE_SECURE = True    # secure cookies
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+
+# Security headers
+# SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# CSP (django-csp style!)
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": (NONE,),   # block everything by default
+        "script-src": (SELF, "https://cdn.jsdelivr.net"),
+        "style-src": (SELF, "https://cdn.jsdelivr.net"),
+        "img-src": (SELF, "data:"),
+        "connect-src": (SELF,),
+    }
+}
+
+# X-Frame-Options (same-origin is typical)
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# Referrer Policy
+SECURE_REFERRER_POLICY = "same-origin"

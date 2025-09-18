@@ -4,6 +4,7 @@ import Container from '@mui/material/Container';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import React from 'react';
 
 const FooterWrap = styled(Box)`
   padding: 50px 0 30px;
@@ -22,8 +23,14 @@ const FooterWrap = styled(Box)`
   }
 
   .ft-logo {
+    @media (max-width: 1199px) {
+      width: 200px;
+    }
     @media (max-width: 599px) {
-      width: 110px;
+      width: 150px;
+    }
+    @media (max-width: 359px) {
+      width: 120px;
     }
   }
 
@@ -101,11 +108,11 @@ const Footer = () => {
     },
     {
       name: 'Our Features',
-      route: 'javscript:void(0)',
+      route: '/#ourFeature',
     },
     {
       name: 'How It Works',
-      route: 'javscript:void(0)',
+      route: '/#howItWorks',
     },
     {
       name: 'Contact Us',
@@ -122,26 +129,69 @@ const Footer = () => {
   ];
 
   const router = useRouter();
+  const [currentHash, setCurrentHash] = React.useState('');
+
+  React.useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const hashIndex = url.indexOf('#');
+      const hash = hashIndex !== -1 ? url.substring(hashIndex) : '';
+      setCurrentHash(hash);
+    };
+
+    handleRouteChange(router.asPath);
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+
+    if (typeof window !== 'undefined') {
+      const handleHashChange = () => {
+        const hash = window.location.hash;
+        setCurrentHash(hash);
+      };
+
+      window.addEventListener('hashchange', handleHashChange);
+      return () => {
+        router.events.off('routeChangeComplete', handleRouteChange);
+        window.removeEventListener('hashchange', handleHashChange);
+      };
+    }
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router]);
+
+  const isActive = (route: string) => {
+    if (route === '/') {
+      return router.pathname === '/' && !currentHash;
+    }
+
+    if (route.includes('/#')) {
+      if (router.pathname === '/') {
+        const routeHash = route.substring(route.indexOf('#'));
+        return currentHash === routeHash;
+      }
+      return false;
+    }
+
+    return router.pathname === route;
+  };
 
   return (
     <>
       <FooterWrap>
         <Container fixed>
           <Grid2 container spacing={1} alignItems='center'>
-            <Grid2 size={{ md: 2, xs: 12 }}>
+            <Grid2 size={{ md: 2.8, xs: 12 }}>
               <Link href='/' className='ft-logo'>
-                <Image src={assest.logo_img} width={212} height={62} alt='ftLogo' />
+                <Image src={assest.logo_img} width={230} height={62} alt='ftLogo' />
               </Link>
             </Grid2>
-            <Grid2 size={{ md: 10, xs: 12 }}>
+            <Grid2 size={{ md: 9.2, xs: 12 }}>
               <Box className='ftr-wrapper'>
                 <List disablePadding className='quick-links'>
                   {navItems.map((item, index) => (
                     <ListItem disablePadding key={index}>
-                      <Link
-                        href={item?.route}
-                        className={router.pathname === item.route ? 'active' : ''}
-                      >
+                      <Link href={item?.route} className={isActive(item.route) ? 'active' : ''}>
                         {item?.name}
                       </Link>
                     </ListItem>

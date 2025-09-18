@@ -8,9 +8,11 @@ from django.db import transaction
 from rest_framework import status
 import logging
 from uuid import UUID
+from escrow_management.tasks import check_subscription_status
+from datetime import timedelta, timezone, datetime
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("escrow_management.views.initialize_subscription")
 
 
 class InitiateSubscription(APIView):
@@ -39,6 +41,7 @@ class InitiateSubscription(APIView):
             subscription.reference_id = UUID(response.get('ref_id'))
             subscription.save()
             status_response=collection.getTransactionStatus(response.get('ref_id'))
+            
             # print("status_response: ",status_response)
             logger.info("MTN Subscription Details:")
             logger.debug(f"status_response: {status_response}")
@@ -46,9 +49,15 @@ class InitiateSubscription(APIView):
             
             payment_status = status_response.get('status')
             if payment_status.lower() == "failed":
-                subscription.delete()
-                return Response({"status": "failed", "message": "Invalid phone number."}, status=status.HTTP_400_BAD_REQUEST)
+                # subscription.delete()
+                subscription.payment_status = "failed"
+                subscription.save()
+                return Response({"status": "failed", "message": "Invalid Cameroon MTN number."}, status=status.HTTP_400_BAD_REQUEST)
 
+            # ✅ Schedule Celery task after 10 minutes (only once)
+            # run_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+            # check_subscription_status.apply_async(args=[str(subscription.id)], eta=run_at)
+            check_subscription_status.apply_async(args=[str(subscription.id)], countdown=600, ignore_result=False)
             return Response({"response": status_response, "subscription_id": str(subscription.id)})
         
         except Exception as e:

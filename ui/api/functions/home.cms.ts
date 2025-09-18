@@ -14,5 +14,9 @@ export const fetchHomePageData = async () => {
     pricingPlans: data?.pricing_plan_section || ({} as IHomeModel['PricingPlanSection']),
     referral: data?.referral_section || ({} as IHomeModel['ReferralSection']),
     download: data?.download_section || ({} as IHomeModel['DownloadSection']),
+    downloadUrls: {
+      appStore: data?.download_section?.appstore_link,
+      playStore: data?.download_section?.playstore_link,
+    } as IHomeModel['DownloadLinks'],
   };
 };

@@ -25,7 +25,7 @@ import { listOfUniqueKeys } from 'src/lib/listOfUniqueKeys'
 import toast from 'react-hot-toast'
 import { IAboutCmsModel } from '@/type/apps/aboutCmsTypes'
 import { WhyTrsutUsValidationSchemaType, whyTrustUsValidationSchema } from 'src/validation/aboutCms.validation'
-import { fetchWhyTrustUsCmsList } from 'src/services/functions/about-cms.api'
+import { fetchWhyTrustUsCmsList, saveWhyTrustUsCmsList } from 'src/services/functions/about-cms.api'
 
 const WhyTrustUsContents = () => {
   const [imagePreview, setImagePreview] = useState<string | undefined>(undefined)
@@ -82,7 +82,7 @@ const WhyTrustUsContents = () => {
   }, [data?.data])
 
   const { mutate, isPending } = useMutation({
-    mutationFn: updateHowItWorksCmsContent,
+    mutationFn: saveWhyTrustUsCmsList,
     onSuccess: res => {
       if (String(res.status) === '200') {
         toast.success(res.message)

@@ -9,11 +9,25 @@ export const HeaderWrap = styled(Box)`
   }
 
   .headerLogo {
-    width: 20%;
+    width: 22%;
     line-height: 0;
+    @media (max-width: 1199px) {
+      width: 200px;
+    }
+    @media (max-width: 599px) {
+      width: 150px;
+    }
+    @media (max-width: 359px) {
+      width: 120px;
+    }
 
-    @media (max-width: 899px) {
-      width: 110px;
+    /* @media (max-width: 899px) {
+      width: 200px;
+    } */
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
     }
   }
 
@@ -32,7 +46,7 @@ export const HeaderWrap = styled(Box)`
     a {
       color: ${({ theme }) => theme.palette.text.secondary};
       position: relative;
-
+      font-size: 14px;
       &:hover,
       &.active {
         color: ${({ theme }) => theme.palette.primary.main};
@@ -53,21 +67,34 @@ export const HeaderWrap = styled(Box)`
     width: 16%;
     justify-content: flex-end;
 
-    @media (max-width: 899px) {
+    @media (max-width: 1199px) {
       width: calc(100% - 110px);
       padding-left: 15px;
     }
+
+    /* @media (max-width: 899px) {
+      width: calc(100% - 110px);
+      padding-left: 15px;
+    } */
 
     .MuiButton-contained {
       @media (max-width: 1199px) {
         font-size: 14px;
         padding: 10px;
       }
+      @media (max-width: 359px) {
+        font-size: 13px;
+        padding: 6px 10px;
+      }
     }
 
     .menu-btn {
       color: ${({ theme }) => theme.palette.primary.main};
       margin-left: 10px;
+      padding: 0;
+      @media (max-width: 599px) {
+        margin-left: 8px;
+      }
     }
   }
 

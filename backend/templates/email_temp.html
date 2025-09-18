@@ -69,7 +69,7 @@
                 Query: {{ query }}<br /><br />
               {% endif %}
               {% if answer %}
-                Answer: {{ answer }}
+                Answer: {{ answer|safe }}
               {% endif %}
               {% if otp %}
                 {{ otp }}

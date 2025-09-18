@@ -7,6 +7,8 @@ export type IAboutCmsModel = {
     section_description: string
     title: string
     description: string
+    title2: string
+    description2: string
     image1: string
     image2: string
   }

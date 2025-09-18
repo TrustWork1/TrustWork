@@ -30,13 +30,13 @@ const AboutInfoContent = () => {
     return data?.data ?? undefined
   }, [data?.data])
 
-  console.log('cmsData', { cmsData })
-
   const initialDatas = {
-    title: '',
     section_header: '',
     section_description: '',
+    title: '',
     description: '',
+    title2: '',
+    description2: '',
     image1: undefined,
     image2: undefined
   }
@@ -60,6 +60,8 @@ const AboutInfoContent = () => {
       section_description: cmsData?.section_description || '',
       title: cmsData?.title || '',
       description: cmsData?.description || '',
+      title2: cmsData?.title2 || '',
+      description2: cmsData?.description2 || '',
       image1: cmsData?.image1 || undefined,
       image2: cmsData?.image2 || undefined
     })
@@ -86,6 +88,8 @@ const AboutInfoContent = () => {
     formData.append('section_description', data.section_description)
     formData.append('title', data.title)
     formData.append('description', data.description)
+    formData.append('title2', data.title2)
+    formData.append('description2', data.description2)
     if (data.image1 && typeof data.image1 !== 'string') {
       formData.append('image1', data.image1 as File)
     }
@@ -190,6 +194,39 @@ const AboutInfoContent = () => {
                           {...field}
                           error={!!errors.description}
                           helperText={errors.description?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Controller
+                      name='title2'
+                      control={control}
+                      render={({ field }: { field: { value: string } }) => (
+                        <TextField
+                          fullWidth
+                          label='Secondary Title'
+                          {...field}
+                          error={!!errors.title2}
+                          helperText={errors.title2?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Controller
+                      name='description2'
+                      control={control}
+                      render={({ field }: { field: { value: string } }) => (
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={4}
+                          label='Secondary Description'
+                          {...field}
+                          error={!!errors.description2}
+                          helperText={errors.description2?.message}
                         />
                       )}
                     />

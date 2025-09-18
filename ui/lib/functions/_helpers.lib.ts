@@ -73,3 +73,11 @@ export const globalCatchError = (error: AxiosError<BaseApiResponse>) => {
     options: { variant: 'error' },
   });
 };
+
+export const formatPlanDuration = (planName: string): string => {
+  return planName ? planName?.toLowerCase().replace(/ly$/, '') : '---';
+};
+
+export const wrappedMailto = (email: string | undefined): string => {
+  return email ? `mailto:${email}` : '';
+};

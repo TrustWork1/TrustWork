@@ -7,6 +7,8 @@ export interface IAboutModel {
     section_description: string;
     title: string;
     description: string;
+    title2: string;
+    description2: string;
     image1: string;
     image2: string;
   };
@@ -46,6 +48,7 @@ export interface IAboutModel {
     appstore_link: string;
     image: string;
   };
+  DownloadLinks: { appStore: string; playStore: string };
 
   AboutPageResponse: {
     data: {
@@ -53,6 +56,7 @@ export interface IAboutModel {
       why_you_trust_us: IAboutModel['WhyYouTrustUs'];
       aboutus_other_details: IAboutModel['AboutUsOtherDetails'];
       download_section: IAboutModel['DownloadSection'];
+      DownloadLinks: IAboutModel['AboutPageResponse'];
     };
   } & BaseApiResponse;
 }

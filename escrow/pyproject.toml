@@ -16,6 +16,8 @@ redis = "^5.1.0"
 django-environ = "^0.11.2"
 psycopg2-binary = "^2.9.10"
 stripe = "^11.4.1"
+django-celery-results = "^2.6.0"
+django-csp = "^4.0"
 
 [build-system]
 requires = ["poetry-core"]

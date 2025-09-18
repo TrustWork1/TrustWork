@@ -37,6 +37,9 @@ export const defaultPalette = (mode: Palette['mode']): Palette => {
       downloadAppBG: '#EEF6EA',
       maskBorder: '#F5FFEF',
       borderColor: '#EFF1EE',
+      color5F616D: '#5F616D',
+      color020512: '#020512',
+      colorD1E9C4: '#D1E9C4',
     },
     mode: mode,
     common: {

@@ -105,7 +105,7 @@ const LoginPage = () => {
     // setError,
     handleSubmit,
     setValue,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm({
     defaultValues,
     mode: 'onBlur',
@@ -265,8 +265,8 @@ const LoginPage = () => {
                   Forgot Password?
                 </Typography>
               </Box>
-              <Button fullWidth type='submit' variant='contained' sx={{ mb: 4 }}>
-                Login
+              <Button fullWidth type='submit' variant='contained' disabled={auth.loading} sx={{ mb: 4 }}>
+                {auth.loading ? 'Loading...' : 'Login'}
               </Button>
             </form>
           </Box>

@@ -9,7 +9,7 @@ module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
   images: {
-    domains: ['trustwork-api.dedicateddevelopers.us', 'admin.trustwork.live']
+    domains: ['trustwork-api.dedicateddevelopers.us', 'api.trustwork.live']
   },
   env: {
     NEXT_PUBLIC_JWT_EXPIRATION: process.env.NEXT_PUBLIC_JWT_EXPIRATION,

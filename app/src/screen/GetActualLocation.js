@@ -142,12 +142,14 @@ const GetActualLocation = props => {
                 <Text style={[{fontFamily: Fonts.FustatBold}]}>
                   {'Allow “TRUST WORK” '}
                 </Text>
-                {'to access your location while you use the app?'}
+                {
+                  'location access to take project/work location for reviewing the Work.'
+                }
               </Text>
             </View>
 
             <View style={styles.mainBtnConatiner}>
-              <View style={[styles.btnMainContainer, {width: '55%'}]}>
+              {/* <View style={[styles.btnMainContainer, {width: '55%'}]}>
                 <NextBtn
                   height={normalize(40)}
                   title={'DON’T ALLOW'}
@@ -158,11 +160,11 @@ const GetActualLocation = props => {
                     NavigationService?.navigate('SignIn');
                   }}
                 />
-              </View>
-              <View style={[styles.btnMainContainer, {width: '55%'}]}>
+              </View> */}
+              <View style={[styles.btnMainContainer, ]}>
                 <NextBtn
                   height={normalize(40)}
-                  title={'ALLOW'}
+                  title={'CONTINUE'}
                   borderColor={Colors.themeGreen}
                   color={Colors.themeWhite}
                   backgroundColor={Colors.themeGreen}
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
     paddingBottom: normalize(10),
   },
   mainBtnConatiner: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
   },

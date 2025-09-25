@@ -188,7 +188,6 @@
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				8B43E7D5D480F69E95702294 /* [CP] Embed Pods Frameworks */,
 				9ADAB32A794D32B4AC96D171 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -211,7 +210,6 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				910CCC5CD9C007A9067416EA /* [CP] Embed Pods Frameworks */,
 				B2541445A08224F9C65A9F45 /* [CP] Copy Pods Resources */,
 				01A2E414F13D84FB56E6C0BE /* [CP-User] [RNFB] Core Configuration */,
 			);
@@ -357,40 +355,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8B43E7D5D480F69E95702294 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-trustWork-trustWorkTests/Pods-trustWork-trustWorkTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-trustWork-trustWorkTests/Pods-trustWork-trustWorkTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-trustWork-trustWorkTests/Pods-trustWork-trustWorkTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		910CCC5CD9C007A9067416EA /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-trustWork/Pods-trustWork-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-trustWork/Pods-trustWork-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-trustWork/Pods-trustWork-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		9ADAB32A794D32B4AC96D171 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -534,7 +498,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = trustWork/trustWork.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development: Atanu Sarkar (Y8RWNULNCC)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development: Atanu Sarkar (Y8RWNULNCC)";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -553,8 +518,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tllc.trustwork;
 				PRODUCT_NAME = trustWork;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dev_13/05/2025;
+				PROVISIONING_PROFILE_SPECIFIER = TrustWork_Dev_01/09/2025;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dev_1/09/2025;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -568,8 +533,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = trustWork/trustWork.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Distribution: TRUSTWORK Limited Liability Company (M8CB9R7HZK)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: TRUSTWORK Limited Liability Company (M8CB9R7HZK)";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -587,8 +552,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tllc.trustwork;
 				PRODUCT_NAME = trustWork;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dist_13/05/2025;
+				PROVISIONING_PROFILE_SPECIFIER = TrustWork_Dist_01/09/2025;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = TrustWork_Dist_1/09/2025;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

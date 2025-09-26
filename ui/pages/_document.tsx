@@ -20,6 +20,7 @@ export default function MyDocument(props: MyDocumentProps) {
         />
       </Head>
       <body>
+        <script src='//code.tidio.co/9nqicfxs9xvz1dizoxbqqw9vagosikp1.js'></script>
         <Main />
         <NextScript />
       </body>

@@ -251,7 +251,7 @@ const ActiveProjects = props => {
                 contentContainerStyle={{
                   marginTop: normalize(15),
                   paddingBottom:
-                    Platform.OS == 'ios' ? normalize(180) : normalize(200),
+                    Platform.OS == 'ios' ? normalize(180) : normalize(220),
                 }}
                 scrollEventThrottle={16}
                 onMomentumScrollEnd={e => {

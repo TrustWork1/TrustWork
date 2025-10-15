@@ -202,11 +202,11 @@ const Dropdown = props => {
           visible={customModelVisible}
           backdropOpacity={0}
           useNativeDriverForBackdrop={true}
-          animationIn={'slideInDown'}
-          animationOut={'slideOutDown'}
+          // animationIn={'slideInDown'}
+          // animationOut={'slideOutDown'}
           useNativeDriver={true}
-          animationType="slide"
-          swipeDirection={['down']}
+          // animationType="slide"
+          // swipeDirection={['down']}
           avoidKeyboard={true}
           style={{
             justifyContent: 'center',

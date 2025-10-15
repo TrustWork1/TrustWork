@@ -860,7 +860,7 @@ const SignUp = props => {
                       borderRadius={normalize(6)}
                       fontSize={14}
                       marginTop={
-                        Platform.OS == 'ios' ? normalize(20) : normalize(15)
+                        Platform.OS == 'ios' ? normalize(10) : normalize(15)
                       }
                       paddingLeft={normalize(12)}
                       valueColor={Colors.themeBlack}
@@ -1306,7 +1306,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.FustatMedium,
     fontSize: normalize(14),
     lineHeight: normalize(17),
-    top: Platform.OS == 'ios' ? normalize(2) : normalize(6),
+    top: Platform.OS == 'ios' ? normalize(12) : normalize(6),
     left: normalize(5),
   },
   termTxtConatiner: {

@@ -215,7 +215,7 @@ export function* ResendOtpSaga(action) {
 
     if (response?.status == 200) {
       yield put(ResendOtpSuccess(response?.data));
-      showErrorAlert(response?.data?.message);
+      // showErrorAlert(response?.data?.message);
     } else {
       yield put(ResendOtpFailure(response?.data));
       showErrorAlert(response?.data?.message);

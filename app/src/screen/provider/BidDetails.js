@@ -21,7 +21,6 @@ const BidDetails = props => {
   useEffect(() => {
     connectionrequest()
       .then(() => {
-
         dispatch(bidDetailsRequest(props?.route?.params?.bid_id));
       })
       .catch(err => {

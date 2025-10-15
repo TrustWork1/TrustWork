@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+// import DocumentPicker from 'react-native-document-picker';
 import ImagePicker from 'react-native-image-crop-picker';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
@@ -35,6 +35,7 @@ import constants from '../../utils/helpers/constants';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
+import {pick, types} from '@react-native-documents/picker';
 
 let status = '';
 
@@ -78,6 +79,21 @@ const ProviderUpdateProfile = props => {
       getProfile();
     }
   }, [isFocused]);
+
+  useEffect(() => {
+    let profile = AuthReducer?.ProfileResponse?.data;
+    if (profile) {
+      setName(profile.full_name || '');
+      setAddress(profile.address || '');
+      setLat(profile.latitude || '');
+      setLng(profile.longitude || '');
+      setSelectedImage(
+        AuthReducer?.ProfileResponse?.data?.profile_picture
+          ? `${constants.IMAGE_URL}${AuthReducer?.ProfileResponse?.data?.profile_picture}`
+          : '',
+      );
+    }
+  }, [AuthReducer?.ProfileResponse]);
 
   const getProfile = () => {
     connectionrequest()
@@ -185,26 +201,38 @@ const ProviderUpdateProfile = props => {
       })
       .catch(err => console.log(err));
   }
-  const handlecertificateUpload = useCallback(async () => {
+  const handlecertificateUpload = async () => {
+    console.log('------>entering');
     try {
-      const response = await DocumentPicker.pickSingle({
-        // presentationStyle: 'fullScreen',
-        type: [DocumentPicker.types.pdf],
+      const response = await pick({
+        allowMultiSelection: false,
+        type: [types.pdf], // wrap in array
       });
 
-      let docObject = {
-        size: response.size,
-        name: response.name,
-        uri: response.uri,
-        type: response.type,
+      console.log('-----------> raw response', response);
+
+      // Since response is an array, grab the first item
+      const file = response[0];
+
+      const transformed = {
+        size: file.size,
+        name: file.name,
+        uri: file.uri,
+        type: file.type,
       };
 
-      setCertificate(docObject);
-      setGovtId(docObject?.name);
+      console.log('-----------> transformed', transformed);
+
+      setCertificate(transformed);
+      setGovtId(transformed.name);
     } catch (err) {
-      console.warn(err);
+      console.log('======>error', err);
+      if (err.code === 'CANCELLED') {
+        return [];
+      }
+      throw err;
     }
-  }, []);
+  };
 
   function convertTime(sec) {
     var hours = Math.floor(sec / 3600);

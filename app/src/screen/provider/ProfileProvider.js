@@ -729,6 +729,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: Platform.OS == 'ios' ? 0 : normalize(18),
   },
   iconContainer: {
     paddingHorizontal: normalize(11),

@@ -68,10 +68,20 @@ const UserUpdateProfile = props => {
   const [timerCount, setTimerCount] = useState(300);
 
   useEffect(() => {
-    if (isFocused) {
-      getProfile();
+    let profile = AuthReducer?.ProfileResponse?.data;
+    if (profile) {
+      setName(profile.full_name || '');
+      setAddress(profile.address || '');
+      setLat(profile.latitude || '');
+      setLng(profile.longitude || '');
     }
-  }, [isFocused]);
+  }, [AuthReducer?.ProfileResponse]);
+
+  useEffect(() => {
+    // if (isFocused) {
+    getProfile();
+    // }
+  }, []);
 
   const getProfile = () => {
     connectionrequest()
@@ -566,8 +576,14 @@ const UserUpdateProfile = props => {
         break;
       case 'Auth/ProfileSuccess':
         status = AuthReducer.status;
+        console.log(
+          'client data fetch----->',
+          AuthReducer?.ProfileResponse?.data,
+        );
         setName(AuthReducer?.ProfileResponse?.data?.full_name);
+        setAddress(AuthReducer?.ProfileResponse?.data?.address);
         if (!AuthReducer?.ProfileResponse?.data?.is_user_active) {
+          setOpenVerify(true);
           if (AuthReducer?.ProfileResponse?.data?.email == '') {
             let obj = {
               phone: AuthReducer?.ProfileResponse?.data?.phone,
@@ -579,8 +595,6 @@ const UserUpdateProfile = props => {
               .catch(err => {
                 showErrorAlert('Please connect to internet');
               });
-
-            setOpenVerify(true);
           } else {
             let obj = {
               email: AuthReducer?.ProfileResponse?.data?.email,
@@ -592,8 +606,6 @@ const UserUpdateProfile = props => {
               .catch(err => {
                 showErrorAlert('Please connect to internet');
               });
-
-            setOpenVerify(true);
           }
         }
         break;
@@ -703,6 +715,7 @@ const UserUpdateProfile = props => {
                     }}>
                     <TouchableOpacity
                       onPress={() => {
+                        // console.log("kajhjaj")
                         setImgPicker(true);
                       }}
                       style={{
@@ -770,7 +783,9 @@ const UserUpdateProfile = props => {
                     borderColor={Colors.themeGreen}
                     color={Colors.themeWhite}
                     backgroundColor={Colors.themeGreen}
-                    onPress={() => profileUpdate()}
+                    onPress={() => {
+                      console.log('click next'), profileUpdate();
+                    }}
                   />
                 </View>
               </KeyboardAwareScrollView>
@@ -805,13 +820,9 @@ const UserUpdateProfile = props => {
         </View>
       </Modal>
       <Modal
-        propagateSwipe
         visible={openVerify}
         backdropOpacity={0}
         useNativeDriverForBackdrop={true}
-        animationIn="slideInDown"
-        animationOut="slideOutDown"
-        useNativeDriver={true}
         swipeDirection={['down']}
         avoidKeyboard={true}
         style={styles.modalContainer}

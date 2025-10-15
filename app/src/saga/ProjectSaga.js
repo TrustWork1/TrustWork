@@ -1187,15 +1187,16 @@ export function* bidDetailsSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
+    contenttype: 'application/json',
     authorization: items?.getTokenResponse,
   };
   try {
     let response = yield call(getApi, `bid-detail/${action.payload}/`, header);
+    console.log(response);
 
     if (response?.status == 200) {
       yield put(bidDetailsSuccess(response?.data));
-      showErrorAlert(response?.data?.data?.message);
+      // showErrorAlert(response?.data?.message);
     } else {
       yield put(bidDetailsFailure(response?.data));
       showErrorAlert(response?.data?.message);

@@ -25,7 +25,7 @@ const UserBottomTabNav = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          bottom: 20,
+          bottom: 50,
           left: 20,
           right: 20,
           borderTopWidth: 0,
@@ -177,6 +177,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    top: Platform.OS === 'ios' ? normalize(12) : null,
+    top: normalize(18),
   },
 });

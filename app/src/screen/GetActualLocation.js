@@ -182,18 +182,18 @@ const GetActualLocation = props => {
     <View style={styles.container}>
       <ImageBackground source={Images.GetStarted} style={styles.splashBg} />
       <Modal
-        propagateSwipe
+        // propagateSwipe
         transparent={true}
         visible={showSeen}
-        backdropOpacity={0}
-        useNativeDriverForBackdrop={true}
-        animationIn={'slideInDown'}
-        animationOut={'slideOutDown'}
-        useNativeDriver={true}
-        animationType="slide"
+        // backdropOpacity={0}
+        // useNativeDriverForBackdrop={true}
+        // animationIn={'slideInDown'}
+        // animationOut={'slideOutDown'}
+        // useNativeDriver={true}
+        // animationType="slide"
         swipeDirection={['down']}
         avoidKeyboard={true}
-        style={{justifyContent: 'flex-end', margin: 0}}>
+        >
         {locationModalComponent()}
       </Modal>
     </View>

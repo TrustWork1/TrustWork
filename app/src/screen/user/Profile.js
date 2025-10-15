@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   ImageBackground,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -195,7 +196,7 @@ const Profile = props => {
       <Header backIcon={Icons.BackIcon} headerTitle={'My Profile'} />
       <SafeAreaView style={styles.mainContainer}>
         <ScrollView
-          contentContainerStyle={{paddingBottom: normalize(10)}}
+          contentContainerStyle={{paddingBottom: normalize(25)}}
           style={styles.container}>
           <View style={[css.px3]}>
             <View style={[styles.profileOuter, css.mt3]}>
@@ -454,6 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: Platform.OS == 'ios' ? 0 : normalize(18),
   },
   iconContainer: {
     paddingHorizontal: normalize(11),

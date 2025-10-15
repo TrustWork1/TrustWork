@@ -71,7 +71,6 @@ const ClientChat = props => {
   useEffect(() => {
     connectionrequest()
       .then(() => {
-        
         dispatch(messageListRequest(roomId));
       })
       .catch(err => {
@@ -250,7 +249,7 @@ const ClientChat = props => {
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 ref={scrollRef}
-                style={[css.fg1, css.mb8]}>
+                style={[css.fg1, css.mb2, css.mt3]}>
                 <View style={[css.px3, css.mb5]}>
                   {chatWithMe.map((item, index) => render_Chat({item, index}))}
                   {/* <FlatList
@@ -274,7 +273,7 @@ const ClientChat = props => {
                   // alignSelf: 'flex-end',
                   marginHorizontal: normalize(15),
                   borderRadius: normalize(30),
-                  bottom: normalize(60),
+                  marginBottom: normalize(30),
                 }}>
                 <View style={[css.row, css.aic]}>
                   <TouchableOpacity>

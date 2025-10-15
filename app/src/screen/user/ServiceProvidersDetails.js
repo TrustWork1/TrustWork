@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react';
 import {
   FlatList,
   Image,
+  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -444,6 +445,7 @@ const styles = StyleSheet.create({
   listMainConatiner: {
     paddingHorizontal: normalize(10),
     marginTop: normalize(15),
+    marginBottom: Platform.OS == 'ios' ? 0 : normalize(36),
   },
   headerMainConatiner: {
     paddingTop: normalize(12),

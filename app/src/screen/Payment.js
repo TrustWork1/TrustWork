@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import {Colors, Fonts, GifImage, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
-
 import BottomSheet from '@gorhom/bottom-sheet';
 import {useIsFocused} from '@react-navigation/native';
 import {
@@ -444,7 +443,7 @@ const Payment = props => {
   return (
     <>
       {/* <StripeProvider publishableKey="pk_test_51Q1uGJ06D9ayl3BS7fwiypJd2zkTFHJte5Itulh67991fpNzKtQchHA2bqwGhIgxhzhw6qvl3Zn81lCPpEw2JOS600ErjSExQF"> */}
-        <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc">
+      <StripeProvider publishableKey="pk_live_51Q1uGJ06D9ayl3BSgKDYwyJACUxw0zabwV36cp3Itr7DbWnkZYEpQ4jH4IkVVWiKj89icIpbhogQeuHdiX1ElZsC00kbwomUZc">
         <View style={styles.mainContainer}>
           <Loader visible={AuthReducer.status == 'Auth/CreatePaymentRequest'} />
           <Header backIcon={Icons.BackIcon} headerTitle={'Payment'} />
@@ -514,59 +513,63 @@ const Payment = props => {
           </Modal>
         </View>
 
-        {Platform.OS == 'android' && IsProceed ? (
+        {IsProceed && Platform.OS == 'android' && (
           //////////////// in debug mode it will not work ////////////////
+
           <>
-            <BottomSheet
-              ref={bottomSheetRef}
-              animateOnMount={false}
-              enableContentPanningGesture={false}
-              enableHandlePanningGesture={false}
-              index={1}
-              snapPoints={snapPoints}>
-              <View
-                style={[
-                  styles.CardAddmodalOuter,
-                  {height: isKeyboardVisible ? normalize(250) : normalize(270)},
-                ]}>
-                <KeyboardAvoidingView>
-                  <ScrollView>
-                    <CardField
-                      postalCodeEnabled={false}
-                      placeholder={{
-                        number: '4242 4242 4242 4242',
-                      }}
-                      cardStyle={{
-                        backgroundColor: '#FFFFFF',
-                        textColor: '#000000',
-                        placeholderColor: Colors.themeGray,
-                      }}
-                      style={{
-                        width: '100%',
-                        height: 200,
-                        // marginVertical: 30,
-                      }}
-                    />
-                  </ScrollView>
-                </KeyboardAvoidingView>
-                <View style={[css.mb4]}>
-                  <NextBtn
-                    loading={isLoading}
-                    title={'Proceed to pay'}
-                    borderColor={Colors.themeGreen}
-                    color={Colors.themeWhite}
-                    backgroundColor={Colors.themeGreen}
-                    onPress={() => {
-                      handlePayPress();
-                      setIsLoading(true);
-                      // setIsProceed(false),
-                    }}
-                  />
-                </View>
-              </View>
-            </BottomSheet>
+            <View
+              pointerEvents="none" // <--- ensures touches pass through
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: 'rgba(0,0,0,0.3)', // semi-transparent overlay
+                backdropFilter: 'blur(10px)', // web-only, ignored in React Native
+              }}
+            />
+            <View style={[styles.CardAddmodalOuter, {height: normalize(350)}]}>
+              <KeyboardAwareScrollView
+                enableOnAndroid={true}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={
+                  {
+                    // paddingBottom: normalize(50),
+                  }
+                }>
+                <CardField
+                  postalCodeEnabled={false}
+                  placeholder={{
+                    number: '4242 4242 4242 4242',
+                  }}
+                  cardStyle={{
+                    backgroundColor: '#FFFFFF',
+                    textColor: '#000000',
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 70,
+                    marginVertical: 30,
+                  }}
+                />
+              </KeyboardAwareScrollView>
+            </View>
+            <View style={[css.p4, css.mb7]}>
+              <NextBtn
+                loading={isLoading}
+                title={'Proceed to pay'}
+                borderColor={Colors.themeGreen}
+                color={Colors.themeWhite}
+                backgroundColor={Colors.themeGreen}
+                onPress={() => {
+                  handlePayPress();
+                  setIsLoading(true);
+                  // setIsLoading(true);
+                }}
+              />
+            </View>
           </>
-        ) : (
+        )}
+
+        {IsProceed && Platform.OS == 'ios' && (
           <Modal
             isVisible={IsProceed}
             transparent={true}
@@ -688,40 +691,6 @@ const Payment = props => {
               </View>
             </View>
           </View>
-
-          {/* <View style={[]}>
-            <View style={styles.card}>
-              <Text style={styles.title}>Payment request sent to MTN</Text>
-              <Text style={styles.message}>
-                Please approve the payment request on your MTN Mobile Money app
-                or dial *165#.
-              </Text>
-              <View
-                style={[
-                  styles.btnMainContainer,
-                  {paddingHorizontal: normalize(10), marginTop: normalize(20)},
-                ]}>
-                <NextBtn
-                  height={normalize(50)}
-                  title={'OK'}
-                  borderColor={Colors.themeGreen}
-                  color={Colors.themeWhite}
-                  backgroundColor={Colors.themeGreen}
-                  onPress={() => {
-                    setMtnRequest(false);
-                    setTimeout(() => {
-                      if (openPayNow == 'Card') {
-                        NavigationService.navigate('Project');
-                      } else {
-                        NavigationService.goBack();
-                      }
-                      // NavigationService.navigate('Project');
-                    });
-                  }}
-                />
-              </View>
-            </View>
-          </View> */}
         </Modal>
       </StripeProvider>
     </>
@@ -875,5 +844,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
+  },
+
+  /////////////////////
+
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 9999,
+  },
+
+  modalBox: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
   },
 });

@@ -21,8 +21,9 @@ import {Colors, Fonts, Icons} from '../../themes/Themes';
 import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
-import DocumentPicker from 'react-native-document-picker';
+// import DocumentPicker from 'react-native-document-picker';
 import constants from '../../utils/helpers/constants';
+import {pick, types} from '@react-native-documents/picker';
 
 const timelineUnits = [
   {
@@ -76,7 +77,7 @@ const CreateProject = props => {
   const [doc, setDoc] = useState('');
   const [docFile, setDocFile] = useState();
   const [jobCategoryList, setJobCategoryList] = useState([]);
-  console.log(zipcode);
+  // console.log(zipcode);
 
   useEffect(() => {
     if (isFocused) {
@@ -227,26 +228,79 @@ const CreateProject = props => {
     }
   };
 
-  const handlecertificateUpload = useCallback(async () => {
+  // const handlecertificateUpload = async () => {
+  //   // Please use the new Document picker package to pick the documents. The already installed one is deprecated and not supported in latest react native version.
+  //   console.log('------>entering');
+  //   try {
+  //     const response = await pick({
+  //       allowMultiSelection: false,
+  //       type: types.pdf,
+  //     });
+
+  //     console.log('----------->', response);
+  //     const transformed = {
+  //       size: response.size,
+  //       name: response.name,
+  //       uri: response.uri,
+  //       type: response.type,
+  //     };
+
+  //     console.log(transformed);
+  //     // setDocFile(docObject);
+  //     // setDoc(docObject?.name);
+  //   } catch (err) {
+  //     console.log('======>error', err);
+  //     if (err.code === 'CANCELLED') {
+  //       return [];
+  //     }
+  //     throw err;
+  //   }
+
+  //   // =======================================================================================================
+  //   // try {
+  //   //   const response = await DocumentPicker.pickSingle({
+  //   //     // presentationStyle: 'fullScreen',
+  //   //     type: [DocumentPicker.types.pdf],
+  //   //   });
+
+  //   //
+  //   // } catch (err) {
+  //   //   console.warn(err);
+  //   // }
+  // };
+
+  const handlecertificateUpload = async () => {
+    console.log('------>entering');
     try {
-      const response = await DocumentPicker.pickSingle({
-        // presentationStyle: 'fullScreen',
-        type: [DocumentPicker.types.pdf],
+      const response = await pick({
+        allowMultiSelection: false,
+        type: [types.pdf], // wrap in array
       });
 
-      let docObject = {
-        size: response.size,
-        name: response.name,
-        uri: response.uri,
-        type: response.type,
+      console.log('-----------> raw response', response);
+
+      // Since response is an array, grab the first item
+      const file = response[0];
+
+      const transformed = {
+        size: file.size,
+        name: file.name,
+        uri: file.uri,
+        type: file.type,
       };
 
-      setDocFile(docObject);
-      setDoc(docObject?.name);
+      console.log('-----------> transformed', transformed);
+
+      setDocFile(transformed);
+      setDoc(transformed.name);
     } catch (err) {
-      console.warn(err);
+      console.log('======>error', err);
+      if (err.code === 'CANCELLED') {
+        return [];
+      }
+      throw err;
     }
-  }, []);
+  };
 
   if (status == '' || ProjectReducer.status != status) {
     switch (ProjectReducer.status) {
@@ -305,6 +359,8 @@ const CreateProject = props => {
         break;
     }
   }
+
+  console.log('========');
 
   return (
     <View style={styles.mainContainer}>

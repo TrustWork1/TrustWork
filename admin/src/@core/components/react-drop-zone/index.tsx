@@ -12,6 +12,7 @@ interface CustomDropzoneProps {
   preview?: string
   onDelete: () => void
   customPreview?: string
+  isBigVideo?: boolean
 }
 
 const CustomDropzone: React.FC<CustomDropzoneProps> = ({
@@ -21,12 +22,40 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
   accept,
   maxSize,
   preview,
-  customPreview
+  customPreview,
+  isBigVideo = false
 }) => {
   const [fileError, setFileError] = useState<string | undefined>(undefined)
 
+  // Convert array to proper react-dropzone format
+  const getAcceptObject = () => {
+    if (!accept || accept.length === 0) return undefined
+
+    // Map MIME types to extensions
+    const acceptObj: Record<string, string[]> = {}
+
+    accept.forEach(item => {
+      if (item.startsWith('.')) {
+        // It's an extension, map it to appropriate MIME type
+        if (item === '.mov') acceptObj['video/quicktime'] = ['.mov']
+        else if (item === '.mp4') acceptObj['video/mp4'] = ['.mp4']
+        else if (item === '.webm') acceptObj['video/webm'] = ['.webm']
+        else if (item === '.ogg') acceptObj['video/ogg'] = ['.ogg']
+        else if (item === '.avi') acceptObj['video/x-msvideo'] = ['.avi']
+      } else if (item === 'video/*') {
+        // Accept all video types
+        acceptObj['video/*'] = []
+      } else {
+        // It's already a MIME type
+        acceptObj[item] = []
+      }
+    })
+
+    return acceptObj
+  }
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: accept ? accept.reduce((acc, type) => ({ ...acc, [type]: [] }), {}) : undefined,
+    accept: getAcceptObject(),
     maxSize: maxSize,
     onDrop: acceptedFiles => {
       if (acceptedFiles.length > 0) {
@@ -49,15 +78,15 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
 
     if (fileType === 'video') {
       return (
-        <Box mt={1} height='300px' width='300px' position={'relative'}>
+        <Box mt={1} height='300px' width={isBigVideo ? '500px' : '300px'} position={'relative'}>
           <video
             src={preview}
             controls
             autoPlay
             style={{
               objectFit: 'cover',
-              height: '300px',
-              width: '300px',
+              height: '100%',
+              width: '100%',
               borderRadius: '15px'
             }}
           />

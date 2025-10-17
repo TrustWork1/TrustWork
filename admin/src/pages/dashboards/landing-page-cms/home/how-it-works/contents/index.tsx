@@ -145,12 +145,13 @@ const HowItWorksContents = () => {
                     </Typography>
                     <CustomDropzone
                       onDrop={handleDrop}
-                      accept={['video/mp4', 'video/webm', 'video/ogg']}
-                      maxSize={50000000} // 50MB
-                      errorMessage='Invalid file type. Please upload a video (MP4, WEBM, OGG) only.'
+                      accept={['.mp4', '.mov', '.webm', '.ogg']}
+                      maxSize={120000000} // 120MB
+                      errorMessage='Invalid file type. Please upload a video (MP4, MOV, WEBM, OGG) only.'
                       preview={videoPreview}
                       onDelete={onVideoDelete}
                       fileType='video'
+                      isBigVideo
                     />
                     {!!errors?.video && <Typography color='error'>{errors?.video?.message}</Typography>}
                   </Grid>

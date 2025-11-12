@@ -1,17 +1,7 @@
-import { submitSubscriptionRequestForm } from '@/api/functions/subscription';
 import { formatPlanDuration } from '@/lib/functions/_helpers.lib';
-import { SelectPlanQueryFormValues, selectPlanQuerySchema } from '@/schema/subscription.yup';
 import { SubscriptionCardWrap } from '@/styles/StyledComponents/SubscriptionCardWrap';
 import { ISubscriptionCardProps } from '@/typescript/types/subscription.type';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Button, List, ListItem, Typography } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import PaymentSuccessModal from './PaymentSuccessModal';
-import SelectPlanRequestModal from './SelectPlanRequestModal';
+import { Box, List, ListItem, Typography } from '@mui/material';
 
 function SubscriptionCard({
   planName,
@@ -20,75 +10,75 @@ function SubscriptionCard({
   features,
   isPopular,
 }: ISubscriptionCardProps) {
-  const [userInfo, setUserInfo] = useState(false);
-  const [payment, setPayment] = useState(false);
-  const {
-    reset,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<SelectPlanQueryFormValues>({
-    resolver: yupResolver(selectPlanQuerySchema),
-    mode: 'onChange',
-    defaultValues: {
-      full_name: '',
-      email: '',
-      phone: '',
-      subscription_frequency: '',
-      amount: '',
-    },
-  });
-  const userInfoOpenHandler = (planName: string, price: number) => {
-    setUserInfo(true);
-    reset({
-      full_name: '',
-      email: '',
-      phone: '',
-      amount: String(price),
-      subscription_frequency: planName,
-    });
-  };
-  const userInfoCloseHandler = () => {
-    setUserInfo(false);
-  };
+  // const [userInfo, setUserInfo] = useState(false);
+  // const [payment, setPayment] = useState(false);
+  // const {
+  //   reset,
+  //   handleSubmit,
+  //   control,
+  //   formState: { errors },
+  // } = useForm<SelectPlanQueryFormValues>({
+  //   resolver: yupResolver(selectPlanQuerySchema),
+  //   mode: 'onChange',
+  //   defaultValues: {
+  //     full_name: '',
+  //     email: '',
+  //     phone: '',
+  //     subscription_frequency: '',
+  //     amount: '',
+  //   },
+  // });
+  // const userInfoOpenHandler = (planName: string, price: number) => {
+  //   setUserInfo(true);
+  //   reset({
+  //     full_name: '',
+  //     email: '',
+  //     phone: '',
+  //     amount: String(price),
+  //     subscription_frequency: planName,
+  //   });
+  // };
+  // const userInfoCloseHandler = () => {
+  //   setUserInfo(false);
+  // };
 
-  const paymentOpenHandler = () => {
-    setPayment(true);
-    setUserInfo(false);
-  };
+  // const paymentOpenHandler = () => {
+  //   setPayment(true);
+  //   setUserInfo(false);
+  // };
 
-  const paymentCloseHandler = () => {
-    setPayment(false);
-    // setUserInfo(true);
-  };
+  // const paymentCloseHandler = () => {
+  //   setPayment(false);
+  //   // setUserInfo(true);
+  // };
 
-  const { mutateAsync: subscriptionRequest, isPending } = useMutation({
-    mutationKey: ['submitSubscriptionRequestForm'],
-    mutationFn: submitSubscriptionRequestForm,
-    onSuccess: res => {
-      if (res?.type === 'success') {
-        toast.success("Your message has been sent successfully! We'll get back to you soon.");
-        reset();
-        paymentOpenHandler();
-      } else {
-        toast.error(res?.message);
-      }
-    },
-    onError: (error: AxiosError<{ data?: { message?: string } }>) => {
-      toast.error(error?.response?.data?.data?.message || 'Something went wrong');
-    },
-  });
+  // const { mutateAsync: subscriptionRequest, isPending } = useMutation({
+  //   mutationKey: ['submitSubscriptionRequestForm'],
+  //   mutationFn: submitSubscriptionRequestForm,
+  //   onSuccess: res => {
+  //     if (res?.type === 'success') {
+  //       toast.success("Your message has been sent successfully! We'll get back to you soon.");
+  //       reset();
+  //       // paymentOpenHandler();
+  //     } else {
+  //       toast.error(res?.message);
+  //     }
+  //   },
+  //   onError: (error: AxiosError<{ data?: { message?: string } }>) => {
+  //     toast.error(error?.response?.data?.data?.message || 'Something went wrong');
+  //   },
+  // });
 
-  const onSubmit = (data: SelectPlanQueryFormValues) => {
-    const bodyData = {
-      name: data.full_name,
-      email: data.email,
-      phone_number: data.phone,
-      amount: data.amount,
-      subscription_frequency: data.subscription_frequency,
-    };
-    subscriptionRequest(bodyData);
-  };
+  // const onSubmit = (data: SelectPlanQueryFormValues) => {
+  //   const bodyData = {
+  //     name: data.full_name,
+  //     email: data.email,
+  //     phone_number: data.phone,
+  //     amount: data.amount,
+  //     subscription_frequency: data.subscription_frequency,
+  //   };
+  //   subscriptionRequest(bodyData);
+  // };
 
   return (
     <SubscriptionCardWrap>
@@ -123,7 +113,7 @@ function SubscriptionCard({
           ))}
         </List>
       </Box>
-      <Button
+      {/* <Button
         fullWidth
         variant='contained'
         color='primary'
@@ -131,8 +121,8 @@ function SubscriptionCard({
         onClick={() => userInfoOpenHandler(planName, price)}
       >
         Select Plan
-      </Button>
-      <SelectPlanRequestModal
+      </Button> */}
+      {/* <SelectPlanRequestModal
         open={userInfo}
         onClose={userInfoCloseHandler}
         onSubmit={handleSubmit(onSubmit)}
@@ -141,7 +131,7 @@ function SubscriptionCard({
         isPending={isPending}
       />
 
-      <PaymentSuccessModal open={payment} onClose={paymentCloseHandler} />
+      <PaymentSuccessModal open={payment} onClose={paymentCloseHandler} /> */}
     </SubscriptionCardWrap>
   );
 }

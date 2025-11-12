@@ -4,6 +4,7 @@ import {
   documentGetInitialProps,
 } from '@mui/material-nextjs/v15-pagesRouter';
 import { DocumentContext, DocumentProps, Head, Html, Main, NextScript } from 'next/document';
+import Script from 'next/script';
 
 interface MyDocumentProps extends DocumentProps, DocumentHeadTagsProps {}
 
@@ -20,7 +21,10 @@ export default function MyDocument(props: MyDocumentProps) {
         />
       </Head>
       <body>
-        <script src='//code.tidio.co/9nqicfxs9xvz1dizoxbqqw9vagosikp1.js'></script>
+        <Script
+          src='//code.tidio.co/9nqicfxs9xvz1dizoxbqqw9vagosikp1.js'
+          strategy='afterInteractive'
+        />
         <Main />
         <NextScript />
       </body>

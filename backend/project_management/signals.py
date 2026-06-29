@@ -1,10 +1,3 @@
-from django.db.models.signals import post_save,post_delete
-from django.dispatch import receiver
-from project_management.models import Bid,Project,Feedback
-from chat_management.models import Notification
-from api.profile.serializers  import ProfileSerializer
-from profile_management.models import Profile
-import firebase_admin
 # from chat_management.signals import *
 
 
@@ -74,8 +67,8 @@ import firebase_admin
 #             Notification.objects.create(
 #                 title="New Feedback Received",
 #                 message=f"You have received feedback for the project: {instance.project.project_title}.",
-#                 sender=instance.project.client, 
-#                 receiver=instance.service_provider,  
+#                 sender=instance.project.client,
+#                 receiver=instance.service_provider,
 #             )
 
 #         # Create a notification for the client when a service provider provides feedback
@@ -83,6 +76,6 @@ import firebase_admin
 #             Notification.objects.create(
 #                 title="Feedback from Service Provider",
 #                 message=f"You have received feedback from the service provider for your project: {instance.project.project_title}.",
-#                 sender=instance.service_provider, 
-#                 receiver=instance.project.client,  
+#                 sender=instance.service_provider,
+#                 receiver=instance.project.client,
 #             )

@@ -1,5 +1,7 @@
-from django.db import models
 from uuid import uuid4
+
+from django.db import models
+
 # Create your models here.
 
 class BaseModel(models.Model):
@@ -14,7 +16,3 @@ class User(BaseModel):
     email=models.CharField(max_length=500)
     user_type=models.CharField(max_length=500)
     prefered_payment_method=models.CharField(max_length=500,default="")
-
-    
-    
-    

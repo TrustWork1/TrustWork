@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 import {
   Alert,
   FlatList,
+  PermissionsAndroid,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,6 +35,7 @@ const GooglePlaces = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [predictions, setPredictions] = useState([]);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
     if (value) {
@@ -40,32 +43,95 @@ const GooglePlaces = ({
     }
   }, [value]);
 
-  const getCurrentLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const {latitude, longitude} = position.coords;
-        fetch(
+  const getCurrentLocation = async () => {
+    // Prevent duplicate taps while already loading
+    if (locationLoading) return;
+
+    setLocationLoading(true);
+
+    const handleError = message => {
+      setLocationLoading(false);
+      Alert.alert('Error', message);
+    };
+
+    const reverseGeocode = async (latitude, longitude) => {
+      try {
+        const response = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${constants.GOOGLEAPIKEY}`,
-        )
-          .then(response => response.json())
-          .then(data => {
-            if (data?.results?.length > 0) {
-              const formattedAddress = data?.results[0]?.formatted_address;
-              setAllAddressDetails(data.results[0]);
-              setValue(formattedAddress);
-              setSearchQuery(formattedAddress);
-              setPredictions([]);
-            }
-          })
-          .catch(error => {
-            Alert.alert('Error', 'Unable to get the current location');
-          });
-      },
-      error => {
+        );
+        const data = await response.json();
+        if (data?.results?.length > 0) {
+          const formattedAddress = data.results[0].formatted_address;
+          setAllAddressDetails(data.results[0]);
+          setValue(formattedAddress);
+          setSearchQuery(formattedAddress);
+          setPredictions([]);
+        } else {
+          Alert.alert('Error', 'Unable to determine address from location');
+        }
+      } catch {
         Alert.alert('Error', 'Unable to get the current location');
-      },
-      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
-    );
+      } finally {
+        setLocationLoading(false);
+      }
+    };
+
+    if (Platform.OS === 'ios') {
+      try {
+        const permission = await Geolocation.requestAuthorization('whenInUse');
+        if (permission === 'granted') {
+          Geolocation.getCurrentPosition(
+            position => {
+              const {latitude, longitude} = position.coords;
+              reverseGeocode(latitude, longitude);
+            },
+            () => handleError('Unable to get the current location'),
+            {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+          );
+        } else {
+          setLocationLoading(false);
+          Alert.alert(
+            'Permission Required',
+            'Please enable location permission to continue',
+          );
+        }
+      } catch {
+        handleError('Unable to process location request');
+      }
+    } else if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'This app needs access to your location',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          Geolocation.getCurrentPosition(
+            position => {
+              const {latitude, longitude} = position.coords;
+              reverseGeocode(latitude, longitude);
+            },
+            () => handleError('Unable to get the current location'),
+            {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+          );
+        } else {
+          setLocationLoading(false);
+          Alert.alert(
+            'Permission Required',
+            'Please enable location permission to continue',
+          );
+        }
+      } catch {
+        handleError('Unable to process location request');
+      }
+    } else {
+      // Unsupported platform
+      setLocationLoading(false);
+    }
   };
 
   const fetchPlaceDetails = async placeId => {
@@ -186,6 +252,7 @@ const GooglePlaces = ({
         borderRadius={normalize(6)}
         fontSize={14}
         locationShown={true}
+        locationLoading={locationLoading}
         onClosePress={() => onClear()}
         onPress={() => getCurrentLocation()}
         paddingLeft={normalize(12)}

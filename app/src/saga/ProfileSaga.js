@@ -61,6 +61,9 @@ import {
   makePrimaryMtnSuccess,
   ReadNotificationSuccess,
   ReadNotificationFailure,
+  aboutUsRequest,
+  aboutUsSuccess,
+  aboutUsFailure,
 } from '../redux/reducer/ProfileReducer';
 import {deleteApi, getApi, postApi, putApi} from '../utils/helpers/ApiRequest';
 import constants from '../utils/helpers/constants';
@@ -151,7 +154,6 @@ export function* editProfileSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {
@@ -962,24 +964,26 @@ export function* WithdrawPointsSaga(action) {
 //////////////////////// Referral Steps //////////////
 export function* ReferralStepsSaga(action) {
   const items = yield select(getItem);
+  const apiEndpoint = 'app-refer-content/';
+  const apiUrl = `${constants.BASE_URL}/${apiEndpoint}`;
   let header = {
     Accept: 'application/json',
     contenttype: 'application/json',
     authorization: items?.getTokenResponse,
   };
   try {
-    let response = yield call(getApi, 'app-refer-content/', header);
+    console.log('ReferralStepsSaga API URL:', apiUrl);
+    let response = yield call(getApi, apiEndpoint, header);
+    console.log('ReferralStepsSaga response:', response?.data);
 
     if (response?.status == 200) {
       yield put(ReferralStepsSuccess(response?.data));
-    } else if (response?.status == 201) {
-      yield put(ReferralStepsFailure(response?.data));
-      showErrorAlert(response?.data?.message);
     } else {
       yield put(ReferralStepsFailure(response?.data));
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
+    console.log('ReferralStepsSaga error:', error);
     if (error?.status == 502) {
       yield put(ReferralStepsFailure(error));
       showErrorAlert(error?.message);
@@ -1121,6 +1125,43 @@ export function* ReadNotificationSaga(action) {
   }
 }
 
+// About Us
+export function* aboutUsSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+  try {
+    let response = yield call(getApi, 'cms/about-us/', header);
+
+    if (response?.status == 200) {
+      yield put(aboutUsSuccess(response?.data));
+    } else if (response?.status == 201) {
+      yield put(aboutUsFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    } else {
+      yield put(aboutUsFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    if (error?.status == 502) {
+      yield put(aboutUsFailure(error));
+      showErrorAlert(error?.message);
+    } else if (error?.status == 401) {
+      yield put(aboutUsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.detail);
+    } else if (error?.status == 504) {
+      yield put(aboutUsFailure(error));
+      showErrorAlert('Request Timed Out');
+    } else {
+      yield put(aboutUsFailure(error));
+      showErrorAlert(error?.response?.data?.data?.error);
+    }
+  }
+}
+
 const watchFunction = [
   (function* () {
     yield takeLatest(
@@ -1211,6 +1252,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Profile/ReadNotificationRequest', ReadNotificationSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Profile/aboutUsRequest', aboutUsSaga);
   })(),
 ];
 

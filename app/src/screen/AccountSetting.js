@@ -24,7 +24,6 @@ const AccountSetting = props => {
       status: data,
       sender: AuthReducer?.ProfileResponse?.data?.id,
     };
-    console.log(obj);
     connectionrequest()
       .then(() => {
         

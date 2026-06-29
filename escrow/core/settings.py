@@ -11,13 +11,15 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-from csp.constants import NONE, SELF
 from pathlib import Path
+
+import environ
+from csp.constants import NONE, SELF
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-import environ
+
 env = environ.Env(
     DEBUG=(bool, False)
 )
@@ -37,7 +39,7 @@ ALLOWED_HOSTS = ["*"]
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 WEBHOOK_HOST=f'{ESCROW_BASE_API}/stripe/api/process-stripe-session/'
-APPEND_SLASH=False
+APPEND_SLASH=True
 
 MTN_BASE_URL = os.getenv('MTN_BASE_URL')
 MTN_COLLECTION_API_USER_ID = os.getenv('MTN_COLLECTION_API_USER_ID')
@@ -66,6 +68,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'escrow_management',
     'user_management',
+    'orange_management',
     'rest_framework',
     'django_celery_results',
     "csp",
@@ -119,20 +122,48 @@ WSGI_APPLICATION = 'core.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-CSRF_TRUSTED_ORIGINS = ['https://*.dedicateddevelopers.us','https://*.127.0.0.1','http://10.2.0.202:8000','https://10.2.0.202:8000']
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:14334",
+    "http://127.0.0.1:14334",
+    "http://192.168.6.22:14334",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8001",
+    "http://10.2.0.202:8000",
+    "https://10.2.0.202:8000",
+    "https://trustwork-dev.dedicateddevelopers.us",
+    "https://trustwork-api.dedicateddevelopers.us",
+    "https://trustwork-escrow.dedicateddevelopers.us",
+    "https://trustwork.live",
+    "https://api.trustwork.live",
+    "https://escrow.trustwork.live",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.app",
+    "https://*.dedicateddevelopers.us",
+]
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DB_NAME'), 
-        'USER': env('DB_USERNAME'), 
-        'PASSWORD': env('DB_PASSWORD'), 
-        'HOST': env('DB_HOST'), 
-        'PORT': env('DB_PORT'), 
+        'ENGINE': env('DB_ENGINE', default='django.db.backends.postgresql_psycopg2'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USERNAME'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
-
+ORANGE_API_URL = os.getenv("API_URL")
+ORANGE_USERNAME = os.getenv("ORANGE_USERNAME")
+ORANGE_PASSWORD = os.getenv("PASSWORD")
+ORANGE_MSISDN = (
+    os.getenv("CHANNEL_USER_MSISDN")
+    or os.getenv("ORANGE_MSISDN")
+    or os.getenv("ORANGE_CHANNEL_USER_MSISDN")
+)
+ORANGE_PIN = os.getenv("PIN")
+ORANGE_X_AUTH_TOKEN = os.getenv("X_AUTH_TOKEN")
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -179,6 +210,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_TASK_IGNORE_RESULT = False
+CELERY_ENABLE_UTC = True
+CELERY_TIMEZONE = "UTC"
 
 LOGGING = {
     "version": 1,

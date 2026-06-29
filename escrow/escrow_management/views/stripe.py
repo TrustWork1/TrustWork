@@ -1,17 +1,24 @@
+import hashlib
+import os
+import uuid
+
+import environ
+import requests
 import stripe
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-import requests
-from rest_framework.permissions import IsAuthenticated
-from escrow_management.models import Escrow,Events
+
+from escrow_management.models import Escrow, Events, StripePayment, Transactions
+
 # from escrow_management.models import EscrowTransaction, Project
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-import os
-import environ
+
+
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
@@ -23,7 +30,7 @@ ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 #     def post(self, request):
 #         try:
 #             project_id = request.data["project_id"]
-#             amount = request.data["amount"] 
+#             amount = request.data["amount"]
 #             currency = "usd"
 #             client_stripe_id = request.data["client_stripe_id"]
 
@@ -38,7 +45,7 @@ ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 #             escrow = EscrowTransaction.objects.create(
 #                 project_id=project_id,
 #                 client_stripe_id=client_stripe_id,
-#                 amount=amount / 100, 
+#                 amount=amount / 100,
 #                 currency=currency,
 #                 stripe_payment_intent=payment_intent["id"],
 #                 status="held"
@@ -59,9 +66,9 @@ ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
 #             escrow = EscrowTransaction.objects.get(project_id=project_id, status="held")
 #             provider_stripe_id = project.provider.stripe_account_id
 
-#             total_amount = escrow.amount * 100 
+#             total_amount = escrow.amount * 100
 #             service_fee = (settings.SERVICE_FEE_PERCENTAGE / 100) * total_amount
-#             payout_amount = total_amount - service_fee  
+#             payout_amount = total_amount - service_fee
 
 #             transfer = stripe.Transfer.create(
 #                 amount=int(payout_amount),
@@ -91,7 +98,7 @@ class ProcessPaymentAPIView(APIView):
 
         try:
             intent = stripe.PaymentIntent.create(
-                amount=int(amount * 100),  
+                amount=int(amount * 100),
                 currency=currency,
                 payment_method_types=["card"],
             )
@@ -110,7 +117,7 @@ class ProcessPaymentAPIView(APIView):
             }
 
             project_a_url = settings.PROJECT_A_URL + "/api/payment-response/"
-            response = requests.post(project_a_url, json=payment_response)
+            requests.post(project_a_url, json=payment_response)
 
             return Response(payment_response, status=status.HTTP_200_OK)
 
@@ -118,27 +125,15 @@ class ProcessPaymentAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
- 
- # New Implementation
+# New Implementation
 
 
-# Implementation
-from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
-from escrow_management.models import StripePayment, Transactions
-import uuid
-from django.core.exceptions import ValidationError
-
-import uuid, hashlib
 def convert_id_to_uuid(original_id):
     sha256_hash = hashlib.sha256(original_id.encode()).hexdigest()
     unique_id = uuid.UUID(sha256_hash[:32])
     return unique_id
 class ProcessStripeSession(APIView):
     def post(self, request):
-        session_uuid = request.data.get("session_id")
         session_id = request.data.get('payment_intent_id')
         user_id = request.data.get('user_id')
         project_id = request.data.get('project_id', '')
@@ -165,13 +160,13 @@ class ProcessStripeSession(APIView):
                 # if transaction_uuid:
                 #     try:
                 #         transaction = Transactions.objects.create(escrow=transaction_uuid, amount=amount, status='pending',  external_transaction_id=payment_id, external_callback_url='') # transaction_type="", payment_method='',
-                #         # transaction.full_clean() 
+                #         # transaction.full_clean()
                 #         # transaction.save()
                 #     except ValidationError as e:
                 #         print(f"Validation error: {e}")
                 if transaction_uuid:
                 # transaction = Transactions.objects.create(escrow=transaction_uuid, amount=amount, status='pending', transaction_type="collection", payment_method='card', external_transaction_id=payment_id, external_callback_url=f'{ESCROW_BASE_API}/stripe/api/process-stripe-session/payment-success/')
-                    payment = StripePayment.objects.create(session_id=session_id, user_id=user_id, amount = amount, currency = currency, project_id=project_id, bid_id=bid_id, external_transaction_id=transaction_uuid, status='pending') # payment_method=payment_method,
+                    StripePayment.objects.create(session_id=session_id, user_id=user_id, amount = amount, currency = currency, project_id=project_id, bid_id=bid_id, external_transaction_id=transaction_uuid, status='pending') # payment_method=payment_method,
                 else:
                     return Response({'error': 'Transaction UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'message': 'Session received, waiting for Stripe confirmation'}, status=status.HTTP_200_OK)
@@ -188,10 +183,7 @@ class PaymentStatus(APIView):
 
 class ReleasePayout(APIView):
     def post(self, request):
-        payment_intent_id = request.data.get('payment_intent_id', '')
-        project_id = request.data.get('project_id')
         escrow_ids = request.data.get('escrow_id', '')
-        bid_id = request.data.get('bid_id', '')
         amount = request.data.get('amount', '')
         stripe_payment_id = request.data.get('stripe_account_id', '')
         currency = request.data.get('currency', 'usd')
@@ -215,7 +207,7 @@ class ReleasePayout(APIView):
                 transfer_details = stripe.Transfer.retrieve(transfer.id)
                 if transfer_details.status == 'succeeded':
                     transection_id.status = "transfered"
-                    transection_id.save()                
+                    transection_id.save()
                 transection_id.status = "transfered"
                 transection_id.save()
                 return Response({'message': 'Payout Completed', 'tranfer_id': transfer.id}, status=status.HTTP_200_OK)
@@ -233,7 +225,7 @@ class StripeDisbursementAPI(APIView):
             escrow_obj = Escrow.objects.get(id=escrow_id)
             escrow_obj.payment_method += ", stripe"
             escrow_obj.save()
-            
+
 
             # total_amount_dollars = float(escrow_obj.amount)
             amount_cents = int(amount * 100)
@@ -270,7 +262,7 @@ class StripeDisbursementAPI(APIView):
             Events.objects.create(
                 event_type="disbursement_in_progress", event_description="", escrow=escrow_obj
             )
-            
+
             transaction = Transactions.objects.create(
                 escrow=escrow_obj,
                 amount=amount,
@@ -322,9 +314,7 @@ class StripeDisbursementWebhook(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # Handle payout events
-        payout = event["data"]["object"]
         payout_acc = event["account"]  # This is the connected account ID like 'acct_1XYZ...'
-        payout_id = payout["id"]
         payment_status = "paid" if event["type"] == "payout.paid" else "failed"
 
         # Find all pending transactions for this connected account

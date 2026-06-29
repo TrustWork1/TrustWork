@@ -1,16 +1,11 @@
-from django.db.models.signals import post_save,post_delete
-from django.dispatch import receiver
-from project_management.models import Bid,Project,Feedback
-from chat_management.models import Notification
-from api.profile.serializers  import ProfileSerializer
-from profile_management.models import Profile
 import firebase_admin
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 
-
-
-
-
-
+from api.profile.serializers import ProfileSerializer
+from chat_management.models import Notification
+from profile_management.models import Profile
+from project_management.models import Bid, Feedback, Project
 
 
 @receiver(post_save, sender=Feedback)
@@ -23,7 +18,7 @@ def create_feedback_notification(sender, instance, created, **kwargs):
             Notification.objects.create(
                 title="New Feedback Received",
                 message=f"You have received feedback for the project: {instance.project.project_title}.",
-                sender=instance.project.client, 
+                sender=instance.project.client,
                 receiver=instance.service_provider,
                 object_type = "project feedback",
                 project_id = instance.project.id,
@@ -35,7 +30,7 @@ def create_feedback_notification(sender, instance, created, **kwargs):
             Notification.objects.create(
                 title="Feedback from Service Provider",
                 message=f"You have received feedback from the service provider for your project: {instance.project.project_title}.",
-                sender=instance.service_provider, 
+                sender=instance.service_provider,
                 receiver=instance.project.client,
                 object_type = "provider feedback",
                 project_id = instance.project.id,
@@ -43,21 +38,14 @@ def create_feedback_notification(sender, instance, created, **kwargs):
             )
 
 
-
-
-
-
-
 @receiver(post_delete, sender=Project)
-def notification_on_project_deletion(sender, instance, **kwargs):  
+def notification_on_project_deletion(sender, instance, **kwargs):
     """
     Signal to notify all service providers when a project is deleted.
     """
     if instance.bids.exists():
         raise ValueError(f"Cannot delete project '{instance.project_title}' as it has associated bids.")
 
-    # Fetch all service providers (modify this query if you need specific service providers)
-    bids = instance.bid.all()
     service_providers = Profile.objects.filter(is_service_provider=True)  # Assuming `is_service_provider` is a field to identify service providers
 
     # Create a notification for each service provider
@@ -81,7 +69,7 @@ def bid_post_save_handler(sender,instance,created,**kwargs):
         sender=instance.service_provider
         receiver= instance.project.client
         message = "Bid Has Been Created"
-        notification = Notification.objects.create(
+        Notification.objects.create(
             sender=sender,
             receiver=receiver,
             message=message,

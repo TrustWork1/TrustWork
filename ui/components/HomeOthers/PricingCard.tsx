@@ -1,8 +1,11 @@
 import { PricingCardPaper } from '@/styles/StyledComponents/PricingCardStyled';
+import CustomButtonPrimary from '@/ui/CustomButtons/CustomButtonPrimary';
 import { Box, List, ListItem, Typography } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
+import SubscriptionPlanFlow from '../SubscriptionComponents/SubscriptionPlanFlow';
 
 export interface IPricingCard {
+  planId: number;
   planName: string;
   aboutPlan: string;
   price: number;
@@ -11,12 +14,15 @@ export interface IPricingCard {
 }
 
 const PricingCard: React.FC<IPricingCard> = ({
+  planId,
   planName,
   aboutPlan,
   price,
   billingCycle,
   features,
 }) => {
+  const [subscriptionFlowOpen, setSubscriptionFlowOpen] = useState(false);
+
   return (
     <PricingCardPaper elevation={0}>
       <Box className='plant-top'>
@@ -37,6 +43,22 @@ const PricingCard: React.FC<IPricingCard> = ({
           ))}
         </List>
       </Box>
+      <CustomButtonPrimary
+        fullWidth
+        variant='contained'
+        color='primary'
+        className='selectPlanBtn'
+        onClick={() => setSubscriptionFlowOpen(true)}
+      >
+        Get Subscription
+      </CustomButtonPrimary>
+      <SubscriptionPlanFlow
+        open={subscriptionFlowOpen}
+        onClose={() => setSubscriptionFlowOpen(false)}
+        planId={planId}
+        planName={planName}
+        price={price}
+      />
     </PricingCardPaper>
   );
 };

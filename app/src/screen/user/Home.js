@@ -1,7 +1,7 @@
 import notifee, {EventType} from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -28,7 +28,7 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 
-let status = '';
+// let status = '';
 
 const Home = props => {
   const isFocused = useIsFocused();
@@ -41,13 +41,14 @@ const Home = props => {
   const [pageRecent, setPageRecent] = useState(1);
   const [totalCount, setTotalCount] = useState('');
   const [totalPages, setTotalpages] = useState('');
-  const [totalRecentCount, setTotalRecentCount] = useState('');
+  const [totalRecentCount, setTotalRecentCount] = useState(0);
+  const [totalPagesRecent, setTotalPagesRecent] = useState(0);
   const [recentUpdatesList, setRecentUpdatesList] = useState([]);
+  const handledStatus = useRef('');
 
   useEffect(() => {
     try {
       const unsubscribe = messaging().onMessage(async remoteMessage => {
-        console.log('A new FCM notification arrived!', remoteMessage);
 
         const channelId = await notifee.createChannel({
           id: 'default',
@@ -69,10 +70,8 @@ const Home = props => {
         return notifee.onForegroundEvent(({type, detail}) => {
           switch (type) {
             case EventType.DISMISSED:
-              console.log('User dismissed notification 1', detail);
               break;
             case EventType.PRESS:
-              console.log('User dismissed notification 2', detail);
               if (
                 detail?.notification?.data?.data?.notification_type ==
                 'bid_create'
@@ -93,7 +92,6 @@ const Home = props => {
         unsubscribe();
       };
     } catch (error) {
-      console.log('notificationListner.....', error);
     }
   }, []);
 
@@ -109,6 +107,7 @@ const Home = props => {
       getRecentUpdateClient({count: 1});
       getFeaturedProviders({count: 1});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const getFeaturedProviders = data => {
@@ -290,67 +289,86 @@ const Home = props => {
     );
   };
 
-  if (status == '' || AuthReducer.status != status) {
+  useEffect(() => {
+    if (handledStatus.current === AuthReducer.status) {
+      return;
+    }
+
     switch (AuthReducer.status) {
       case 'Auth/ProviderListRequest':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
         break;
       case 'Auth/ProviderListSuccess':
-        status = AuthReducer.status;
-        setProviderList(
-          page === 1
-            ? [...AuthReducer?.ProviderListResponse?.data]
-            : [...ProviderList, ...AuthReducer?.ProviderListResponse?.data],
-        );
+        handledStatus.current = AuthReducer.status;
+        if (page === 1) {
+          setProviderList(AuthReducer?.ProviderListResponse?.data || []);
+        } else {
+          setProviderList(prev => [
+            ...prev,
+            ...(AuthReducer?.ProviderListResponse?.data || []),
+          ]);
+        }
 
         setTotalCount(AuthReducer?.ProviderListResponse?.total);
         setTotalpages(AuthReducer?.ProviderListResponse?.pages);
 
         break;
       case 'Auth/ProviderListFailure':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
         break;
 
       case 'Auth/recentUpdateClientRequest':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
         break;
       case 'Auth/recentUpdateClientSuccess':
-        status = AuthReducer.status;
-        setRecentUpdatesList(AuthReducer?.recentUpdateClientResponse?.data);
-        // setRecentUpdatesList(
-        //   pageRecent === 1
-        //     ? [...AuthReducer?.recentUpdateClientResponse?.data]
-        //     : [
-        //         ...recentUpdatesList,
-        //         ...AuthReducer?.recentUpdateClientResponse?.data,
-        //       ],
-        // );
+        handledStatus.current = AuthReducer.status;
+        if (pageRecent === 1) {
+          setRecentUpdatesList(
+            AuthReducer?.recentUpdateClientResponse?.data || [],
+          );
+        } else {
+          setRecentUpdatesList(prev => [
+            ...prev,
+            ...(AuthReducer?.recentUpdateClientResponse?.data || []),
+          ]);
+        }
 
-        // setTotalRecentCount(AuthReducer?.recentUpdateClientResponse?.total);
+        setTotalRecentCount(AuthReducer?.recentUpdateClientResponse?.total);
+        setTotalPagesRecent(AuthReducer?.recentUpdateClientResponse?.pages);
         break;
       case 'Auth/recentUpdateClientFailure':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
         break;
     }
-  }
-
-  const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
-    const paddingToBottom = 20;
-    return (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    );
-  };
+  }, [
+    AuthReducer.status,
+    AuthReducer?.ProviderListResponse?.data,
+    AuthReducer?.ProviderListResponse?.pages,
+    AuthReducer?.ProviderListResponse?.total,
+    AuthReducer?.recentUpdateClientResponse?.data,
+    AuthReducer?.recentUpdateClientResponse?.pages,
+    AuthReducer?.recentUpdateClientResponse?.total,
+    page,
+    pageRecent,
+  ]);
 
   const fetchProviderData = () => {
-    if (totalPages > page && AuthReducer.status != 'Auth/ProviderListRequest') {
+    if (
+      totalPages > page &&
+      AuthReducer.status != 'Auth/ProviderListRequest' &&
+      !AuthReducer.isLoading
+    ) {
       setPage(page + 1);
       getFeaturedProviders({count: page + 1});
     }
   };
 
   const fetchRecentupdateData = () => {
-    if (totalRecentCount !== recentUpdatesList?.length) {
+    if (
+      totalPagesRecent > pageRecent &&
+      AuthReducer.status != 'Auth/recentUpdateClientRequest' &&
+      !AuthReducer.isLoading
+    ) {
       setPageRecent(pageRecent + 1);
       getRecentUpdateClient({count: pageRecent + 1});
     }
@@ -367,149 +385,110 @@ const Home = props => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* <Loader
-        visible={
-          AuthReducer?.status == 'Auth/ProviderListRequest' ||
-          AuthReducer?.status == 'Auth/recentUpdateClientRequest'
-        }
-      /> */}
       <Header
         logo={Icons.appLogo}
         onHeaderPress={() => NavigationService.navigate('Profile')}
       />
       <SafeAreaView style={styles.mainContainer}>
-        <ScrollView
-          contentContainerStyle={{paddingBottom: normalize(70)}}
-          style={styles.container}
-          scrollEventThrottle={16}
-          onMomentumScrollEnd={e => {
-            if (isCloseToBottom(e.nativeEvent)) {
-              fetchRecentupdateData();
-            }
-          }}>
-          <View
-            style={{
-              backgroundColor: Colors.themeGreen,
-              // height: normalize(100),
-              paddingHorizontal: normalize(10),
-            }}>
-            <View style={styles.searchMainContainer}>
-              <View style={styles.searchContainer}>
-                <TextInput
-                  placeholder="Search..."
-                  placeholderTextColor={Colors.themeBlack}
-                  fontFamily={Fonts.FustatMedium}
-                  textAlign="left"
-                  autoCapitalize="none"
-                  value={search}
-                  onChangeText={text => searchRecentUpdates(text?.trimStart())}
-                  style={styles.searchInputContainer}
-                />
-
-                {/* <TouchableOpacity
-                  style={styles.searchIconContainer}
-                  onPress={() => {}}>
-                  <Image
-                    source={Icons.Filter}
-                    style={{
-                      width: normalize(18),
-                      height: normalize(18),
-                      alignSelf: 'center',
+        <FlatList
+          data={recentUpdatesList}
+          keyExtractor={(item, index) => index.toString()}
+          ListHeaderComponent={
+            <View>
+              <View
+                style={{
+                  backgroundColor: Colors.themeGreen,
+                  paddingHorizontal: normalize(10),
+                }}>
+                <View style={styles.searchMainContainer}>
+                  <View style={styles.searchContainer}>
+                    <TextInput
+                      placeholder="Search..."
+                      placeholderTextColor={Colors.themeBlack}
+                      fontFamily={Fonts.FustatMedium}
+                      textAlign="left"
+                      autoCapitalize="none"
+                      value={search}
+                      onChangeText={text =>
+                        searchRecentUpdates(text?.trimStart())
+                      }
+                      style={styles.searchInputContainer}
+                    />
+                  </View>
+                </View>
+                <Text style={styles.headerTxt}>Featured Service Providers</Text>
+                <View>
+                  <FlatList
+                    data={ProviderList}
+                    horizontal={true}
+                    keyExtractor={(item, index) => index.toString()}
+                    showsHorizontalScrollIndicator={false}
+                    ItemSeparatorComponent={() => (
+                      <View style={{width: normalize(8)}} />
+                    )}
+                    renderItem={({item, index}) =>
+                      renderFeaturedServices(item, index)
+                    }
+                    contentContainerStyle={{
+                      paddingBottom: normalize(10),
                     }}
+                    onEndReached={() => fetchProviderData()}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                      <View style={{justifyContent: 'center'}}>
+                        {AuthReducer.status == 'Auth/ProviderListRequest' && (
+                          <ActivityIndicator
+                            size={'large'}
+                            color={Colors.themeWhite}
+                          />
+                        )}
+                      </View>
+                    }
                   />
-                </TouchableOpacity> */}
+                </View>
+              </View>
+              <View style={{paddingHorizontal: normalize(10)}}>
+                <Text
+                  style={[
+                    styles.headerTxt,
+                    {color: Colors.themeBlack, paddingBottom: normalize(10)},
+                  ]}>
+                  Recent Updates
+                </Text>
               </View>
             </View>
-            <Text style={styles.headerTxt}>Featured Service Providers</Text>
+          }
+          renderItem={({item, index}) =>
+            renderRecentUpdate(item?.service_provider, index)
+          }
+          ItemSeparatorComponent={() => <View style={{height: normalize(8)}} />}
+          contentContainerStyle={{
+            paddingHorizontal: normalize(10),
+            paddingBottom: normalize(70),
+          }}
+          onEndReached={() => fetchRecentupdateData()}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={
             <View>
-              <FlatList
-                data={ProviderList}
-                horizontal={true}
-                keyExtractor={(item, index) => index.toString()}
-                showsHorizontalScrollIndicator={false}
-                ItemSeparatorComponent={() => (
-                  <View style={{width: normalize(8)}} />
-                )}
-                renderItem={({item, index}) =>
-                  renderFeaturedServices(item, index)
-                }
-                contentContainerStyle={{
-                  paddingBottom: normalize(10),
-                }}
-                scrollEventThrottle={16}
-                onMomentumScrollEnd={e => {
-                  if (isCloseToBottom(e.nativeEvent)) {
-                    fetchProviderData();
-                  }
-                }}
-                ListFooterComponent={
-                  <>
-                    {AuthReducer.status == 'Auth/ProviderListRequest' && (
-                      <View
-                        style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 1,
-                        }}>
-                        <ActivityIndicator
-                          size={'large'}
-                          color={Colors.themeWhite}
-                        />
-                      </View>
-                    )}
-                  </>
-                }
-              />
+              {AuthReducer?.status != 'Auth/recentUpdateClientRequest' && (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    marginTop: normalize(20),
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: normalize(12),
+                      color: Colors.themeBlack,
+                      fontFamily: Fonts.FustatMedium,
+                    }}>
+                    No Recent Updates Found
+                  </Text>
+                </View>
+              )}
             </View>
-          </View>
-          <View style={{paddingHorizontal: normalize(10)}}>
-            <Text
-              style={[
-                styles.headerTxt,
-                {color: Colors.themeBlack, paddingBottom: normalize(10)},
-              ]}>
-              Recent Updates
-            </Text>
-
-            <View>
-              <FlatList
-                data={recentUpdatesList}
-                horizontal={false}
-                keyExtractor={(item, index) => index.toString()}
-                ItemSeparatorComponent={() => (
-                  <View style={{height: normalize(8)}} />
-                )}
-                renderItem={({item, index}) =>
-                  renderRecentUpdate(item?.service_provider, index)
-                }
-                contentContainerStyle={{
-                  paddingBottom: normalize(10),
-                }}
-                ListEmptyComponent={
-                  <>
-                    {AuthReducer?.status !=
-                      'Auth/recentUpdateClientRequest' && (
-                      <View
-                        style={{
-                          alignItems: 'center',
-                          marginTop: normalize(20),
-                        }}>
-                        <Text
-                          style={{
-                            fontSize: normalize(12),
-                            color: Colors.themeBlack,
-                            fontFamily: Fonts.FustatMedium,
-                          }}>
-                          No Recent Updates Found
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                }
-              />
-            </View>
-          </View>
-        </ScrollView>
+          }
+        />
       </SafeAreaView>
     </View>
   );

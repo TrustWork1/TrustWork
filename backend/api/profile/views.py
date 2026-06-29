@@ -1,44 +1,70 @@
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import ProfileSerializer
-from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
-from profile_management.models import BankDetails,UserDocuments,MembershipPlans,ProfileMembership,Profile, Subscriptions, Coupons
-from .serializers import BankDetailsSerializer,UserDocumentsSerializer,MembershipPlansSerializer,ProfileMembershipSerializer,ProfilePreviousWorksSerializer,PreviousWorks
-from django.contrib.auth import get_user_model
-from django.utils.crypto import get_random_string
-from django.contrib.auth.models import Group
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from master.models import JobCategory
-from django.db import transaction
-from .serializers import ProfilePaymentStatusSerializer
-from rest_framework.parsers import MultiPartParser,FormParser,JSONParser
-from geopy.distance import geodesic
-from master.models import Location
-from api.project.serializers import ProjectSerializer
-# from .serializers import ProfileCoverImageUpdateAPIView
-from customuser.models import CustomUser
-from project_management.models import Project, Bid
-from datetime import datetime, timedelta
-from django.utils import timezone
-import stripe, logging
-from django.db.models import Q
-from django.http import Http404
-from payment_handle.gateways.escrow import PaymentGatewayAPI
-from uuid import uuid4
-from utils import send_subscription_sms
-from api.pagination import CustomPagination, CustomPaginationProjectProfile
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from rest_framework import generics
-from django.conf import settings
+import contextlib
 import json
 import os
+import re
+from datetime import timedelta
+from uuid import uuid4
+
 import environ
+import pycountry
+import stripe
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.db import transaction
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from geopy.distance import geodesic
+from rest_framework import generics, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.pagination import CustomPagination, CustomPaginationProjectProfile
+from api.project.serializers import ProjectSerializer
+from api.referal_management.services import handle_successful_referral_subscription
+
+# from .serializers import ProfileCoverImageUpdateAPIView
+from master.models import JobCategory
+from payment_handle.gateways.escrow import (
+    PaymentGatewayAPI,
+    normalize_mtn_cameroon_msisdn,
+    normalize_orange_cameroon_msisdn,
+)
+from profile_management.models import (
+    BankDetails,
+    Coupons,
+    MembershipPlans,
+    Profile,
+    ProfileMembership,
+    Subscriptions,
+    UserDocuments,
+)
+from profile_management.subscriptions import refresh_profile_subscription_status
+from project_management.models import Bid, Project
+from utils import send_subscription_sms
+
+from .serializers import (
+    BankDetailsSerializer,
+    MembershipPlansSerializer,
+    PreviousWorks,
+    ProfileMembershipSerializer,
+    ProfilePaymentStatusSerializer,
+    ProfilePreviousWorksSerializer,
+    ProfileSerializer,
+    UserDocumentsSerializer,
+)
+
 env = environ.Env()
 environ.Env.read_env(".env")
 
@@ -48,6 +74,116 @@ MTN_DISBURSEMTS_SECRET_KEY = os.getenv('MTN_DISBURSEMTS_SECRET_KEY')
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
 User = get_user_model()
+
+SUBSCRIPTION_CYCLE_MAP = {
+    "week": "weekly",
+    "weekly": "weekly",
+    "month": "monthly",
+    "monthly": "monthly",
+    "year": "yearly",
+    "yearly": "yearly",
+}
+
+SUBSCRIPTION_DURATION_DAYS = {
+    "weekly": 7,
+    "weekly(discount)": 7,
+    "monthly": 30,
+    "monthly(discount)": 30,
+    "yearly": 365,
+    "yearly(discount)": 365,
+}
+
+
+def _normalize_subscription_frequency(frequency):
+    return SUBSCRIPTION_CYCLE_MAP.get(str(frequency or "").strip().lower())
+
+
+def _subscription_duration_days(frequency):
+    return SUBSCRIPTION_DURATION_DAYS.get(str(frequency or "").strip().lower(), 0)
+
+
+def _is_orange_subscription_payment(payment_type):
+    return str(payment_type or "").strip().lower() in {
+        "orange",
+        "orange_pay",
+        "orange_payment",
+        "orange_subscription",
+    }
+
+
+def _phone_with_optional_extension(data, phone_number):
+    phone_number = str(phone_number or "").strip()
+    phone_extension = str(
+        data.get("phone_extension")
+        or data.get("country_code")
+        or data.get("countryCode")
+        or ""
+    ).strip()
+    phone_digits = re.sub(r"\D", "", phone_number)
+
+    if (
+        phone_extension
+        and phone_number
+        and not phone_number.startswith("+")
+        and not phone_digits.startswith(("00", "237"))
+    ):
+        return f"{phone_extension}{phone_number}"
+    return phone_number
+
+
+def _orange_failure_detail(response):
+    if not isinstance(response, dict):
+        return {}
+
+    detail = response.get("detail")
+    if isinstance(detail, dict):
+        return detail
+    if not isinstance(detail, str):
+        return {}
+
+    try:
+        payload = json.loads(detail)
+    except (TypeError, ValueError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _orange_failure_message(response):
+    if not isinstance(response, dict):
+        return "Orange subscription initiation failed."
+
+    detail = _orange_failure_detail(response)
+    detail_data = detail.get("data") if isinstance(detail.get("data"), dict) else {}
+    message = (
+        detail.get("message")
+        or detail_data.get("inittxnmessage")
+        or detail_data.get("confirmtxnmessage")
+        or response.get("message")
+        or "Orange subscription initiation failed."
+    )
+    return _payment_failure_message(message, response)
+
+
+def _payment_failure_message(message=None, response=None):
+    response = response if isinstance(response, dict) else {}
+    reason = str(response.get("reason") or response.get("error") or "").strip()
+    message = str(message or response.get("message") or reason or "").strip()
+    combined = f"{message} {reason}".lower()
+
+    if "payer_not_found" in combined:
+        return "The mobile money account was not found. Please check the phone number and try again."
+    if "payee_not_found" in combined:
+        return "Payment service is not configured correctly. Please contact support."
+    if (
+        "could_not_perform_transaction" in combined
+        or "insufficient" in combined
+        or "insuffisant" in combined
+        or "balance" in combined
+        or "solde" in combined
+        or "wallet" in combined
+    ):
+        return "Payment could not be completed. Please make sure the mobile money wallet has enough balance and can perform transactions."
+    return message or "Payment request failed. Please try again."
 
 
 class ProfileAPIViewSearch(APIView):
@@ -62,11 +198,11 @@ class ProfileAPIViewSearch(APIView):
             profiles = profiles.filter(
                 Q(user__full_name__icontains=search_query)|
                 Q(user__email__icontains=search_query))
-        
+
         paginator = CustomPagination()
         profiles = profiles.order_by("-id", "-updated_at")
         paginated_profiles = paginator.paginate_queryset(profiles, request)
-        
+
         serializer = ProfileSerializer(paginated_profiles, many=True)
         return paginator.get_paginated_response(serializer.data)
 
@@ -89,13 +225,7 @@ class ProfileSelfView(APIView):
         profile=get_object_or_404(Profile, user__pk=request.user.pk)
         # print(request.user.id)
         # print(profile.id)
-        subscription=Subscriptions.objects.filter(profile=profile).last()
-        if subscription:
-            if subscription.expire_at and subscription.expire_at <= timezone.now():
-                subscription.is_active = False
-                subscription.save()
-                profile.is_payment_verified=False
-                profile.save()
+        refresh_profile_subscription_status(profile)
         coupon_check=Coupons.objects.filter(user=request.user.id, is_active=True)
         # for coupon in coupon_check:
         #     if coupon.expire_date < timezone.now().date():
@@ -114,9 +244,9 @@ class ProfileSelfView(APIView):
             "type" : "success",
             "message" : "data fetched successfully",
             "data" : serializer.data
-        }    
+        }
         return Response(response,status=status.HTTP_200_OK)
-    
+
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
@@ -131,7 +261,7 @@ class ProfileSelfView(APIView):
     )
     def put(self, request):
         # print(request.data)
-        
+
         profile = get_object_or_404(Profile, user__pk=request.user.pk)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
@@ -143,9 +273,9 @@ class ProfileSelfView(APIView):
                     job_categories = JobCategory.objects.filter(id__in=ids)
                     data.job_category.clear()
                     data.job_category.set(job_categories)
-                    
+
                 except Exception as e:
-                        print(e) 
+                        print(e)
             response={
                 "status":200,
                 "type":"success",
@@ -154,12 +284,12 @@ class ProfileSelfView(APIView):
             }
             return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class UserProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes=[MultiPartParser,FormParser,JSONParser]
-    
+
     @swagger_auto_schema(
         operation_description="Retrieve a profile by ID or list of profiles by user type",
         manual_parameters=[
@@ -180,7 +310,7 @@ class UserProfileAPIView(APIView):
             profiles = Profile.objects.exclude(status="deleted").exclude(status="inactive").order_by("-updated_at")
             if user_type:
                 profiles = profiles.filter(user__user_type=user_type)
-            
+
             search = request.query_params.get('search')
             if search:
                 profiles = profiles.filter(
@@ -191,7 +321,7 @@ class UserProfileAPIView(APIView):
             paginator = CustomPagination()
             profiles = profiles.order_by("-id", "-updated_at")
             paginated_profiles = paginator.paginate_queryset(profiles, request)
-            
+
             serializer = ProfileSerializer(paginated_profiles, many=True)
             return paginator.get_paginated_response(serializer.data)
 
@@ -206,7 +336,7 @@ class UserProfileAPIView(APIView):
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes=[MultiPartParser,FormParser,JSONParser]
-    
+
     @swagger_auto_schema(
         operation_description="Retrieve a profile by ID or list of profiles by user type",
         manual_parameters=[
@@ -227,7 +357,7 @@ class ProfileAPIView(APIView):
             profiles = Profile.objects.exclude(status="deleted").order_by("-updated_at")
             if user_type:
                 profiles = profiles.filter(user__user_type=user_type)
-            
+
             search = request.query_params.get('search')
             if search:
                 profiles = profiles.filter(
@@ -238,7 +368,7 @@ class ProfileAPIView(APIView):
             paginator = CustomPagination()
             profiles = profiles.order_by("-id", "-updated_at")
             paginated_profiles = paginator.paginate_queryset(profiles, request)
-            
+
             serializer = ProfileSerializer(paginated_profiles, many=True)
             return paginator.get_paginated_response(serializer.data)
 
@@ -270,7 +400,7 @@ class ProfileAPIView(APIView):
             if 'user' not in data:
                 email = data.get('email')
                 phone = data.get('phone')
-                
+
                 existing_user = User.objects.filter(email=email).first()
                 existing_profile = Profile.objects.filter(user=existing_user).order_by('-id').first() if existing_user else None
                 existing_phone = Profile.objects.filter(phone=phone).exclude(status="deleted").exists()
@@ -305,7 +435,7 @@ class ProfileAPIView(APIView):
                             'image': TRUSTWORK_BASE_API
                     })
 
-                    try:
+                    with contextlib.suppress(Exception):
                         send_mail(
                             subject='Your Account Has Been Created',
                             message=f'Hello {existing_user.email}, your account has been created. Your password is {random_password}',
@@ -314,15 +444,13 @@ class ProfileAPIView(APIView):
                             recipient_list=[existing_user.email],
                             fail_silently=True,
                         )
-                    except:
-                        pass
 
                     request.data['user'] = existing_user.id
                     job_category_ids = data.get("job_category", [])
                     if isinstance(job_category_ids, str):
                         try:
                             job_category_ids = json.loads(job_category_ids)
-                        except:
+                        except Exception:
                             job_category_ids = []
                     data["job_category"] = job_category_ids
 
@@ -364,7 +492,7 @@ class ProfileAPIView(APIView):
                             "user": ["An account with this email and phone already exists."]
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
-                
+
                 elif existing_user and existing_profile and existing_profile.status != "deleted":
                     return Response({
                         "status": 400,
@@ -374,7 +502,7 @@ class ProfileAPIView(APIView):
                             "user": ["An account with this email already exists."]
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
-                
+
                 elif existing_phone:
                     return Response({
                         "status": 400,
@@ -384,7 +512,7 @@ class ProfileAPIView(APIView):
                             "user": ["An account with this phone already exists."]
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
-                
+
                 elif email and not existing_user:
                     user, created = User.objects.get_or_create(email=email)
 
@@ -409,7 +537,7 @@ class ProfileAPIView(APIView):
                             'image': TRUSTWORK_BASE_API
                         })
 
-                        try:
+                        with contextlib.suppress(Exception):
                             send_mail(
                                 subject='Your Account Has Been Created',
                                 message=f'Hello {user.email}, your account has been created. Your password is {random_password}',
@@ -418,15 +546,13 @@ class ProfileAPIView(APIView):
                                 recipient_list=[user.email],
                                 fail_silently=True,
                             )
-                        except:
-                            pass
                     # data['user'] = user.id
                     # request.data._mutable=True
                     request.data['user']=user.id
 
             else:
                 user = request.user
-            
+
             request.data['user_type']=user_type
             serializer = ProfileSerializer(data=request.data)
 
@@ -438,7 +564,7 @@ class ProfileAPIView(APIView):
                     data.job_category.set(job_categories)
                 except Exception as e:
                     print(e)
-                    pass    
+                    pass
                 response={
                     "status":200,
                     "type":"success",
@@ -446,7 +572,7 @@ class ProfileAPIView(APIView):
                     "data":serializer.data
                 }
                 return Response(response, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
@@ -455,18 +581,18 @@ class ProfileAPIView(APIView):
         responses={200: ProfileSerializer, 400: "Bad Request"},
         manual_parameters=[
             openapi.Parameter(
-                'user_type', openapi.IN_QUERY, 
-                description="User type of the profile", 
+                'user_type', openapi.IN_QUERY,
+                description="User type of the profile",
                 type=openapi.TYPE_STRING, required=False
             ),
             openapi.Parameter(
-                'pk', openapi.IN_PATH, 
-                description="Primary key of the profile to update", 
+                'pk', openapi.IN_PATH,
+                description="Primary key of the profile to update",
                 type=openapi.TYPE_INTEGER, required=True
             ),
             openapi.Parameter(
                 'Authorization', openapi.IN_HEADER,
-                description="Authorization token (Bearer Token)", 
+                description="Authorization token (Bearer Token)",
                 type=openapi.TYPE_STRING, required=True
             ),
         ]
@@ -502,9 +628,9 @@ class ProfileAPIView(APIView):
                     # job_categories = JobCategory.objects.filter(id__in=ids)
                     data.job_category.clear()
                     data.job_category.set(job_categories)
-                    
+
                 except Exception as e:
-                        print(e) 
+                        print(e)
             response={
                 "status":201,
                 "type":"success",
@@ -513,7 +639,7 @@ class ProfileAPIView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @swagger_auto_schema(
             operation_description="Delete a profile.",
             manual_parameters=[
@@ -570,7 +696,7 @@ class DummyUserDelete(APIView):
             "type": "success",
             "message": "User deleted successfully"
         }, status=status.HTTP_200_OK)
-    
+
     def delete(self, request):
         return Response({
             "status": 200,
@@ -583,27 +709,27 @@ class DummyUserDelete(APIView):
 #     parser_classes=[MultiPartParser,FormParser]
 #     def put(self, request):
 #         print(request.data)
-        
+
 #         profile = get_object_or_404(Profile, user__pk=request.user.pk)
 #         serializer = ProfileSerializer(profile, data=request.data, partial=True)
 
 #         if serializer.is_valid():
 #             data = serializer.save(is_profile_updated=True)
-            
+
 #             if "job_category" in request.data:
 #                 try:
 #                     job_category_ids = request.data.get('job_category')
 #                     if not isinstance(job_category_ids, list):
 #                         job_category_ids = [job_category_ids]
-                    
+
 #                     job_categories = JobCategory.objects.filter(id__in=job_category_ids)
-                    
+
 #                     data.job_category.clear()
 #                     data.job_category.set(job_categories)
-                    
+
 #                 except Exception as e:
 #                     print(f"Error updating job categories: {e}")
-            
+
 #             response = {
 #                 "status": 201,
 #                 "type": "success",
@@ -619,7 +745,7 @@ class DummyUserDelete(APIView):
 class ChangeProfileStatusView(APIView):
     def put(self,request,pk=None,user_type=None):
         profile = get_object_or_404(Profile, pk=pk)
-        profile.user.is_active=True if request.data.get("status")=="active" else False
+        profile.user.is_active = request.data.get("status") == "active"
         profile.user.save()
         profile.status=request.data.get("status")
         profile.save()
@@ -628,16 +754,14 @@ class ChangeProfileStatusView(APIView):
             "status" : 202,
             "type" : "success",
             "message" : "profile status changed successfully"
-        } 
+        }
         return Response(response,status=status.HTTP_202_ACCEPTED)
 
-
-import pycountry
 
 def get_currency_code(country_code):
     country = pycountry.countries.get(alpha_2=country_code)
     if country:
-        
+
         country_currency_map = {
             "AF": "AFN",  # Afghanistan -> Afghan Afghani
             "AL": "ALL",  # Albania -> Albanian Lek
@@ -847,11 +971,11 @@ class BankDetailsAPIView(APIView):
             user=user_profile.user
             email = user.email
             username = user.full_name
-            
+
             bank_account_number = data.get('bank_account_number', '')
             phone_extension = data.get('phone_extension', '')
             payment_type = data.get('payment_type', '')
-            
+
             if payment_type.lower() == "stripe":
                 # Checking if a Stripe account already exists
                 existing_bank = BankDetails.objects.filter(user_profile=user_profile, stripe_account_id__isnull=False).first()
@@ -874,7 +998,7 @@ class BankDetailsAPIView(APIView):
                             'account_number': bank_account_number,
                         },
                     )
-                    
+
                     if stripe_account_id:
                         # Use existing Stripe account
                         external_account = stripe.Account.create_external_account(
@@ -910,10 +1034,10 @@ class BankDetailsAPIView(APIView):
                             type="account_onboarding",
                         )
                         # print("Send this link to user:", account_link.url)
-                        
+
                         html_content = render_to_string('email_temp.html', {
                             'title': 'Stripe Account Verification',
-                            'verify_link': f'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
+                            'verify_link': 'Please activate your bank account.<br>For activate please provide address and document.<br>This is required for first-time setup.<br>Click this 👉',
                             'url': account_link.url,
                             'image': TRUSTWORK_BASE_API
                         })
@@ -931,7 +1055,7 @@ class BankDetailsAPIView(APIView):
                     fingerprint = external_account.fingerprint
                     if BankDetails.objects.filter(user_profile=user_profile, bank_account_fingerprint=fingerprint).exists():
                         return Response({"error": "Bank account already exists."}, status=400)
-                    
+
                     new_bank_details = BankDetails.objects.create(
                         status="inactive",
                         user_profile=user_profile,
@@ -958,9 +1082,9 @@ class BankDetailsAPIView(APIView):
 
                 except stripe.error.StripeError as e:
                     return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             elif payment_type.lower() == "mtn":
-                
+
                 full_account_number = phone_extension + bank_account_number
 
                 has_account = BankDetails.objects.filter(user_profile=user_profile, bank_account_number=full_account_number).exists()
@@ -971,7 +1095,7 @@ class BankDetailsAPIView(APIView):
                     gateway=PaymentGatewayAPI()
                     mtn_data=gateway.mtn_account_status(account_number)
                     # print(mtn_data)
-                    if mtn_data['result'] == True:
+                    if mtn_data['result']:
                         BankDetails.objects.create(
                             user_profile=user_profile,
                             bank_account_number=full_account_number,
@@ -999,11 +1123,11 @@ class BankDetailsAPIView(APIView):
                         "type": "error",
                         "message": str(e)
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def get(self, request, pk=None):
         try:
             user_profile = Profile.objects.get(user__id=request.user.id).pk
@@ -1017,23 +1141,23 @@ class BankDetailsAPIView(APIView):
                 no_pending_requirements = not requirements.get("currently_due") and not requirements.get("eventually_due")
                 not_disabled = requirements.get("disabled_reason") is None
                 is_activated = is_transfer_active and no_pending_requirements and not_disabled
-                
+
                 bank_status_qs.update(status="active" if is_activated else "inactive")
                 # print("✅ Account is active and ready for payouts." if is_activated else "❌ Account is NOT fully activated.")
-            
+
             bank_details = BankDetails.objects.filter(user_profile_id=user_profile).order_by('-created_at')
 
             if not bank_details:
                 return Response([], status=status.HTTP_200_OK)
-            
+
             if pk:
                 bank_details = BankDetails.objects.filter(id=pk).first()
                 return Response(BankDetailsSerializer(bank_details).data)
-            
-            else:  
+
+            else:
                 serializer = BankDetailsSerializer(bank_details, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         except Profile.DoesNotExist:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
         except stripe.error.StripeError as e:
@@ -1043,22 +1167,21 @@ class BankDetailsAPIView(APIView):
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": f"Something went wrong: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def delete(self, request, pk=None):
         try:
             bank_details = get_object_or_404(BankDetails, id=pk)
             user_profile = Profile.objects.get(user=request.user)
-            
+
             # Check if the bank belongs to the logged-in user
             if bank_details.user_profile != user_profile:
                 return Response({"error": "Unauthorized access."}, status=403)
 
             total_bank = BankDetails.objects.filter(user_profile=user_profile)
 
-            if bank_details.is_primary == True:
-                if total_bank.count() > 1:
-                    return Response({"error": "You cannot delete the default/primary account"}, status=400)
-            
+            if bank_details.is_primary and total_bank.count() > 1:
+                return Response({"error": "You cannot delete the default/primary account"}, status=400)
+
             if bank_details.payment_type == "mtn":
                 bank_details.delete()
 
@@ -1078,10 +1201,10 @@ class BankDetailsAPIView(APIView):
                         )
                     except stripe.error.StripeError as e:
                         return Response({"error": f"Stripe error: {e.user_message}"}, status=400)
-                
+
                 bank_details.delete()
             return Response({"message": "Bank account deleted successfully"}, status=200)
-        
+
         except Http404:
                 return Response({"error": "Bank account not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -1313,10 +1436,9 @@ class MembershipPlansAPIView(APIView):
             membership = get_object_or_404(MembershipPlans, pk=pk)
             serializer = MembershipPlansSerializer(membership)
         else:
+            memberships = MembershipPlans.objects.all().order_by("-updated_at")
             if search_query:
                 memberships = memberships.filter(Q(plan_name__icontains=search_query))
-            else:
-                memberships = MembershipPlans.objects.all().order_by("-updated_at")  
             serializer = MembershipPlansSerializer(memberships, many=True)
 
         response = {
@@ -1409,8 +1531,8 @@ class ProfileMembershipAPIView(APIView):
             profile_memberships = ProfileMembership.objects.all()
             title = request.query_params.get('title', None)
             if title:
-                memberships = memberships.filter(title__icontains=title)
-        
+                profile_memberships = profile_memberships.filter(title__icontains=title)
+
             serializer = ProfileMembershipSerializer(profile_memberships, many=True)
 
         response = {
@@ -1493,10 +1615,10 @@ class ProfileDetailUpdateView(generics.RetrieveUpdateAPIView):
             operation_summary="View Profile",
             manual_parameters=(
                 openapi.Parameter(
-                    'Authorization', 
+                    'Authorization',
                     openapi.IN_HEADER,
-                    description="Authorization token (Bearer Token)", 
-                    type=openapi.TYPE_STRING, 
+                    description="Authorization token (Bearer Token)",
+                    type=openapi.TYPE_STRING,
                     required=True
                 ),
             ),
@@ -1505,7 +1627,7 @@ class ProfileDetailUpdateView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return Profile.objects.get(user=self.request.user)
-    
+
 class ProfileCoverImageUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes=[MultiPartParser,FormParser]
@@ -1533,13 +1655,13 @@ class ProfileCoverImageUpdateAPIView(APIView):
     def patch(self, request):
         profile = Profile.objects.get(user=request.user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Profile updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 # class PaymentStatusview(generics.CreateAPIView):
 #     permission_classes = [IsAuthenticated]
@@ -1549,7 +1671,7 @@ class ProfileCoverImageUpdateAPIView(APIView):
     #     payment.status = 'paid'
     #     payment.save()
     #     return Response({"message": "Payment status updated successfully"}, status=status.HTTP_200_OK)
-    
+
 class PaymentStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1574,11 +1696,8 @@ class PaymentStatusView(APIView):
         except Profile.DoesNotExist:
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ProfilePaymentStatusSerializer(profile, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        is_payment_verified = refresh_profile_subscription_status(profile)
+        return Response({"is_payment_verified": is_payment_verified}, status=status.HTTP_200_OK)
 
 
 class ProfileDetails(APIView):
@@ -1599,7 +1718,7 @@ class ProfileDetails(APIView):
                     {"status": 404, "message": "Profile not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
-        
+
         if not latitude or not longitude:
             return Response(
                 {
@@ -1609,7 +1728,7 @@ class ProfileDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         try:
             latitude = float(latitude)
             longitude = float(longitude)
@@ -1619,7 +1738,7 @@ class ProfileDetails(APIView):
                 "type": "error",
                 "message": "Latitude and Longitude must be valid float values"
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             user_profile = request.user.profile
             user_type = user_profile.get_user_type_display()
@@ -1632,18 +1751,18 @@ class ProfileDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         if user_type.lower() == "client":
             providers=Profile.objects.filter(user__user_type='provider').exclude(status="deleted").exclude(status="inactive").order_by('-created_at')
-            
+
             filtered_users= self.filter_by_location(providers, latitude, longitude, radius)
-            
+
             if search_query:
                 filtered_users = [
                     provider for provider in filtered_users
                     if search_query in (provider.user.full_name or '').lower()
                 ]
-            
+
             if not filtered_users:
                 return Response({"message": "No Provider found"}, status=status.HTTP_200_OK)
             # feedback = Feedback.objects.get(providers)
@@ -1659,10 +1778,10 @@ class ProfileDetails(APIView):
                     client for client in filtered_users
                     if search_query in (client.user.full_name or '').lower()
                 ]
-            
+
             if not filtered_users:
                 return Response({"message": "No Client found"}, status=status.HTTP_200_OK)
-            
+
         paginator = CustomPaginationProjectProfile()
         paginated_profiles = paginator.paginate_queryset(filtered_users, request)
         serializer = ProfileSerializer(paginated_profiles, many=True)
@@ -1672,7 +1791,7 @@ class ProfileDetails(APIView):
         user_location = (latitude, longitude)
         filtered_profiles = []
         # radius = 10
-        for profile in profiles:  
+        for profile in profiles:
             location = profile.location
             if location and location.latitude and location.longitude:
                 try:
@@ -1684,9 +1803,8 @@ class ProfileDetails(APIView):
                     print(" -> Invalid lat/lng due to:", str(e))
                     continue  # Skip invalid lat/lng
         return filtered_profiles
-    
 
-from django.db.models import F, Case, When, Value, BooleanField
+
 
 
 class ProjectDetails(APIView):
@@ -1696,10 +1814,32 @@ class ProjectDetails(APIView):
         search_query = request.query_params.get('search', '')
         latitude = request.query_params.get("latitude")
         longitude = request.query_params.get("longitude")
-        radius = float(request.query_params.get("radius", 10))
-        
+        try:
+            radius = float(request.query_params.get("radius", 10))
+        except (TypeError, ValueError):
+            return Response({
+                "status": 400,
+                "type": "error",
+                "message": "Radius must be a valid number",
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if pk:
-            project=Project.objects.get(pk=pk)
+            try:
+                project = Project.objects.get(pk=pk)
+            except Project.DoesNotExist:
+                return Response({
+                    "status": 404,
+                    "type": "error",
+                    "message": "Project not found",
+                }, status=status.HTTP_404_NOT_FOUND)
+            try:
+                user_profile = request.user.profile
+            except Profile.DoesNotExist:
+                return Response({
+                    "status": 400,
+                    "type": "error",
+                    "message": "User profile not found",
+                }, status=status.HTTP_400_BAD_REQUEST)
             # project=project.annotate(
             # can__send_bid=Case(
             #     When(bid__service_provider=request.user.profile, then=Value(False)),
@@ -1707,18 +1847,18 @@ class ProjectDetails(APIView):
             #     output_field=BooleanField()
             # )
             # ).last()
-            bids=Bid.objects.filter(project=project,service_provider=request.user.profile).exclude(status__iexact="Rejected")
-            print(bids.count())
-            if bids.count()>0:
-                can__send_bid=False
-            else:
-                can__send_bid=True
-                
-            serializer=ProjectSerializer(project)
-            return Response({"can__send_bid":can__send_bid,**serializer.data})
-        
+            bids=Bid.objects.filter(project=project,service_provider=user_profile).exclude(status__iexact="Rejected")
+            can__send_bid = bids.count() == 0
+
+            serializer=ProjectSerializer(project, context={"request": request})
+            data = dict(serializer.data)
+            data["can__send_bid"] = can__send_bid
+            data["type"] = "success"
+            data["message"] = "Project fetched successfully"
+            return Response(data)
+
         # conversation_id = Message.objects.filter(Conversation=conversation_id).last()
-       
+
         if not latitude or not longitude:
             return Response(
                 {
@@ -1728,7 +1868,7 @@ class ProjectDetails(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         try:
             latitude = float(latitude)
             longitude = float(longitude)
@@ -1738,7 +1878,7 @@ class ProjectDetails(APIView):
                 "type": "error",
                 "message": "Latitude and Longitude must be valid float values"
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             user_profile = request.user.profile
             user_type = user_profile.get_user_type_display()
@@ -1747,16 +1887,16 @@ class ProjectDetails(APIView):
                 "status": 400,
                 "type": "error",
                 "message": "User profile not found",
-                
+
             }, status=status.HTTP_400_BAD_REQUEST)
-         
+
         if user_type.lower() == "provider":
             user_category_ids = user_profile.job_category.all().values_list("id", flat=True)
 
             # Base query
             excluded_statuses = ["completed", "ongoing", "myoffer", "inactive"]
             projects = (Project.objects.filter(project_category__in=user_category_ids).exclude(
-                Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=request.user.profile.id)).order_by("-created_at")
+                Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=user_profile.id)).order_by("-created_at")
             )
 
             # Filter by location
@@ -1777,11 +1917,11 @@ class ProjectDetails(APIView):
             # Paginate and return
             paginator = CustomPaginationProjectProfile()
             paginated_projects = paginator.paginate_queryset(filtered_projects, request)
-            serializer = ProjectSerializer(paginated_projects, many=True)
+            serializer = ProjectSerializer(paginated_projects, many=True, context={"request": request})
             return paginator.get_paginated_response(serializer.data)
 
         return Response({"message": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
     def filter_by_location(self, projects, latitude, longitude, radius):
         user_location = (latitude, longitude)
         filtered = []
@@ -1802,37 +1942,89 @@ class ProjectDetails(APIView):
 class SendRequestToSubscribe(APIView):
     def post(self, request):
         data = request.data
-        email = data.get("email", "").strip()
-        phone_number = data.get("phone_number", "").strip()
-        frequency = data.get("subscription_frequency", "").strip().lower()
-        amt = round(float(data.get("amount", 0).strip()))
+        email = str(data.get("email") or "").strip()
+        phone_number = (
+            data.get("phone_number")
+            or data.get("subscriberMsisdn")
+            or data.get("phone_no")
+            or ""
+        )
+        phone_number = str(phone_number).strip()
+        payment_type = (
+            data.get("payment_type")
+            or data.get("payment_method")
+            or ("orange" if "orange" in request.path.lower() else "mtn")
+        )
+
+        try:
+            amt = round(float(str(data.get("amount", 0)).strip()))
+        except (TypeError, ValueError):
+            return Response({'error': 'Invalid amount.'}, status=status.HTTP_400_BAD_REQUEST)
+
         amount = str(amt)
 
-        # if not phone_number.startswith("237") and len(phone_number) <= 9:
-        if not phone_number.startswith("237"):
-            phone_number = "237"+ phone_number
-        
-        cycle_map = {
-            "week": "weekly",
-            "weekly": "weekly",
-            "month": "monthly",
-            "monthly": "monthly",
-            "year": "yearly",
-            "yearly": "yearly"
-        }
-        subscription_frequency = cycle_map.get(frequency)
+        subscription_frequency = _normalize_subscription_frequency(data.get("subscription_frequency", ""))
         if not subscription_frequency:
             return Response({'error': 'Invalid Subscription Frequency.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        gateway=PaymentGatewayAPI()
+        gateway = PaymentGatewayAPI()
         try:
-            if len(phone_number) > 13:
-                return Response({'error': 'Invalid Cameroon MTN number.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not phone_number:
+                return Response({'error': 'Phone number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
             try:
                 validate_email(email)
             except ValidationError:
                 return Response({'error': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
+            if _is_orange_subscription_payment(payment_type):
+                try:
+                    orange_phone_number = normalize_orange_cameroon_msisdn(
+                        _phone_with_optional_extension(data, phone_number)
+                    )
+                except ValueError as exc:
+                    return Response(
+                        {'error': str(exc), 'message': str(exc)},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                body = {
+                    "email": email,
+                    "subscriberMsisdn": orange_phone_number,
+                    "amount": amount,
+                    "subscription_frequency": subscription_frequency,
+                    "payment_type": "orange_subscription",
+                    "description": f"TrustWork {subscription_frequency} subscription",
+                }
+                if getattr(request.user, "is_authenticated", False):
+                    body["user_id"] = request.user.id
+                elif data.get("user_id"):
+                    body["user_id"] = data.get("user_id")
+
+                response = gateway.initialize_orange_subscription(body)
+                if not response:
+                    return Response({'error': 'Orange subscription initiation failed.'}, status=status.HTTP_502_BAD_GATEWAY)
+                if isinstance(response, dict) and response.get("success") is False:
+                    failure_message = _orange_failure_message(response)
+                    failure_detail = _orange_failure_detail(response)
+                    return Response({
+                        "error": failure_message,
+                        "message": failure_message,
+                        "orange_response": response,
+                        "orange_detail": failure_detail or None,
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                if isinstance(response, dict):
+                    return Response({
+                        "message": "Orange payment request sent successfully.",
+                        "payment_response": response,
+                    }, status=status.HTTP_200_OK)
+                return Response({'error': 'Unexpected error occured.'}, status=status.HTTP_502_BAD_GATEWAY)
+
+            try:
+                phone_number = normalize_mtn_cameroon_msisdn(phone_number)
+            except ValueError as exc:
+                return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
             body = {
                 "email": email,
                 "phone_number": phone_number,
@@ -1847,11 +2039,13 @@ class SendRequestToSubscribe(APIView):
 
             if isinstance(response, dict):
                 response_status = response.get("status", "").lower()
-                
+
                 if response_status == "failed":
+                    failure_message = _payment_failure_message(response=response)
                     return Response({
-                        "error": "Subscription initiation failed.",
-                        "message": response.get("message", "Invalid Cameroon MTN number.")
+                        "error": failure_message,
+                        "message": failure_message,
+                        "reason": response.get("reason") or response.get("error"),
                     }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Return success
@@ -1922,7 +2116,7 @@ class SendSubscriptionCode(APIView):
 
 class HandleMtnSubscription(APIView):
     permission_classes=[IsAuthenticated]
-    
+
     def post(self, request):
         code = request.data.get("code", "").strip()
         if not code:
@@ -1933,7 +2127,24 @@ class HandleMtnSubscription(APIView):
 
         gateway = PaymentGatewayAPI()
         try:
-            data = gateway.mtn_subscription_code(code)
+            payment_type = (
+                request.data.get("payment_type")
+                or request.data.get("payment_method")
+                or ("orange" if "orange" in request.path.lower() else "")
+            )
+            provider = "mtn_subscription"
+
+            if _is_orange_subscription_payment(payment_type):
+                data = gateway.orange_subscription_code(code)
+                provider = "orange_subscription"
+            elif str(payment_type or "").strip().lower() in {"mtn", "mtn_momo", "mtn_subscription"}:
+                data = gateway.mtn_subscription_code(code)
+            else:
+                data = gateway.mtn_subscription_code(code)
+                if not data or data.get("error"):
+                    data = gateway.orange_subscription_code(code)
+                    if data and not data.get("error"):
+                        provider = "orange_subscription"
 
             if data and not data.get("error"):
                 # print(data.get("email"))
@@ -1946,53 +2157,37 @@ class HandleMtnSubscription(APIView):
 
                 Subscriptions.objects.filter(profile=user_profile, is_active=True).update(is_active=False)
 
-                days=0
-                if frequency.lower() == "weekly" or frequency.lower() == "weekly(discount)":
-                    days = 7
-                elif frequency.lower() == "monthly" or frequency.lower() == "monthly(discount)":
-                    days = 30
-                elif frequency.lower() == "yearly" or frequency.lower() == "yearly(discount)":
-                    days = 365
-                
+                days = _subscription_duration_days(frequency)
+                if not days:
+                    return Response(
+                        {"status": "400", "error": "Invalid subscription frequency.", "type": "error"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
                 expire_at = timezone.now() + timedelta(days=days)
                 Subscriptions.objects.create(
                     profile=user_profile,
                     subscription_frequency=frequency.lower(),
                     subscription_plan="Membership_"+frequency.lower(),
-                    purchase_token="",
-                    expire_at=expire_at
+                    purchase_token=code,
+                    expire_at=expire_at,
+                    receipt_amount=subscription_price,
+                    receipt_currency=data.get("currency") or "XAF",
+                    receipt_payment_method=provider,
                 )
-                
+
                 user_profile.is_payment_verified=True
-                referer_user=CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).last()
-                if referer_user:
-                    referer_user.total_referal_amount=float(referer_user.total_referal_amount)+float(subscription_price)*(5/100)
-                    referer_user.total_referal_count=int(referer_user.total_referal_count)+1
-                    referer_user.save()
                 user_profile.save()
-                coupon = Coupons.objects.filter(user=request.user, is_active=True).first()
-                if coupon:
-                    coupon.is_active = False
-                    coupon.save()
+                handle_successful_referral_subscription(
+                    request.user,
+                    subscription_price=subscription_price,
+                    provider=provider,
+                )
 
-                give_discount = CustomUser.objects.filter(user_referal_code=request.user.referred_by_code)
-                referred_user = give_discount.first()
-                # expire_date=timezone.now() + timedelta(days=30)
-                from_user = Coupons.objects.filter(from_user=request.user.id).exists()
-                
-                if give_discount.exists():
-                    if not from_user:
-                        Coupons.objects.create(user=referred_user, from_user=request.user.id)
-                        CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).update(is_discount=True)
-
-                has_active_coupon = Coupons.objects.filter(user=request.user, is_active=True).exists()
-                if not has_active_coupon:
-                    CustomUser.objects.filter(id=request.user.id).update(is_discount=False)
-                
                 return Response({"user_details": ProfileSerializer(request.user.profile).data})
             else:
                 return Response(
-                    {"status": "404", "error": data.get("error", "No subscription found for the provided code."), "type": "error"},
+                    {"status": "404", "error": (data or {}).get("error", "No subscription found for the provided code."), "type": "error"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
@@ -2003,17 +2198,25 @@ class HandleMtnSubscription(APIView):
             )
 
 class HandleSubscription(APIView):
+    permission_classes=[IsAuthenticated]
+
     def post(self,request):
         subscription_plan=request.data.get("subscriptionPlan")
         subscription_price=request.data.get("subscription_price",0)
-        subscription_type=request.data.get("subscriptionType")
-        user_type = request.user.user_type
+        subscription_type=(request.data.get("subscriptionType") or "").lower()
+        purchase_id = ""
 
-        if subscription_type.lower() == "google":
+        if not subscription_plan or "_" not in subscription_plan:
+            return Response(
+                {"error": "Valid subscriptionPlan is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if subscription_type == "google":
             subscription_receipt = request.data.get("subscriptionReceipt", {})
             purchase_id = subscription_receipt.get("purchaseToken")
-        
-        if subscription_type.lower() == "apple":
+
+        if subscription_type == "apple":
             subscription_receipt = request.data.get("subscriptionReceipt", {})
             original_transaction_id = subscription_receipt.get("originalTransactionIdentifierIOS")
             if original_transaction_id:
@@ -2030,45 +2233,32 @@ class HandleSubscription(APIView):
             days = 30
         elif frequency.lower() == "yearly" or frequency.lower() == "yearly(discount)":
             days = 365
-        
+
         expire_at = timezone.now() + timedelta(days=days)
         Subscriptions.objects.create(
             profile=request.user.profile,
             subscription_frequency=frequency.lower(),
             subscription_plan=subscription_plan,
             purchase_token=purchase_id,
-            expire_at=expire_at
+            expire_at=expire_at,
+            receipt_amount=subscription_price,
+            receipt_currency=request.data.get("currency") or "XAF",
+            receipt_payment_method=f"{subscription_type}_subscription" if subscription_type else "iap_subscription",
         )
         user_profile=request.user.profile
         user_profile.is_payment_verified=True
-        referer_user=CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).last()
-        if referer_user:
-            referer_user.total_referal_amount=float(referer_user.total_referal_amount)+float(subscription_price)*(5/100)
-            referer_user.total_referal_count=int(referer_user.total_referal_count)+1
-            referer_user.save()
         user_profile.save()
-        coupon = Coupons.objects.filter(user=request.user, is_active=True).first()
-        if coupon:
-            coupon.is_active = False
-            coupon.save()
-
-        give_discount = CustomUser.objects.filter(user_referal_code=request.user.referred_by_code)
-        referred_user = give_discount.first()
-        # expire_date=timezone.now() + timedelta(days=30)
-        from_user = Coupons.objects.filter(from_user=request.user.id).exists()
-        
-        if give_discount.exists():
-            if not from_user:
-                Coupons.objects.create(user=referred_user, from_user=request.user.id)
-                CustomUser.objects.filter(user_referal_code=request.user.referred_by_code).update(is_discount=True)
-
-        has_active_coupon = Coupons.objects.filter(user=request.user, is_active=True).exists()
-        if not has_active_coupon:
-            CustomUser.objects.filter(id=request.user.id).update(is_discount=False)
+        handle_successful_referral_subscription(
+            request.user,
+            subscription_price=subscription_price,
+            provider=f"{subscription_type}_subscription" if subscription_type else "iap_subscription",
+        )
 
         return Response({"user_details":ProfileSerializer(request.user.profile).data})
 
 class CouponsView(APIView):
+    permission_classes=[IsAuthenticated]
+
     def get(self, request):
         # print(request.user.id)
         coupons=Coupons.objects.filter(user=request.user.id, is_active=True)
@@ -2085,7 +2275,7 @@ class CouponsView(APIView):
             "type" : "success",
             "message" : "All coupon fetched successfully",
             "data" : data
-        }    
+        }
         return Response(response,status=status.HTTP_200_OK)
 
 # class HandleWithdraw(APIView):
@@ -2102,7 +2292,7 @@ class CouponsView(APIView):
 #         if "SUCCESS" in response.get("status",'').upper():
 #             user.total_referal_amount=0
 #         return Response({"message":response})
-    
+
 class PreviousWorksApiView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes=[MultiPartParser,FormParser,JSONParser]
@@ -2113,13 +2303,12 @@ class PreviousWorksApiView(APIView):
         for i in request.FILES.getlist('image'):
             PreviousWorks.objects.create(image=i,profile=request.user.profile)
         return Response({"message":"upload success"})
-    
+
     def get(self,request):
         serializer=ProfilePreviousWorksSerializer(PreviousWorks.objects.filter(profile=request.user.profile))
         return Response(serializer.data)
-    
+
     def delete(self, request,pk):
         data=get_object_or_404(PreviousWorks,pk=pk)
         data.delete()
         return Response({"message":"Deletion Successfull"})
-        

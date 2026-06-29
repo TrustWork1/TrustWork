@@ -1,7 +1,10 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from .models import Profile, Chat
+
 from asgiref.sync import sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+from .models import Chat, Profile
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -34,7 +37,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         receiver = await sync_to_async(Profile.objects.get)(id=receiver_id)
 
         # Save message to the database
-        chat_message = await sync_to_async(Chat.objects.create)(
+        await sync_to_async(Chat.objects.create)(
             sender=self.scope['user'].profile,
             receiver=receiver,
             message=message

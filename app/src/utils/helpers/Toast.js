@@ -2,6 +2,9 @@ import {Platform, ToastAndroid} from 'react-native';
 import Toast from 'react-native-simple-toast';
 
 export default function showErrorAlert(message, isLong = false) {
+  if (!message) {
+    return;
+  }
   if (Platform.OS == 'android') {
     ToastAndroid.show(
       message,

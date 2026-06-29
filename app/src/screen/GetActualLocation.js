@@ -143,16 +143,17 @@ const GetActualLocation = props => {
                   {'Allow “TRUST WORK” '}
                 </Text>
                 {
-                  'location access to take project/work location for reviewing the Work.'
+                  'location access to help assign and verify nearby projects or work sites.'
                 }
               </Text>
             </View>
 
             <View style={styles.mainBtnConatiner}>
-              {/* <View style={[styles.btnMainContainer, {width: '55%'}]}>
+              <View style={[styles.btnMainContainer, {width: '55%'}]}>
                 <NextBtn
                   height={normalize(40)}
-                  title={'DON’T ALLOW'}
+                  // title={'DON’T ALLOW'}
+                  title={'Not Now'}
                   borderColor={Colors.themeBlack}
                   color={Colors.themeBlack}
                   onPress={() => {
@@ -160,11 +161,12 @@ const GetActualLocation = props => {
                     NavigationService?.navigate('SignIn');
                   }}
                 />
-              </View> */}
-              <View style={[styles.btnMainContainer, ]}>
+              </View>
+              <View style={[styles.btnMainContainer, {width: '55%'}]}>
                 <NextBtn
                   height={normalize(40)}
-                  title={'CONTINUE'}
+                  // title={'CONTINUE'}
+                  title={'Allow'}
                   borderColor={Colors.themeGreen}
                   color={Colors.themeWhite}
                   backgroundColor={Colors.themeGreen}
@@ -185,6 +187,7 @@ const GetActualLocation = props => {
         // propagateSwipe
         transparent={true}
         visible={showSeen}
+        style={styles.modalContainer}
         // backdropOpacity={0}
         // useNativeDriverForBackdrop={true}
         // animationIn={'slideInDown'}
@@ -192,8 +195,7 @@ const GetActualLocation = props => {
         // useNativeDriver={true}
         // animationType="slide"
         swipeDirection={['down']}
-        avoidKeyboard={true}
-        >
+        avoidKeyboard={true}>
         {locationModalComponent()}
       </Modal>
     </View>
@@ -209,6 +211,10 @@ const styles = StyleSheet.create({
     height: Sizes.height,
     resizeMode: 'cover',
   },
+  modalContainer: {
+    margin: 0,
+    justifyContent: 'center',
+  },
   modalMainContainer: {
     flex: 1,
     width: '100%',
@@ -218,10 +224,10 @@ const styles = StyleSheet.create({
   },
   modalSubContainer: {
     backgroundColor: Colors.themeWhite,
-    width: '85%',
+    width: '90%',
     borderRadius: 20,
-    paddingVertical: normalize(10),
-    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(14),
     shadowColor: Colors.themeGray,
     shadowOffset: {
       width: 0,
@@ -242,7 +248,7 @@ const styles = StyleSheet.create({
     paddingBottom: normalize(10),
   },
   mainBtnConatiner: {
-    // flexDirection: 'row',
+    flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
   },

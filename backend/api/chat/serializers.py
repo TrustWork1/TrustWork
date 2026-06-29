@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from chat_management.models import ChatRoom, Notification, Messages
+
 # from profile_management.models import Profile
 from api.profile.serializers import ProfileSerializer
+from chat_management.models import ChatRoom, Messages, Notification
+
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     # user1=serializers.CharField(source="user1.user.full_name",read_only=True)
@@ -19,7 +21,7 @@ class MessagesSerializer(serializers.ModelSerializer):
     sender=serializers.CharField(source="sender.user.full_name")
     sender_pic=serializers.CharField(source="sender.profile_picture")
     sender_id=serializers.IntegerField(source="sender.id")
-    
+
     # reciever_pic=serializers.SerializerMethodField()
     class Meta:
         model=Messages
@@ -33,18 +35,10 @@ class AttatchmentSerializer(serializers.ModelSerializer):
         model=Messages
         fields=['id', 'message', 'file',]
 
-from api.project.serializers import ProjectSerializer
-
-from rest_framework import serializers
-from chat_management.models import  Profile
-from project_management.models import Project
-
-
-
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Notification
         fields = ['id', 'title', 'message', 'sender', 'receiver', 'created_at', 'has_read', 'object_type', 'project_id', 'bid_id']

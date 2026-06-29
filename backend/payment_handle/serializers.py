@@ -1,11 +1,15 @@
+
+from django.utils.dateparse import parse_datetime
 from rest_framework import serializers
-from .models import EscrowCustomer, DisbursementMethod, BankAddress, EscrowTransaction, PaymentTransaction
-from django.utils.dateparse import parse_date, parse_datetime
-from datetime import datetime
-from profile_management.models import Profile
-from project_management.models import Project
-from api.profile.serializers import ProfileSerializer
-from api.project.serializers import ProjectSerializer
+
+from .models import (
+    BankAddress,
+    DisbursementMethod,
+    EscrowCustomer,
+    EscrowTransaction,
+    PaymentTransaction,
+)
+
 
 # Escrow Transection Model
 class EscrowTransactionSerializer(serializers.ModelSerializer):
@@ -25,7 +29,7 @@ class DisbursementMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisbursementMethod
         fields = [
-            'account_name', 'account_type', 'bank_aba_routing_number', 
+            'account_name', 'account_type', 'bank_aba_routing_number',
             'bank_account_number', 'bank_address', 'bank_name', 'currency', 'type'
         ]
 
@@ -35,15 +39,15 @@ class EscrowCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = EscrowCustomer
         fields = [
-            'first_name', 'middle_name', 'last_name', 'email', 'phone_number', 
-            'address_line1', 'address_line2', 'city', 'state', 'country', 
-            'post_code', 'escrow_customer_id', 'date_of_birth', 
+            'first_name', 'middle_name', 'last_name', 'email', 'phone_number',
+            'address_line1', 'address_line2', 'city', 'state', 'country',
+            'post_code', 'escrow_customer_id', 'date_of_birth',
             'disbursement_methods', 'webhook_url'
         ]
 
     def create(self, validated_data):
         disbursement_methods_data = validated_data.pop('disbursement_methods')
-        
+
         date_of_birth = validated_data.get('date_of_birth')
         if isinstance(date_of_birth, str):
             validated_data['date_of_birth'] = parse_datetime(date_of_birth)
@@ -60,7 +64,7 @@ class EscrowCustomerSerializer(serializers.ModelSerializer):
             )
 
         return escrow_customer
-    
+
 
 # Orange Transection Model
 class PaymentTransactionDetailSerializer(serializers.ModelSerializer):
@@ -71,7 +75,6 @@ class PaymentTransactionDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        response = super().to_representation(instance)
         return {
             "id": instance.transaction_id,
             "originalId": instance.transaction_id,
@@ -88,7 +91,7 @@ class PaymentTransactionDetailSerializer(serializers.ModelSerializer):
                 "currency": instance.currency
             },
             "account": {
-                "id": instance.account_credential_value, 
+                "id": instance.account_credential_value,
                 "name": "user name"
             },
             "offer": {
@@ -106,7 +109,7 @@ class PaymentTransactionDetailSerializer(serializers.ModelSerializer):
                 }
             },
             "partner": {
-                "id": "1234",  
+                "id": "1234",
                 "name": "Merchant name"
             }
         }

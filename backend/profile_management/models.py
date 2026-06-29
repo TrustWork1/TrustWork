@@ -1,10 +1,12 @@
-from django.db import models
+import random
+import string
+
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
+
 # from master.models import JobCategory
-from django.utils.timezone import now
-import string,random
-from django.core.exceptions import ValidationError
+
 # from project_management.models import Project
 # Create your models here.
 
@@ -37,7 +39,7 @@ class BankDetails(AbstractModel):
         if not BankDetails.objects.filter(user_profile=self.user_profile).exists():
             self.is_primary = True
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
         return f"{self.bank_name} -- {self.bank_account_number}"
 
@@ -57,7 +59,7 @@ class MembershipPlans(AbstractModel):
     plan_details=models.TextField()
     plan_price=models.CharField(max_length=100)
     # user_type=models.CharField(max_length=250)
-    
+
 class PreviousWorks(AbstractModel):
     image=models.FileField(null=True)
     description=models.CharField(null=True)
@@ -87,6 +89,56 @@ class Subscriptions(AbstractModel):
     subscription_plan=models.CharField(max_length=100)
     is_active=models.BooleanField(default=True)
     purchase_token=models.TextField(blank=True, null=True)
+    receipt_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    receipt_currency = models.CharField(max_length=10, default="XAF")
+    receipt_payment_method = models.CharField(max_length=100, blank=True, null=True)
+    receipt_email_sent_at = models.DateTimeField(null=True, blank=True)
+
+
+class SubscriptionPaymentAttempt(AbstractModel):
+    PROVIDER_CHOICES = [
+        ("mtn", "MTN MoMo"),
+        ("orange", "Orange Money"),
+        ("stripe", "Stripe"),
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+        ("expired", "Expired"),
+    ]
+
+    profile = models.ForeignKey(
+        "Profile",
+        on_delete=models.CASCADE,
+        related_name="subscription_payment_attempts",
+    )
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES)
+    reference_id = models.CharField(max_length=255, unique=True)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default="pending",
+    )
+    subscription_frequency = models.CharField(
+        max_length=100,
+        choices=[("weekly", "weekly"), ("monthly", "monthly"), ("yearly", "yearly")],
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=10, default="XAF")
+    pricing_plan_id = models.PositiveIntegerField(null=True, blank=True)
+    idempotency_key = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    expires_at = models.DateTimeField()
+    provider_response = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["profile", "payment_status", "expires_at"]),
+            models.Index(fields=["provider", "reference_id"]),
+        ]
+
+    def __str__(self):
+        return f"{self.profile_id} - {self.provider} - {self.payment_status}"
 
 class Profile(AbstractModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -98,7 +150,7 @@ class Profile(AbstractModel):
     cover_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
     associated_organization=models.CharField(max_length=500,null=True,blank=True)
     organization_registration_id=models.CharField(max_length=500,null=True,blank=True)
-    service_details = models.TextField(blank=True, null=True) 
+    service_details = models.TextField(blank=True, null=True)
     client_notes = models.TextField(blank=True, null=True)
     year_of_experiance = models.TextField(null=True, default=0)
     profile_bio=models.TextField(null=True,blank=True)
@@ -117,14 +169,14 @@ class Profile(AbstractModel):
     is_profile_updated=models.BooleanField(default=False)
     profile_rating=models.IntegerField(null=True,default=0)
     notification_enabled = models.BooleanField(default=True)
-    
+
     def __str__(self):
         return f'{self.user.email} - {self.get_user_type_display()}'
     def get_user_type_display(self):
         return f"{self.user.user_type}"
     # def __str__(self):
     #     return f"notification_status: {self.notifications_enabled}"
-    
+
 # # class Chat(models.Model):
 # class Chat(models.Model):
 #     sender = models.ForeignKey(Profile, related_name="sent_messages", on_delete=models.CASCADE)
@@ -171,7 +223,7 @@ class Coupons(AbstractModel):
         if not self.coupon_code:
             self.coupon_code=self.generate_unique_code()
         return super().save(*args, **kwargs)
-    
+
     @staticmethod
     def generate_unique_code():
         code_length = 8
@@ -180,7 +232,7 @@ class Coupons(AbstractModel):
             code = ''.join(random.choices(characters, k=code_length))
             if not Coupons.objects.filter(coupon_code=code).exists():
                 return code
-            
+
     def __str__(self):
         return self.coupon_code
 

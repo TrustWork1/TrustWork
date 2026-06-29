@@ -35,10 +35,44 @@ import showErrorAlert from '../utils/helpers/Toast';
 
 let status = '';
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9]{9,15}$/;
+
+const normalizeEmailOrPhone = value => value?.trim() ?? '';
+
+const getEmailOrPhonePayload = (value, onInvalid) => {
+  const trimmedValue = normalizeEmailOrPhone(value);
+
+  if (!trimmedValue) {
+    onInvalid(errorMessages.ENTER_EMAIL_OR_MOBILE);
+    return null;
+  }
+
+  if (emailRegex.test(trimmedValue)) {
+    return {
+      inputType: 'email',
+      value: trimmedValue.toLowerCase(),
+    };
+  }
+
+  if (phoneRegex.test(trimmedValue)) {
+    return {
+      inputType: 'phone',
+      value: trimmedValue,
+    };
+  }
+
+  onInvalid(
+    trimmedValue.includes('@')
+      ? 'Please enter a valid email address'
+      : 'Please enter a valid phone number',
+  );
+  return null;
+};
+
 const SignIn = props => {
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
-  var validate = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
   const inputRef1 = useRef(null);
   const inputRef2 = useRef(null);
@@ -152,31 +186,32 @@ const SignIn = props => {
     return min + ':' + sec;
   }
 
-  const onSignIn = () => {
-    const phoneRegex = /^\d{9,15}$/; // Improved phone regex
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex
-    let inputType = ''; // Determine the type of input (email or phone)
-
-    if (phoneRegex.test(email)) {
-      inputType = 'phone';
-    } else if (emailRegex.test(email)) {
-      inputType = 'email';
-    } else {
-      // If the input doesn't match either pattern
-      if (email.includes('@')) {
-        showErrorAlert('Please enter a valid email address');
-      } else {
-        showErrorAlert('Please enter a valid phone number');
-      }
+  const onSignIn = async () => {
+    const loginPayload = getEmailOrPhonePayload(email, showErrorAlert);
+    if (!loginPayload) {
       return;
     }
+
+    if (!password) {
+      showErrorAlert(errorMessages.ENTER_PASSWORD);
+      return;
+    }
+
+    if (password.length <= 7) {
+      showErrorAlert(errorMessages.PASSWORD_ALERT_MSG);
+      return;
+    }
+
+    // Always read the latest token directly to avoid stale state
+    const deviceToken = (await AsyncStorage.getItem('fcmToken')) || '';
+
     // Prepare data object based on input type
     const obj = {
       savePassword: isChecked,
       creds: {
-        [inputType]: email, // Dynamically add either `email` or `phone`
+        [loginPayload.inputType]: loginPayload.value,
         password,
-        deviceToken: token,
+        deviceToken: deviceToken,
         deviceType: Platform.OS,
       },
     };
@@ -193,26 +228,15 @@ const SignIn = props => {
 
   const onForgotPassword = () => {
     setIsError(true);
-    const phoneRegex = /^\d{9,15}$/; // Improved phone regex
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex
-    let inputType = '';
+    const forgotPasswordPayload = getEmailOrPhonePayload(email, showErrorAlert);
 
-    if (phoneRegex.test(email)) {
-      inputType = 'phone';
-    } else if (emailRegex.test(email)) {
-      inputType = 'email';
-    } else {
-      if (email.includes('@')) {
-        showErrorAlert('Please enter a valid email address');
-      } else {
-        showErrorAlert('Please enter a valid phone number');
-      }
+    if (!forgotPasswordPayload) {
       return;
     }
 
     setIsError(false);
     let obj = {
-      [inputType]: email,
+      [forgotPasswordPayload.inputType]: forgotPasswordPayload.value,
     };
     connectionrequest()
       .then(() => {
@@ -230,25 +254,14 @@ const SignIn = props => {
     setThree('');
     setFour('');
 
-    const phoneRegex = /^\d{9,15}$/; // Improved phone regex
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex
-    let inputType = '';
+    const resendPayload = getEmailOrPhonePayload(email, showErrorAlert);
 
-    if (phoneRegex.test(email)) {
-      inputType = 'phone';
-    } else if (emailRegex.test(email)) {
-      inputType = 'email';
-    } else {
-      if (email.includes('@')) {
-        showErrorAlert('Please enter a valid email address');
-      } else {
-        showErrorAlert('Please enter a valid phone number');
-      }
+    if (!resendPayload) {
       return;
     }
 
     let obj = {
-      [inputType]: email,
+      [resendPayload.inputType]: resendPayload.value,
     };
 
     connectionrequest()
@@ -262,9 +275,6 @@ const SignIn = props => {
 
   const verifyOTP = () => {
     setIsError(true);
-    const phoneRegex = /^\d{9,15}$/; // Improved phone regex
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex
-    let inputType = ''; // Determine the type of input (email or phone)
     if (!one) {
       showErrorAlert('Please fillup your first OTP');
     } else if (!two) {
@@ -274,23 +284,15 @@ const SignIn = props => {
     } else if (!four) {
       showErrorAlert('Please fillup your fourth OTP');
     } else {
-      if (phoneRegex.test(email)) {
-        inputType = 'phone';
-      } else if (emailRegex.test(email)) {
-        inputType = 'email';
-      } else {
-        // If the input doesn't match either pattern
-        if (email.includes('@')) {
-          setErrorMessage('Please enter a valid email address');
-        } else {
-          setErrorMessage('Please enter a valid phone number');
-        }
+      const otpPayload = getEmailOrPhonePayload(email, setErrorMessage);
+
+      if (!otpPayload) {
         return;
       }
 
       setIsError(false);
       let obj = {
-        [inputType]: email,
+        [otpPayload.inputType]: otpPayload.value,
         otp: String(one + two + three + four),
         // otp: parseInt(value),
       };
@@ -317,26 +319,17 @@ const SignIn = props => {
     } else {
       setIsError(false);
 
-      const phoneRegex = /^\d{9,15}$/; // Improved phone regex
-      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex
-      let inputType = ''; // Determine the type of input (email or phone)
+      const changePasswordPayload = getEmailOrPhonePayload(
+        email,
+        setErrorMessage,
+      );
 
-      if (phoneRegex.test(email)) {
-        inputType = 'phone';
-      } else if (emailRegex.test(email)) {
-        inputType = 'email';
-      } else {
-        // If the input doesn't match either pattern
-        if (email.includes('@')) {
-          setErrorMessage('Please enter a valid email address');
-        } else {
-          setErrorMessage('Please enter a valid phone number');
-        }
+      if (!changePasswordPayload) {
         return;
       }
 
       let obj = {
-        [inputType]: email,
+        [changePasswordPayload.inputType]: changePasswordPayload.value,
         new_password: password,
         confirm_password: confirmPassword,
       };
@@ -433,7 +426,7 @@ const SignIn = props => {
             value={email}
             isVisible={false}
             onChangeText={val => {
-              setEmail(val?.trimStart()?.toLowerCase());
+              setEmail(val?.trimStart());
               setIsValidateEmail(true);
             }}
             height={normalize(50)}
@@ -1091,7 +1084,7 @@ const SignIn = props => {
                     paddingLeft={normalize(10)}
                     paddingRight={normalize(10)}
                   />
-                  {/* 
+                  {/*
                   {isError && email == '' && (
                     <View style={{width: '100%'}}>
                       <CustomErrorComponent label={errorMessages.ENTER_EMAIL} />
@@ -1238,18 +1231,18 @@ const SignIn = props => {
       </ImageBackground>
       <Modal
         propagateSwipe
-        visible={showSeen !== ''}
+        isVisible={showSeen !== ''}
         backdropOpacity={0}
-        useNativeDriverForBackdrop={true}
+        useNativeDriverForBackdrop={false}
         animationIn="slideInDown"
         animationOut="slideOutDown"
-        useNativeDriver={true}
+        useNativeDriver={false}
         swipeDirection={['down']}
         avoidKeyboard={true}
         style={styles.modalContainer}
         onBackButtonPress={() => setShowSeen('')}
         onBackdropPress={() => setShowSeen('')}>
-        {forgotPasswordComponent()}
+        {showSeen !== '' && forgotPasswordComponent()}
       </Modal>
     </View>
   );

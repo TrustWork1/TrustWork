@@ -1,5 +1,6 @@
 import requests
 
+
 class PaymentGateway:
     def __init__(self, api_key, api_secret, base_url):
         self.api_key = api_key

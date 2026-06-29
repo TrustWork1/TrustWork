@@ -1,11 +1,12 @@
-import os
-from uuid import uuid4
-import requests
 import json
 from uuid import uuid4
-from basicauth import encode
-from .mtn_momo import MtnMoMo
+
+import requests
 from django.conf import settings
+
+from .mtn_momo import MtnMoMo
+from .utils import normalize_mtn_cameroon_msisdn
+
 MTN_COLLECTION_PRIMARY_KEY=settings.MTN_COLLECTION_PRIMARY_KEY
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 ESCROW_BASE_API=settings.ESCROW_BASE_API
@@ -18,6 +19,7 @@ class MtnMoMoSubscription(MtnMoMo):
         self.collections_primary_key = MTN_COLLECTION_PRIMARY_KEY
 
     def requestToPay(self, amount, phone_number, external_id, payernote="SUBSCRIPTION", payermessage="SUBSCRIPTION PAYMENT"):
+        phone_number = normalize_mtn_cameroon_msisdn(phone_number)
         uuidgen = str(uuid4())
         url = f"{self.base_url}/collection/v1_0/requesttopay"
         payload = json.dumps({
@@ -42,7 +44,7 @@ class MtnMoMoSubscription(MtnMoMo):
         response = requests.post(url, headers=headers, data=payload)
         context = {"status_code": response.status_code, "ref_id": uuidgen, "response_text": response.text}
         return context
-    
+
     def getTransactionStatus(self, txn):
         url = f"{self.base_url}/collection/v1_0/requesttopay/{txn}"
         headers = {
@@ -51,4 +53,17 @@ class MtnMoMoSubscription(MtnMoMo):
             'X-Target-Environment': self.environment_mode,
         }
         response = requests.request("GET", url, headers=headers)
+        return response.json()
+
+    def getAccountStatus(self, account_number: str):
+        account_number = normalize_mtn_cameroon_msisdn(account_number)
+        url = f"{self.base_url}/collection/v1_0/accountholder/msisdn/{account_number}/active"
+        headers = {
+            'Ocp-Apim-Subscription-Key': self.collections_primary_key,
+            'Authorization': f"Bearer {self.authToken()['access_token']}",
+            'X-Target-Environment': self.environment_mode,
+        }
+        response = requests.request("GET", url, headers=headers)
+        if not response.ok:
+            return {"result": False}
         return response.json()

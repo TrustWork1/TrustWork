@@ -1,9 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   Alert,
+  AppState,
   Image,
   ImageBackground,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -39,6 +41,7 @@ import * as RNIap from 'react-native-iap';
 import css from '../../themes/css';
 import Modal from 'react-native-modal';
 import TextIn from '../../components/TextIn';
+import {cmsRequest} from '../../redux/reducer/ProfileReducer';
 
 let status = '';
 // YOUR_APP_SPECIFIC_SHARED_SECRET  c8600eea07e04f0f8042d2e79b1c4a2e
@@ -47,24 +50,6 @@ const UserMembershipPlan = props => {
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
   let purchaseUpdateSubscription = null;
-  const DataList = [
-    {
-      id: 1,
-      title: 'MemberShip_Weekly',
-      localizedPrice: '₹6,900.00',
-    },
-    {
-      id: 2,
-      title: 'MemberShip_Monthly',
-      localizedPrice: '₹4,999.00',
-    },
-    {
-      id: 3,
-      title: 'MemberShip_Yearly',
-      localizedPrice: '₹49,999.00',
-    },
-  ];
-
   const [selectedFeatureIndex, setSelectedFeatureIndex] = useState();
   const [payCode, setPayCode] = useState('');
   const [planList, setPlanList] = useState([]);
@@ -72,6 +57,10 @@ const UserMembershipPlan = props => {
   const [selectedPlan, setSelectedPlan] = useState({});
   const [isloading, setIsloading] = useState(false);
   const [codeModal, setCodeModal] = useState(false);
+  const [viewAgreementModal, setViewAgreementModal] = useState(false);
+  // Add state for Privacy Policy modal
+  const [viewPrivacyPolicyModal, setViewPrivacyPolicyModal] = useState(false);
+
   //////////////////////// In-app start ///////////////////////////////
   const {
     getProducts,
@@ -106,6 +95,94 @@ const UserMembershipPlan = props => {
       console.error('Error fetching subscription:', error);
     }
   };
+  const EULA_TEXT = `
+This End-User License Agreement is a legal agreement between you and "TRUSTWORK Limited Liability Company" regarding your use of the "TrustWork" mobile application (“App”).
+
+1. License Grant
+We grant you a limited, non-exclusive, non-transferable, revocable license to use the App for personal and non-commercial use only.
+\n
+2. Subscriptions & In-App Purchases
+
+2.1 Subscriptions
+- Payment will be charged to your App Store or Play Store account.
+- Subscription renews automatically unless canceled 24 hours before expiry.
+- Renewal charges will apply within 24 hours before the end of the period.
+- Prices and features may vary.
+\n
+2.2 In-App Purchases
+All one-time purchases are handled securely by the App Store or Play Store.
+\n
+2.3 Refunds
+Refunds follow App Store or Play Store policies.
+\n
+3. User Responsibilities
+You agree NOT to:
+- Copy, modify, reverse engineer the App.
+- Use the App for unlawful activity.
+- Share or sell your access.
+- Bypass payment or subscription systems.
+\n
+4. Ownership & Intellectual Property
+The App and all content are owned by "TRUSTWORK Limited Liability Company".
+\n
+5. Privacy Policy
+Your use is governed by our Privacy Policy:
+https://trustwork.live/privacy-policy/
+\n
+6. Termination
+We may suspend/terminate your access if you violate terms or engage in fraud.
+\n
+7. Disclaimer of Warranties
+The App is provided “as is” without guarantees.
+\n
+8. Limitation of Liability
+We are not liable for indirect, incidental, or consequential damages.
+\n
+9. Changes to the EULA
+We may update the EULA anytime. Continued use means acceptance.
+`;
+
+  // Privacy Policy Text (can be fetched or hardcoded)
+  const PRIVACY_POLICY_TEXT = `
+Your privacy is important to us. This Privacy Policy explains how "TRUSTWORK Limited Liability Company" collects, uses, discloses, and safeguards your information when you use our "TrustWork" mobile application.
+
+1. Information We Collect
+We may collect information about you in a variety of ways. The information we may collect via the App includes:
+
+- Personal Data: Personally identifiable information, such as your name, shipping address, email address, and telephone number, and demographic information, such as your age, gender, hometown, and interests, that you voluntarily give to us when you register with the App or when you choose to participate in various activities related to the App.
+
+- Derivative Data: Information our servers automatically collect when you access the App, such as your native actions that are integral to the App, as well as other interactions with the App and other users via server log files.
+
+- Financial Data: Financial information, such as data related to your payment method (e.g., valid credit card number, card brand, expiration date) that we may collect when you purchase, order, return, exchange, or request information about our services from the App. We store only very limited, if any, financial information that we collect. Otherwise, all financial information is stored by our payment processors (Apple Store, Google Play Store).
+
+2. Use of Your Information
+Having accurate information about you permits us to provide you with a smooth, efficient, and customized experience. Specifically, we may use information collected about you via the App to:
+- Create and manage your account.
+- Process your payments and refunds.
+- Email you regarding your account or order.
+- Enable user-to-user communications.
+- Fulfill and manage purchases, orders, payments, and other transactions related to the App.
+
+3. Disclosure of Your Information
+We may share information we have collected about you in certain situations. Your information may be disclosed as follows:
+- By Law or to Protect Rights
+- Third-Party Service Providers
+- Business Transfers
+
+4. Security of Your Information
+We use administrative, technical, and physical security measures to help protect your personal information.
+
+5. Policy for Children
+We do not knowingly solicit information from or market to children under the age of 13.
+
+6. Contact Us
+If you have questions or comments about this Privacy Policy, please contact us at:
+TRUSTWORK Limited Liability Company
+[Your Contact Email/Address]
+
+For the full, detailed Privacy Policy, please visit:
+https://trustwork.live/privacy-policy/
+`;
 
   const handleGetPurchaseHistory = async () => {
     await initConnection();
@@ -233,14 +310,12 @@ const UserMembershipPlan = props => {
   };
 
   async function acknowledgeSubscription(data) {
-    console.log('134 /////////////', data);
     try {
       let response = await RNIap.finishTransaction({
         purchase: data,
         isConsumable: false,
         developerPayloadAndroid: '',
       });
-      console.log('res: 137', response);
     } catch (err) {
       console.log('err 139', err);
       // CustomToast(err.message);
@@ -337,8 +412,33 @@ const UserMembershipPlan = props => {
   useEffect(() => {
     if (isFocused) {
       getMembershipList();
+      connectionrequest()
+        .then(() => {
+          dispatch(cmsRequest());
+        })
+        .catch(err => {
+          showErrorAlert('Please connect to the internet');
+        });
     }
   }, [isFocused]);
+
+  const getPlanDescription = planTitle => {
+    const name = planTitle?.toLowerCase() || '';
+
+    if (name.includes('week')) {
+      return 'Access trusted and vetted service providers for the entire week, along with free escrow services that ensure secure and reliable project execution. This plan renews automatically each week unless cancelled.';
+    }
+
+    if (name.includes('month')) {
+      return 'Access trusted and verified service providers for a full month, supported by free escrow services that strengthen security and trust throughout your projects. This plan renews automatically every month unless cancelled.';
+    }
+
+    if (name.includes('year')) {
+      return 'Access trusted and vetted service providers for the entire year, backed by free escrow services that provide maximum security, trust, and peace of mind for all your long-term projects. This plan renews automatically each year unless cancelled.';
+    }
+
+    return '';
+  };
 
   const codeSubmit = () => {
     dispatch(PayCodeRequest({code: payCode}));
@@ -357,12 +457,68 @@ const UserMembershipPlan = props => {
       });
   };
 
+  // Re-fetch plans when app returns from background
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App came to foreground — re-fetch subscriptions and membership list
+        if (connected) {
+          handleGetSubscriptions();
+        }
+        getMembershipList();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [connected]);
+
+  const getPlanDuration = title => {
+    if (!title) return '';
+    const lowerTitle = title.toLowerCase();
+
+    if (lowerTitle.includes('week')) {
+      return '1 Week';
+    }
+    if (lowerTitle.includes('month')) {
+      return '1 Month';
+    }
+    if (lowerTitle.includes('year')) {
+      return '1 Year';
+    }
+    return ''; // Fallback
+  };
+
+  const formatPlanTitle = title => {
+    if (!title) return '';
+    const lowerTitle = title.toLowerCase();
+
+    if (lowerTitle.includes('week')) {
+      return 'TrustWork Weekly';
+    }
+    if (lowerTitle.includes('month')) {
+      return 'TrustWork Monthly';
+    }
+    if (lowerTitle.includes('year')) {
+      return 'TrustWork Yearly';
+    }
+
+    // Fallback for other cases, though the above should cover it
+    return title.replace('Membership_', 'TrustWork ');
+  };
+
   if (status == '' || AuthReducer.status != status) {
     switch (AuthReducer.status) {
       case 'Auth/MembershipListRequest':
         status = AuthReducer.status;
         break;
-      case 'Auth/MembershipListSuccess':
+      case 'Auth/MembershipSuccess':
         status = AuthReducer.status;
         // setPlanList(AuthReducer?.MembershipListResponse?.data);
         break;
@@ -461,6 +617,100 @@ const UserMembershipPlan = props => {
     );
   };
 
+  const ViewAgreementComponent = () => {
+    return (
+      <View
+        style={[
+          styles.modalViewContainer,
+          {
+            maxHeight: '80%', // ✅ makes ScrollView scrollable
+            padding: 16,
+          },
+        ]}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text
+            style={{
+              fontSize: normalize(16),
+              fontFamily: Fonts.FustatMedium,
+              marginBottom: 10,
+              color: Colors.themeBlack,
+            }}>
+            END-USER LICENSE AGREEMENT (EULA)
+          </Text>
+
+          <Text
+            style={{
+              fontSize: normalize(14),
+              fontFamily: Fonts.FustatMedium,
+              marginBottom: 20,
+              color: '#555',
+            }}>
+            Last Updated: 07-11-2025
+          </Text>
+          <Text style={styles.modalText}>{EULA_TEXT}</Text>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // New component for Privacy Policy Modal
+  const ViewPrivacyPolicyComponent = () => {
+    const privacyPolicyUrl = 'https://trustwork.live/privacy-policy/';
+    return (
+      <View
+        style={[
+          styles.modalViewContainer,
+          {
+            maxHeight: '80%', // makes ScrollView scrollable
+            padding: 16,
+          },
+        ]}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text
+            style={{
+              fontSize: normalize(16),
+              fontFamily: Fonts.FustatMedium,
+              marginBottom: 10,
+              color: Colors.themeBlack,
+            }}>
+            PRIVACY POLICY
+          </Text>
+
+          <Text
+            style={{
+              fontSize: normalize(14),
+              fontFamily: Fonts.FustatMedium,
+              marginBottom: 20,
+              color: '#555',
+            }}>
+            Last Updated: 07-11-2025
+          </Text>
+          <Text style={styles.modalText}>{PRIVACY_POLICY_TEXT}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              Linking.canOpenURL(privacyPolicyUrl).then(supported => {
+                if (supported) {
+                  Linking.openURL(privacyPolicyUrl);
+                } else {
+                  console.log(
+                    "Don't know how to open URI: " + privacyPolicyUrl,
+                  );
+                }
+              });
+            }}>
+            <Text
+              style={[
+                styles.modalText,
+                {color: Colors.themeGreen, textDecorationLine: 'underline'},
+              ]}>
+              {privacyPolicyUrl}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    );
+  };
+
   return (
     <View style={{flex: 1}}>
       <Loader visible={isloading} />
@@ -541,77 +791,12 @@ const UserMembershipPlan = props => {
                     paddingVertical: normalize(15),
                     backgroundColor: Colors.themeDocBackground,
                   }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      borderBottomWidth: 2,
-                      borderBottomColor: Colors.themeBoxBorder,
-                      paddingHorizontal: normalize(15),
-                      paddingBottom: normalize(15),
-                    }}>
-                    <Image
-                      source={Icons.Plan_Crown}
-                      resizeMode="contain"
-                      style={{
-                        height: normalize(61),
-                        width: normalize(42),
-                      }}
-                    />
-                    {selectedFeatureIndex == undefined ? (
-                      <View style={{marginLeft: normalize(15)}}>
-                        <Text
-                          style={{
-                            fontFamily: Fonts.FustatMedium,
-                            fontSize: normalize(15),
-                            // lineHeight: normalize(26),
-                            color: Colors.themeBlack,
-                          }}>
-                          Plan Name
-                        </Text>
-                      </View>
-                    ) : (
-                      <View style={{marginLeft: normalize(15), width: '80%'}}>
-                        <Text
-                          style={{
-                            fontFamily: Fonts.FustatMedium,
-                            fontSize: normalize(15),
-                            // lineHeight: normalize(26),
-                            color: Colors.themeBlack,
-                          }}>
-                          {Platform.OS == 'ios'
-                            ? selectedPlan?.title
-                            : selectedPlan?.name == 'weekly'
-                            ? 'Membership_weekly'
-                            : selectedPlan?.name}
-                          {/* {selectedPlan?.title} */}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: Fonts.FustatSemiBold,
-                            fontSize: normalize(22),
-                            // lineHeight: normalize(32),
-                            color: Colors.themeBlack,
-                          }}>
-                          {Platform.OS == 'ios'
-                            ? selectedPlan?.localizedPrice
-                            : selectedPlan?.subscriptionOfferDetails[0]
-                                .pricingPhases?.pricingPhaseList[0]
-                                .formattedPrice}
-                          {/* /
-                          <Text
-                            style={{
-                              fontFamily: Fonts.FustatMedium,
-                              fontSize: 16,
-                              // lineHeight: normalize(22),
-                            }}>
-                            {selectedPlan?.plan_duration}
-                          </Text> */}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
+                  {/* Your existing plan rendering logic already shows:
+                    1. Title (item.title / item.name)
+                    2. Price (item.localizedPrice / formattedPrice)
+                    3. Length/Description (via getPlanDescription)
+                    This setup meets the Title, Price, and Length requirements.
+                  */}
                   <View style={{}}>
                     {planList?.map((item, index) => {
                       return (
@@ -651,13 +836,48 @@ const UserMembershipPlan = props => {
                               />
                             )}
                           </View>
-                          <View style={{marginRight: normalize(8)}}>
-                            <Text style={styles.featureText}>
-                              {Platform.OS == 'ios'
-                                ? item?.title
-                                : item?.name == 'weekly'
-                                ? 'Membership_weekly'
-                                : item?.name}
+
+                          <View style={[{width: '90%'}]}>
+                            <View
+                              style={{
+                                marginRight: normalize(8),
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                flexWrap: 'wrap', // Allow wrapping
+                              }}>
+                              <Text style={styles.featureText}>
+                                {formatPlanTitle(
+                                  Platform.OS == 'ios'
+                                    ? item?.title
+                                    : item?.name,
+                                )}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.featureText,
+                                  {marginLeft: 8, color: Colors.themeGreen},
+                                ]}>
+                                {Platform.OS === 'ios'
+                                  ? item?.localizedPrice
+                                  : item?.subscriptionOfferDetails?.[0]
+                                      ?.pricingPhases?.pricingPhaseList?.[0]
+                                      ?.formattedPrice || ''}
+                              </Text>
+                              {/* ADDED DURATION */}
+                              <Text style={styles.planDuration}>
+                                {`(${getPlanDuration(
+                                  Platform.OS == 'ios'
+                                    ? item?.title
+                                    : item?.name,
+                                )})`}
+                              </Text>
+                            </View>
+                            <Text style={styles.planDescription}>
+                              {getPlanDescription(
+                                Platform.OS == 'ios'
+                                  ? item?.title
+                                  : item?.name,
+                              )}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -683,32 +903,24 @@ const UserMembershipPlan = props => {
                     }}
                   />
 
-                  <View style={[css.row, css.mt4]}>
-                    <Text
-                      style={[
-                        {
-                          color: Colors.themeBlack,
-                          fontFamily: Fonts.FustatMedium,
-                          fontSize: normalize(14),
-                        },
-                      ]}>
-                      I have a code for payment
-                    </Text>
+                  {/* Container for legal links */}
+                  <View style={styles.linksContainer}>
                     <TouchableOpacity
                       onPress={() => {
-                        setCodeModal(true);
+                        setViewAgreementModal(true);
                       }}>
-                      <Text
-                        style={[
-                          {
-                            color: Colors.themeGreen,
-                            fontFamily: Fonts.FustatSemiBold,
-                            fontSize: normalize(14),
-                          },
-                        ]}>
-                        {' '}
-                        Click
+                      <Text style={styles.linkText}>
+                        Terms of Use (EULA)
                       </Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.linkSeparator}>|</Text>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        setViewPrivacyPolicyModal(true);
+                      }}>
+                      <Text style={styles.linkText}>Privacy Policy</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -717,7 +929,7 @@ const UserMembershipPlan = props => {
           </View>
         </View>
       </ImageBackground>
-      <Modal
+      {/* <Modal
         propagateSwipe
         visible={codeModal}
         backdropOpacity={0}
@@ -730,6 +942,29 @@ const UserMembershipPlan = props => {
         style={styles.modalContainer}
         onBackdropPress={() => setCodeModal(false)}>
         {OpenCodeModal()}
+      </Modal> */}
+
+      <Modal
+        isVisible={viewAgreementModal}
+        avoidKeyboard={true}
+        backdropOpacity={0.5}
+        style={styles.modalContainer}
+        onBackButtonPress={() => setViewAgreementModal(false)}
+        // onSwipeComplete={() => setViewAgreementModal(false)}
+        // swipeDirection={['down']} // You can use 'up', 'down', 'left', or 'right'
+        onBackdropPress={() => setViewAgreementModal(false)}>
+        {ViewAgreementComponent()}
+      </Modal>
+
+      {/* New Modal for Privacy Policy */}
+      <Modal
+        isVisible={viewPrivacyPolicyModal}
+        avoidKeyboard={true}
+        backdropOpacity={0.5}
+        style={styles.modalContainer}
+        onBackButtonPress={() => setViewPrivacyPolicyModal(false)}
+        onBackdropPress={() => setViewPrivacyPolicyModal(false)}>
+        {ViewPrivacyPolicyComponent()}
       </Modal>
     </View>
   );
@@ -880,7 +1115,7 @@ const styles = StyleSheet.create({
   },
   featureItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
     margin: 8,
     padding: 5,
     borderRadius: 5,
@@ -894,6 +1129,7 @@ const styles = StyleSheet.create({
     borderRadius: normalize(10),
     marginRight: 8,
     borderWidth: 1,
+    marginTop: normalize(2),
   },
   selectedCheckmark: {
     backgroundColor: '#388E3C', // Darker green for selected
@@ -901,6 +1137,19 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 14,
     color: '#333',
+    fontFamily: Fonts.FustatSemiBold,
+  },
+  planDuration: {
+    fontSize: 14,
+    color: '#555', // A slightly muted color
+    fontFamily: Fonts.FustatMedium,
+    marginLeft: 8,
+  },
+  planDescription: {
+    fontSize: 12,
+    color: '#555',
+    fontFamily: Fonts.FustatMedium,
+    marginTop: 4,
   },
   selectedFeatureText: {
     color: '#388E3C', // Darker color for selected text
@@ -922,6 +1171,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: normalize(5),
     paddingHorizontal: normalize(10),
+  },
+  modalViewContainer: {
+    width: '90%',
+    // height: normalize(450), // Removed fixed height to allow maxHeight
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginTop: normalize(40), // Removed margin
+    backgroundColor: Colors.themeWhite,
+    padding: normalize(15),
+    borderRadius: normalize(10),
+  },
+  modalText: {
+    fontSize: normalize(13),
+    fontFamily: Fonts.FustatMedium,
+    color: '#333',
+    lineHeight: normalize(20),
+  },
+  // New styles for legal links
+  linksContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: normalize(20),
+    flexWrap: 'wrap', // Allow wrapping on small screens
+  },
+  linkText: {
+    color: Colors.themeGreen,
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(14),
+    textDecorationLine: 'underline',
+  },
+  linkSeparator: {
+    color: Colors.themeGray,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(14),
+    marginHorizontal: normalize(10),
   },
 });
 

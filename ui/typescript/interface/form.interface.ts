@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { InputHTMLAttributes, ReactNode } from 'react';
 import { Control, FieldErrors, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormTextFieldProps<T extends FieldValues> {
@@ -13,4 +13,5 @@ export interface FormTextFieldProps<T extends FieldValues> {
   rows?: number;
   isDisable?: boolean;
   endAdornment?: ReactNode;
+  inputattributes?: InputHTMLAttributes<HTMLInputElement>;
 }

@@ -1,5 +1,6 @@
 from django.db import models
-from user_management.models import BaseModel,User
+
+from user_management.models import BaseModel, User
 
 # Create your models here.
 
@@ -15,7 +16,7 @@ class Escrow(BaseModel):
     payment_method=models.CharField(max_length=100,choices=[('mtn-momo','mtn-momo'),('stripe','stripe')],default='mtn-momo')
     collection_ref_id = models.UUIDField(blank=True,null=True)
     disbursement_ref_id = models.UUIDField(blank=True,null=True)
-    
+
 
 class Events(BaseModel):
     event_type=models.CharField(max_length=100,choices=[
@@ -30,7 +31,7 @@ class Events(BaseModel):
     ])
     event_description=models.TextField(default='')
     escrow=models.ForeignKey(Escrow,on_delete=models.CASCADE)
-    
+
 
 class Transactions(BaseModel):
     # payer=models.ForeignKey(User,on_delete=models.DO_NOTHING,related_name='payer')
@@ -55,7 +56,7 @@ class Transactions(BaseModel):
 class StripePayment(models.Model):
     session_id = models.CharField(max_length=255, unique=True)
     user_id = models.CharField(max_length=100)
-    status = models.CharField(max_length=50, default='pending') 
+    status = models.CharField(max_length=50, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     amount = models.FloatField(max_length=50, null=True, blank=True)
     project_id = models.TextField(max_length=10, null=True, blank=True)

@@ -18,3 +18,17 @@ export const selectPlanQuerySchema = yup.object({
 });
 
 export type SelectPlanQueryFormValues = yup.InferType<typeof selectPlanQuerySchema>;
+
+export const subscriptionEmailCheckSchema = yup.object({
+  email: yup.string().trim().email('Invalid email').required('Email is required'),
+});
+
+export type SubscriptionEmailCheckFormValues = yup.InferType<typeof subscriptionEmailCheckSchema>;
+
+export const subscriptionLoginSchema = yup.object({
+  email: yup.string().trim().email('Invalid email').required('Email is required'),
+  password: yup.string().trim().required('Password is required'),
+  remember_me: yup.boolean().default(false),
+});
+
+export type SubscriptionLoginFormValues = yup.InferType<typeof subscriptionLoginSchema>;

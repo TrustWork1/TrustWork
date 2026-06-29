@@ -1,12 +1,11 @@
-
-
-from django.db.models.signals import post_save,post_delete
-from django.dispatch import receiver
-from project_management.models import Bid,Project,Feedback
-from chat_management.models import Notification
-from api.profile.serializers  import ProfileSerializer
-from profile_management.models import Profile
 import firebase_admin
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+from api.profile.serializers import ProfileSerializer
+from chat_management.models import Notification
+from profile_management.models import Profile
+from project_management.models import Project
 
 
 @receiver(post_save, sender=Project)

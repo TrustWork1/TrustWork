@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -21,12 +21,11 @@ import showErrorAlert from '../../utils/helpers/Toast';
 import constants from '../../utils/helpers/constants';
 import normalize from '../../utils/helpers/normalize';
 
-let status = '';
-
 const ServiceProvider = props => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
+  const handledStatus = useRef('');
 
   const [search, setSearch] = useState('');
   const [providerList, setProviderList] = useState([]);
@@ -39,23 +38,22 @@ const ServiceProvider = props => {
     if (isFocused) {
       getAddress();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const getAddress = () => {
     AsyncStorage.getItem(constants.TRUSTWORKTKNADDRESS)
       .then(res => {
-        // setAddress(JSON.parse(res)?.address);
+        const address = res ? JSON.parse(res) : {};
         getServiceProviderList({
           count: 1,
-          lat: JSON.parse(res)?.latitude,
-          long: JSON.parse(res)?.longitude,
+          lat: address?.latitude,
+          long: address?.longitude,
         });
-        setLat(JSON.parse(res)?.latitude);
-        setLong(JSON.parse(res)?.longitude);
+        setLat(address?.latitude);
+        setLong(address?.longitude);
       })
-      .catch(err => {
-        console.log(err);
-      });
+      .catch(err => {});
   };
 
   const getServiceProviderList = data => {
@@ -199,16 +197,20 @@ const ServiceProvider = props => {
     );
   };
 
-  if (status == '' || AuthReducer.status != status) {
+  useEffect(() => {
+    if (handledStatus.current === AuthReducer.status) {
+      return;
+    }
+
     switch (AuthReducer.status) {
       case 'Auth/providerListByLocationRequest':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
 
         break;
       case 'Auth/providerListByLocationSuccess':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
 
-        setProviderList(AuthReducer?.providerListByLocationResponse?.data);
+        setProviderList(AuthReducer?.providerListByLocationResponse?.data || []);
 
         // setProviderList(
         //   page === 1
@@ -222,10 +224,14 @@ const ServiceProvider = props => {
         setTotalCount(AuthReducer?.providerListByLocationResponse?.total);
         break;
       case 'Auth/providerListByLocationFailure':
-        status = AuthReducer.status;
+        handledStatus.current = AuthReducer.status;
         break;
     }
-  }
+  }, [
+    AuthReducer.status,
+    AuthReducer?.providerListByLocationResponse?.data,
+    AuthReducer?.providerListByLocationResponse?.total,
+  ]);
 
   const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
     const paddingToBottom = 20;

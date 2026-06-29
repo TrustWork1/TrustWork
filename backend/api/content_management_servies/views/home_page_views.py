@@ -1,17 +1,39 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
 import json
-from rest_framework.parsers import MultiPartParser, FormParser
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-
-from content_management.models.home_page_models import *
-from api.content_management_servies.serializers.home_page_serializers import *
-
 import os
+
 import environ
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.content_management_servies.serializers.home_page_serializers import (
+    AppInfoSerializer,
+    DownloadSectionSerializer,
+    FeatureSectionSerializer,
+    FeatureSerializer,
+    HowItWorksSectionSerializer,
+    HowItWorksStepSerializer,
+    PriceFeaturesSerializer,
+    PricingPlanSectionSerializer,
+    PricingPlanSerializer,
+    ReferralSectionSerializer,
+)
+from content_management.models.home_page_models import (
+    AppDownload,
+    AppInfo,
+    DownloadSection,
+    Feature,
+    FeatureSection,
+    HowItWorksSection,
+    HowItWorksStep,
+    PriceFeatures,
+    PricingPlan,
+    PricingPlanSection,
+    ReferralSection,
+)
+
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
@@ -26,7 +48,7 @@ def replace_file_field(instance, field_name, new_file):
             except Exception as e:
                 print(f"Error deleting old file: {e}")
             # print("Old file deleted.")
-    
+
     if new_file:
         setattr(instance, field_name, new_file)
         # print("New file added.")
@@ -55,7 +77,7 @@ class AppInfoView(APIView):
         # Check if AppInfo already has data
         if AppInfo.objects.exists():
             return Response({"error": "AppInfo Section already exists"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Check if AppDownload already exists
         created = False
         app_download = AppDownload.objects.first()
@@ -102,7 +124,7 @@ class AppInfoView(APIView):
         app_info.tagline = request.data.get('tagline', app_info.tagline)
         app_info.title = request.data.get('title', app_info.title)
         app_info.description = request.data.get('description', app_info.description)
-        
+
         # Handle image replacement
         new_image = request.FILES.get('image')
         replace_file_field(app_info, 'image', new_image)
@@ -121,7 +143,7 @@ class FeaturesSectionView(APIView):
         feature_section = FeatureSection.objects.last()
         if not feature_section:
             return Response([], status=status.HTTP_200_OK)
-        
+
         serializer = FeatureSectionSerializer(feature_section)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -130,12 +152,12 @@ class FeaturesSectionView(APIView):
         if FeatureSection.objects.exists():
             return Response({"message": "FeatureSection already exists. Use PUT to update."},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = FeatureSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
@@ -143,12 +165,12 @@ class FeaturesSectionView(APIView):
         if not feature_section:
             return Response({"message": "FeatureSection does not exist. Use POST to create."},
                             status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = FeatureSectionSerializer(feature_section, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "FeatureSection updated successfully"}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FeaturesView(APIView):
@@ -178,7 +200,7 @@ class FeaturesView(APIView):
                 for feature in features
             ]
             return Response(data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         # Check if FeatureSection already exists
         feature_section = FeatureSection.objects.first()
@@ -196,7 +218,7 @@ class FeaturesView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     def put(self, request, pk=None):
         if not pk:
             return Response({"error": "Feature ID is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -232,7 +254,7 @@ class HowItWorksSectionView(APIView):
         howitworks_section = HowItWorksSection.objects.last()
         if not howitworks_section:
             return Response([], status=status.HTTP_200_OK)
-        
+
         serializer = HowItWorksSectionSerializer(howitworks_section)
         data = serializer.data
         if howitworks_section.media:
@@ -250,7 +272,7 @@ class HowItWorksSectionView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
@@ -269,7 +291,7 @@ class HowItWorksSectionView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "HowItWorksSection updated successfully"}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class HowItWorksView(APIView):
@@ -359,14 +381,14 @@ class ReferralSectionView(APIView):
             if referral.image:
                 data['image'] = TRUSTWORK_BASE_API+referral.image.url
             return Response(data, status=status.HTTP_200_OK)
-        except:
+        except Exception:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
         # Check if ReferralSection already has data
         if ReferralSection.objects.exists():
             return Response({"error": "Referral Section already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         serializer = ReferralSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -394,7 +416,7 @@ class ReferralSectionView(APIView):
 
         except ReferralSection.DoesNotExist:
             return Response({"error": "Referral Section not found"}, status=status.HTTP_404_NOT_FOUND)
-    
+
 class DownloadSectionView(APIView):
     permission_classes=[IsAuthenticated]
     def get(self, request, pk=None):
@@ -461,7 +483,7 @@ class DownloadSectionView(APIView):
         # Update DownloadSection
         download_section.title = request.data.get('title', download_section.title)
         download_section.description = request.data.get('description', download_section.description)
-        
+
         new_image = request.FILES.get('image')
         replace_file_field(download_section, 'image', new_image)
 
@@ -478,12 +500,12 @@ class PackagesSectionCMSView(APIView):
         if self.request.method in ['POST', 'PUT']:
             return [IsAuthenticated()]
         return [AllowAny()]
-    
+
     def get(self, request):
         package_section = PricingPlanSection.objects.first()
         if not package_section:
             return Response([], status=status.HTTP_200_OK)
-        
+
         serializer = PricingPlanSectionSerializer(package_section)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -492,12 +514,12 @@ class PackagesSectionCMSView(APIView):
         if PricingPlanSection.objects.exists():
             return Response({"message": "PricingPlanSection already exists. Use PUT to update."},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = PricingPlanSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
@@ -505,12 +527,12 @@ class PackagesSectionCMSView(APIView):
         if not package_section:
             return Response({"message": "PricingPlanSection does not exist. Use POST to create."},
                             status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = PricingPlanSectionSerializer(package_section, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "PricingPlanSection updated successfully"}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PackagesSectionView(APIView):
@@ -518,7 +540,7 @@ class PackagesSectionView(APIView):
         if self.request.method in ['POST', 'PUT', 'DELETE']:
             return [IsAuthenticated()]
         return [AllowAny()]
-    
+
     def get(self, request, pk=None):
         download_section = DownloadSection.objects.last()
         if pk:
@@ -651,9 +673,9 @@ class PackagesSectionView(APIView):
             response_data['features'] = features_serializer.data
 
             return Response({"message": "Plan updated successfully", "data": response_data}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk=None):
         if not pk:
             return Response({"error": "Package ID (pk) is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -732,7 +754,7 @@ class HomePageView(APIView):
                     for step in steps
                 ]
             }
-        
+
         # Pricing Plan Section
         package_section = PricingPlanSection.objects.first()
         if package_section:
@@ -761,7 +783,7 @@ class HomePageView(APIView):
                 "description": package_section.description,
                 "pricing_plans": pricing_plans
             }
-        
+
         # Referral Section
         referral = ReferralSection.objects.last()
         if referral:

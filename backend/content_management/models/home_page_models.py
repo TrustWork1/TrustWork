@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # App Link
 class AppDownload(models.Model):
     playstore_link = models.URLField(blank=True, null=True)
@@ -43,9 +44,9 @@ class Feature(models.Model):
 
     def __str__(self):
         return self.title or "Feature Untitled"
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']
 
 # How It Works section
 class HowItWorksSection(models.Model):
@@ -68,9 +69,9 @@ class HowItWorksStep(models.Model):
 
     def __str__(self):
         return self.title or "HowItWorksStep Untitled"
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']
 
 # Best Packages For You section
 class PricingPlanSection(models.Model):
@@ -99,9 +100,9 @@ class PricingPlan(models.Model):
 
     def __str__(self):
         return self.plan_name
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']
 
 class PriceFeatures(models.Model):
     features = models.TextField(blank=True, null=True)
@@ -111,9 +112,9 @@ class PriceFeatures(models.Model):
 
     def __str__(self):
         return self.features or "No PriceFeatures"
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']
 
 # Referral section
 class ReferralSection(models.Model):

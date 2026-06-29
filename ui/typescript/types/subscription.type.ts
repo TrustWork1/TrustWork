@@ -6,6 +6,7 @@ export type TSubscriptionTypes = {
 };
 
 export type ISubscriptionCardProps = {
+  planId: number;
   planName: string;
   planSubTitle: string;
   price: number;

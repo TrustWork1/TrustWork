@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {call, put, select, takeLatest} from 'redux-saga/effects';
+import {call, delay, put, select, takeLatest} from 'redux-saga/effects';
 import {
   changePasswordFailure,
   changePasswordSuccess,
@@ -19,6 +19,12 @@ import {
   MembershipStatusSuccess,
   mtnPaymentFailure,
   mtnPaymentSuccess,
+  orangePaymentFailure,
+  orangePaymentSuccess,
+  orangeRedeemFailure,
+  orangeRedeemSuccess,
+  orangeSubFailure,
+  orangeSubSuccess,
   PayCodeFailure,
   PayCodeSuccess,
   ProfileFailure,
@@ -73,6 +79,7 @@ import {
 } from '../utils/helpers/ApiRequest';
 import showErrorAlert from '../utils/helpers/Toast';
 import constants from '../utils/helpers/constants';
+import {getErrorDetails} from '../utils/helpers/errorHelper';
 
 let getItem = state => state.AuthReducer;
 
@@ -101,13 +108,13 @@ export function* userCheckSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(userCheckFailure(error));
+      yield put(userCheckFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(userCheckFailure(error));
+      yield put(userCheckFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(userCheckFailure(error));
+      yield put(userCheckFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -122,10 +129,11 @@ export function* getTokenSaga() {
     if (response != null) {
       yield put(getTokenSuccess(response));
     } else {
-      yield put(getTokenFailure(error));
+      yield put(getTokenFailure({message: 'No saved token found', status: null}));
     }
   } catch (error) {
-    yield put(getTokenFailure(error));
+    const {status, message} = getErrorDetails(error);
+    yield put(getTokenFailure({message, status}));
   }
 }
 
@@ -144,7 +152,6 @@ export function* signUpSaga(action) {
       action.payload,
       header,
     );
-
     if (response?.status == 200) {
       yield put(signUpSuccess(response?.data));
       showErrorAlert(response?.data?.message);
@@ -154,18 +161,9 @@ export function* signUpSaga(action) {
       console.log('error1', response?.data?.data?.message);
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(signUpFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 504) {
-      yield put(signUpFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(signUpFailure(error));
-      showErrorAlert(error?.response?.data?.data?.error);
-      console.log('error2', error);
-      // showErrorAlert(error?.response?.data?.data?.email?.[0]);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(signUpFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -192,13 +190,13 @@ export function* verifyEmailSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(verifyEmailFailure(error));
+      yield put(verifyEmailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(verifyEmailFailure(error));
+      yield put(verifyEmailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(verifyEmailFailure(error));
+      yield put(verifyEmailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -222,13 +220,13 @@ export function* ResendOtpSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ResendOtpFailure(error));
+      yield put(ResendOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(ResendOtpFailure(error));
+      yield put(ResendOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ResendOtpFailure(error));
+      yield put(ResendOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -253,28 +251,24 @@ export function* signinSaga(action) {
     );
 
     if (response?.status === 200) {
-      yield put(signinSuccess(response.data?.data));
+      const responseData = response.data?.data;
+      const userData = responseData?.UserData;
+      const accessToken = responseData?.accessToken;
 
-      yield put(
-        storePaymentVerified(
-          response?.data?.data?.UserData?.is_payment_verified,
-        ),
-      );
-      yield put(storeIsDiscount(response?.data?.data?.UserData?.is_discount));
-      yield put(
-        storeProfileVerified(
-          response?.data?.data?.UserData?.is_profile_updated,
-        ),
-      );
-      const accessToken = response?.data?.data?.accessToken;
-
+      // 1. Persist token to AsyncStorage first
       if (accessToken) {
         yield call(AsyncStorage.setItem, constants.TRUSTWORKTKN, accessToken);
-        yield put(getTokenSuccess(accessToken));
       } else {
         console.log('Access token is undefined');
       }
 
+      // 2. Persist role type to AsyncStorage
+      const roleType = userData?.user_type;
+      if (roleType) {
+        yield call(AsyncStorage.setItem, constants.roleType, roleType);
+      }
+
+      // 3. Persist remember-me credentials if requested
       if (action?.payload?.savePassword) {
         yield call(
           AsyncStorage.setItem,
@@ -288,28 +282,24 @@ export function* signinSaga(action) {
         yield call(AsyncStorage.removeItem, constants.TRUSTWORKREMBERTKN);
       }
 
-      const roleType = response?.data?.data?.UserData?.user_type;
-      if (roleType) {
-        yield put(storeRoletype(response?.data?.data?.UserData?.user_type));
-        yield call(AsyncStorage.setItem, constants.roleType, roleType);
-      }
+      // 4. Single dispatch — signinSuccess sets isPaymentVerified, isDiscountApplied,
+      //    isProfileVerified, roleType, and getTokenResponse all at once so StackNav
+      //    only re-renders once with the complete, correct state.
+      yield put(signinSuccess(responseData));
 
-      showErrorAlert(response?.data?.data?.message);
+      if (responseData?.message) {
+        showErrorAlert(responseData.message);
+      }
     } else {
       yield put(signinFailure(response.data?.data));
-      showErrorAlert(response?.data?.data?.message);
+      if (response?.data?.data?.message) {
+        showErrorAlert(response?.data?.data?.message);
+      }
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(signinFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 504) {
-      yield put(signinFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(signinFailure(error));
-      showErrorAlert(error?.response?.data?.data?.error);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(signinFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -331,16 +321,16 @@ export function* forgotPasswordSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(forgotPasswordFailure(error));
+      yield put(forgotPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 500) {
-      yield put(forgotPasswordFailure(error));
+      yield put(forgotPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(forgotPasswordFailure(error));
+      yield put(forgotPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(forgotPasswordFailure(error));
+      yield put(forgotPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -364,13 +354,13 @@ export function* verificationSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(verificationFailure(error));
+      yield put(verificationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(verificationFailure(error));
+      yield put(verificationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(verificationFailure(error));
+      yield put(verificationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -394,17 +384,17 @@ export function* verificationOtpSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(verificationOtpFailure(error));
+      yield put(verificationOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 500) {
-      yield put(verificationOtpFailure(error));
+      yield put(verificationOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(verificationOtpFailure(error));
+      yield put(verificationOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
       console.log(error?.message);
-      yield put(verificationOtpFailure(error));
+      yield put(verificationOtpFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -435,13 +425,13 @@ export function* resetPasswordSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(resetPasswordFailure(error));
+      yield put(resetPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(resetPasswordFailure(error));
+      yield put(resetPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(resetPasswordFailure(error));
+      yield put(resetPasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -468,23 +458,21 @@ export function* ProfileSaga(action) {
 
       // showErrorAlert(response?.data?.message);
     } else {
-      console.log('try part', error);
       yield put(ProfileFailure(response?.data));
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    console.log('catch part', error?.response?.data?.data?.detail);
     if (error?.status == 502) {
-      yield put(ProfileFailure(error));
+      yield put(ProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProfileFailure(error));
+      yield put(ProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProfileFailure(error));
+      yield put(ProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProfileFailure(error));
+      yield put(ProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -502,22 +490,18 @@ export function* logoutSaga(action) {
     let response = yield call(postApi, 'logout/', action.payload, header);
     if (response?.status == 200) {
       yield call(AsyncStorage.removeItem, constants.TRUSTWORKTKN);
-      // yield put(getTokenSuccess(null));
-      // yield put(viewProfileSuccess(null));
       yield put(logoutSuccess(null));
       yield put(storeRoletype(''));
       showErrorAlert('Logged out successfully');
     } else {
-      yield put(logoutFailure(error));
+      // Non-200 but not an exception — still force local logout
       yield call(AsyncStorage.removeItem, constants.TRUSTWORKTKN);
       yield put(logoutSuccess(null));
-      // showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    yield put(logoutFailure(error));
+    // Network error or 401 — still force local logout
     yield call(AsyncStorage.removeItem, constants.TRUSTWORKTKN);
     yield put(logoutSuccess(null));
-    // showErrorAlert(error?.response?.data?.data?.error);
   }
 }
 
@@ -547,13 +531,13 @@ export function* changePasswordSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(changePasswordFailure(error));
+      yield put(changePasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 504) {
-      yield put(changePasswordFailure(error));
+      yield put(changePasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(changePasswordFailure(error));
+      yield put(changePasswordFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -564,7 +548,6 @@ export function* UpdateProfileSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {
@@ -582,16 +565,16 @@ export function* UpdateProfileSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(UpdateProfileFailure(error));
+      yield put(UpdateProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(UpdateProfileFailure(error));
+      yield put(UpdateProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(UpdateProfileFailure(error));
+      yield put(UpdateProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(UpdateProfileFailure(error));
+      yield put(UpdateProfileFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -602,7 +585,6 @@ export function* UpdateCoverPicSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {
@@ -623,19 +605,19 @@ export function* UpdateCoverPicSaga(action) {
   } catch (error) {
     console.log(error?.response);
     if (error?.status == 502) {
-      yield put(UpdateCoverPicFailure(error));
+      yield put(UpdateCoverPicFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(UpdateCoverPicFailure(error));
+      yield put(UpdateCoverPicFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 413) {
-      yield put(UpdateCoverPicFailure(error));
+      yield put(UpdateCoverPicFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Oops! That image is too large to upload');
     } else if (error?.status == 504) {
-      yield put(UpdateCoverPicFailure(error));
+      yield put(UpdateCoverPicFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(UpdateCoverPicFailure(error));
+      yield put(UpdateCoverPicFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -665,16 +647,16 @@ export function* ProviderListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ProviderListFailure(error));
+      yield put(ProviderListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProviderListFailure(error));
+      yield put(ProviderListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProviderListFailure(error));
+      yield put(ProviderListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProviderListFailure(error));
+      yield put(ProviderListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -704,16 +686,16 @@ export function* providerDetailsSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(providerDetailsFailure(error));
+      yield put(providerDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(providerDetailsFailure(error));
+      yield put(providerDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(providerDetailsFailure(error));
+      yield put(providerDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(providerDetailsFailure(error));
+      yield put(providerDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -743,16 +725,16 @@ export function* providerListByLocationSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(providerListByLocationFailure(error));
+      yield put(providerListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(providerListByLocationFailure(error));
+      yield put(providerListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(providerListByLocationFailure(error));
+      yield put(providerListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(providerListByLocationFailure(error));
+      yield put(providerListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -778,16 +760,16 @@ export function* MembershipListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(MembershipListFailure(error));
+      yield put(MembershipListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(MembershipListFailure(error));
+      yield put(MembershipListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(MembershipListFailure(error));
+      yield put(MembershipListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(MembershipListFailure(error));
+      yield put(MembershipListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -818,16 +800,16 @@ export function* MembershipStatusSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(MembershipStatusFailure(error));
+      yield put(MembershipStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(MembershipStatusFailure(error));
+      yield put(MembershipStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(MembershipStatusFailure(error));
+      yield put(MembershipStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(MembershipStatusFailure(error));
+      yield put(MembershipStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -858,16 +840,16 @@ export function* MTNPaymentSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(mtnPaymentFailure(error));
+      yield put(mtnPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(mtnPaymentFailure(error));
+      yield put(mtnPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(mtnPaymentFailure(error));
+      yield put(mtnPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(mtnPaymentFailure(error));
+      yield put(mtnPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -895,21 +877,21 @@ export function* deleteUserSaga(action) {
       yield put(storeRoletype(''));
       showErrorAlert(response?.data?.message);
     } else {
-      yield put(deleteUserFailure(error));
+      yield put(deleteUserFailure(response?.data));
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(deleteUserFailure(error));
+      yield put(deleteUserFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(deleteUserFailure(error));
+      yield put(deleteUserFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(deleteUserFailure(error));
+      yield put(deleteUserFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(deleteUserFailure(error));
+      yield put(deleteUserFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -939,16 +921,16 @@ export function* ServiceListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(serviceListFailure(error));
+      yield put(serviceListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(serviceListFailure(error));
+      yield put(serviceListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(serviceListFailure(error));
+      yield put(serviceListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(serviceListFailure(error));
+      yield put(serviceListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -966,7 +948,7 @@ export function* recentUpdateClientSaga(action) {
   try {
     let response = yield call(
       getApi,
-      `provider/view/project?status=active?page=${action?.payload?.page}&limit=${action?.payload?.perpage}&search=${action?.payload?.keyword_search}`,
+      `provider/view/project?status=active&page=${action?.payload?.page}&limit=${action?.payload?.perpage}&search=${action?.payload?.keyword_search}`,
       header,
     );
 
@@ -979,16 +961,16 @@ export function* recentUpdateClientSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(recentUpdateClientFailure(error));
+      yield put(recentUpdateClientFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(recentUpdateClientFailure(error));
+      yield put(recentUpdateClientFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(recentUpdateClientFailure(error));
+      yield put(recentUpdateClientFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(recentUpdateClientFailure(error));
+      yield put(recentUpdateClientFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1020,16 +1002,16 @@ export function* SubscriptionSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(SubscriptionFailure(error));
+      yield put(SubscriptionFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(SubscriptionFailure(error));
+      yield put(SubscriptionFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(SubscriptionFailure(error));
+      yield put(SubscriptionFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(SubscriptionFailure(error));
+      yield put(SubscriptionFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1061,16 +1043,16 @@ export function* CreatePaymentSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(CreatePaymentFailure(error));
+      yield put(CreatePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(CreatePaymentFailure(error));
+      yield put(CreatePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(CreatePaymentFailure(error));
+      yield put(CreatePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(CreatePaymentFailure(error));
+      yield put(CreatePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1102,20 +1084,20 @@ export function* StripePaymentSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(StripePaymentFailure(error));
+      yield put(StripePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 500) {
-      yield put(StripePaymentFailure(error));
+      yield put(StripePaymentFailure({ message: error?.message, status: error?.status }));
       console.log(error?.message);
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(StripePaymentFailure(error));
+      yield put(StripePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(StripePaymentFailure(error));
+      yield put(StripePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(StripePaymentFailure(error));
+      yield put(StripePaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1146,20 +1128,20 @@ export function* StripePaymentFailSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(StripePaymentFailFailure(error));
+      yield put(StripePaymentFailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 500) {
-      yield put(StripePaymentFailFailure(error));
+      yield put(StripePaymentFailFailure({ message: error?.message, status: error?.status }));
       console.log(error?.message);
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(StripePaymentFailFailure(error));
+      yield put(StripePaymentFailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(StripePaymentFailFailure(error));
+      yield put(StripePaymentFailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(StripePaymentFailFailure(error));
+      yield put(StripePaymentFailFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1190,33 +1172,308 @@ export function* PayCodeSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(PayCodeFailure(error));
+      yield put(PayCodeFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 500) {
-      yield put(PayCodeFailure(error));
+      yield put(PayCodeFailure({ message: error?.message, status: error?.status }));
       console.log(error?.message);
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(PayCodeFailure(error));
+      yield put(PayCodeFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(PayCodeFailure(error));
+      yield put(PayCodeFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(PayCodeFailure(error));
+      yield put(PayCodeFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
 }
 
+//OrangePayment (Subscription)
+const SUCCESS_STATUSES = ['SUCCESS', 'SUCCESSFUL', 'SUCCEEDED'];
+const PENDING_STATUSES = ['PENDING', 'INITIATED', 'PROCESSING'];
+const FAILED_STATUSES = ['FAILED', 'FAIL', 'CANCELLED', 'EXPIRED'];
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLL_ATTEMPTS = 24; // 2 minutes max
+
+export function* OrangePaymentSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+
+  try {
+    let response = yield call(postApi, `orange/pay/`, action.payload, header);
+
+    if (response?.status === 200 || response?.status === 201) {
+      const data = response?.data;
+      const paymentResponse = data?.payment_response;
+      const transactionId = data?.transaction_id;
+
+      // Extract Orange transaction fields from payment_response if present
+      const orderId = paymentResponse?.orderId ?? null;
+      const payToken = paymentResponse?.payToken ?? null;
+      const orangeTransactionId = paymentResponse?.orangeTransactionId ?? null;
+      const initialStatus = paymentResponse?.status ?? null;
+
+      // Immediately resolve if already successful
+      if (initialStatus && SUCCESS_STATUSES.includes(initialStatus?.toUpperCase())) {
+        yield put(
+          orangePaymentSuccess({
+            ...data,
+            finalStatus: 'SUCCESS',
+          }),
+        );
+        return;
+      }
+
+      // If failed right away
+      if (initialStatus && FAILED_STATUSES.includes(initialStatus?.toUpperCase())) {
+        yield put(
+          orangePaymentFailure({
+            message: 'Payment failed or was cancelled.',
+            finalStatus: initialStatus,
+          }),
+        );
+        showErrorAlert('Payment failed or was cancelled.');
+        return;
+      }
+
+      // Emit pending state so UI can show the pending screen
+      yield put(
+        orangePaymentSuccess({
+          ...data,
+          finalStatus: 'PENDING',
+          orderId,
+          payToken,
+          orangeTransactionId,
+          transactionId,
+        }),
+      );
+
+      // Poll for final status
+      let attempts = 0;
+      while (attempts < MAX_POLL_ATTEMPTS) {
+        yield delay(POLL_INTERVAL_MS);
+        attempts++;
+
+        try {
+          let pollResponse = null;
+
+          // Prefer orderId endpoint; fall back to payToken
+          if (orderId) {
+            pollResponse = yield call(getApi, `status/${orderId}/`, header);
+          } else if (payToken) {
+            pollResponse = yield call(
+              getApi,
+              `paymentstatus/${payToken}/`,
+              header,
+            );
+          } else {
+            // No identifiers to poll with — give up
+            yield put(
+              orangePaymentFailure({
+                message: 'Unable to verify payment status.',
+                finalStatus: 'UNKNOWN',
+              }),
+            );
+            return;
+          }
+
+          const pollData = pollResponse?.data;
+          const pollStatus = (
+            pollData?.status ??
+            pollData?.payment_status ??
+            ''
+          ).toUpperCase();
+
+          if (SUCCESS_STATUSES.includes(pollStatus)) {
+            yield put(
+              orangePaymentSuccess({
+                ...pollData,
+                finalStatus: 'SUCCESS',
+                orderId,
+                payToken,
+                orangeTransactionId,
+                transactionId,
+              }),
+            );
+            return;
+          }
+
+          if (FAILED_STATUSES.includes(pollStatus)) {
+            yield put(
+              orangePaymentFailure({
+                message: 'Payment failed or was cancelled.',
+                finalStatus: pollStatus,
+              }),
+            );
+            showErrorAlert('Payment failed or was cancelled.');
+            return;
+          }
+
+          // Still PENDING — continue polling
+        } catch (pollError) {
+          // Network hiccup during poll — keep trying
+          console.warn('Orange pay poll error:', pollError);
+        }
+      }
+
+      // Timed out
+      yield put(
+        orangePaymentFailure({
+          message: 'Payment verification timed out. Please check your account.',
+          finalStatus: 'TIMEOUT',
+        }),
+      );
+      showErrorAlert(
+        'Payment verification timed out. Please check your account.',
+      );
+    } else {
+      yield put(orangePaymentFailure(response?.data));
+      showErrorAlert(response?.data?.message ?? 'Orange payment failed.');
+    }
+  } catch (error) {
+    const {message} = getErrorDetails(error);
+    yield put(orangePaymentFailure({message}));
+    showErrorAlert(message);
+  }
+}
+
+///////////////////// OrangeSub — send Orange subscription payment request //////////////////////
+export function* OrangeSubSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+
+  try {
+    let response = yield call(
+      postApi,
+      `send_orange_subscription_request/`,
+      action.payload,
+      header,
+    );
+
+    if (response?.status === 200 || response?.status === 201) {
+      const data = response?.data?.data ?? response?.data;
+      yield put(orangeSubSuccess(data));
+    } else {
+      const errData = response?.data?.data ?? response?.data;
+      yield put(orangeSubFailure(errData));
+      showErrorAlert(resolveOrangeErrorMessage(errData));
+    }
+  } catch (error) {
+    // Parse the Orange-specific error out of the 400 response body
+    const errBody = error?.response?.data;
+    const userMessage = resolveOrangeErrorMessage(errBody);
+    yield put(orangeSubFailure({message: userMessage}));
+    showErrorAlert(userMessage);
+  }
+}
+
+/**
+ * Extracts a user-friendly message from the Orange subscription error response.
+ * The backend wraps the raw Orange API JSON string inside data.orange_response.detail.
+ */
+function resolveOrangeErrorMessage(errBody) {
+  try {
+    const orangeResponse = errBody?.data?.orange_response;
+    if (orangeResponse?.detail) {
+      const detail =
+        typeof orangeResponse.detail === 'string'
+          ? JSON.parse(orangeResponse.detail)
+          : orangeResponse.detail;
+
+      const inittxnstatus = String(detail?.data?.inittxnstatus ?? detail?.inittxnstatus ?? '');
+
+      const STATUS_MESSAGES = {
+        '60019': 'Insufficient balance on your Orange Money account. Please top up and try again.',
+        '60021': 'Your Orange Money account is not active. Please contact Orange support.',
+        '60022': 'Transaction limit exceeded on your Orange Money account.',
+        '60026': 'Orange Money service is temporarily unavailable. Please try again in a few minutes.',
+        '60031': 'Invalid Orange Money phone number. Please check and try again.',
+        '60032': 'Orange Money service is not available for this number.',
+        '60033': 'Your Orange Money account is blocked. Please contact Orange support.',
+        '60034': 'Daily transaction limit reached on your Orange Money account.',
+        '60035': 'Monthly transaction limit reached on your Orange Money account.',
+      };
+
+      if (inittxnstatus && STATUS_MESSAGES[inittxnstatus]) {
+        return STATUS_MESSAGES[inittxnstatus];
+      }
+
+      // Unknown code — show the raw inittxnmessage if available
+      const rawMsg =
+        detail?.data?.inittxnmessage ??
+        detail?.inittxnmessage ??
+        '';
+      if (rawMsg) {
+        return `Orange Money error (${inittxnstatus || 'unknown'}): ${rawMsg}`;
+      }
+    }
+
+    // Fall back to backend message
+    return (
+      errBody?.data?.message ??
+      errBody?.message ??
+      'Unable to send Orange Money payment request. Please check your details and try again.'
+    );
+  } catch (_) {
+    return 'Unable to send Orange Money payment request. Please check your details and try again.';
+  }
+}
+
+///////////////////// OrangeRedeem — redeem Orange subscription code //////////////////////
+export function* OrangeRedeemSaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    authorization: items?.getTokenResponse,
+  };
+
+  try {
+    let response = yield call(
+      postApi,
+      `check_orange_subscription_codes/`,
+      action.payload,
+      header,
+    );
+
+    if (response?.status === 200 || response?.status === 201) {
+      const data = response?.data?.data ?? response?.data;
+      yield put(orangeRedeemSuccess(data));
+      // Refresh user profile after successful redemption
+      yield put({type: 'Auth/ProfileRequest'});
+    } else {
+      const errData = response?.data?.data ?? response?.data;
+      yield put(orangeRedeemFailure(errData));
+      showErrorAlert(
+        errData?.message ??
+          'Invalid or already used subscription code. Please check the code and try again.',
+      );
+    }
+  } catch (error) {
+    const {message} = getErrorDetails(error);
+    yield put(orangeRedeemFailure({message}));
+    showErrorAlert(
+      message ??
+        'Invalid or already used subscription code. Please check the code and try again.',
+    );
+  }
+}
+
 const watchFunction = [
   (function* () {
-    yield takeLatest('Auth/userCheckRequest', userCheckSaga);
-  })(),
-  (function* () {
     yield takeLatest('Auth/getTokenRequest', getTokenSaga);
-  })(),
-  (function* () {
+  })(),  (function* () {
     yield takeLatest('Auth/signUpRequest', signUpSaga);
   })(),
   (function* () {
@@ -1299,6 +1556,15 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Auth/PayCodeRequest', PayCodeSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Auth/orangePaymentRequest', OrangePaymentSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Auth/orangeSubRequest', OrangeSubSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Auth/orangeRedeemRequest', OrangeRedeemSaga);
   })(),
 ];
 export default watchFunction;

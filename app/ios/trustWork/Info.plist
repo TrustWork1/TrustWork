@@ -40,11 +40,11 @@
 	<key>NSCameraUsageDescription</key>
 	<string>TrustWork requires camera access to take/upload photo of work and location of work.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<string>Your location helps us connect you with service providers available in your area.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<string>Your location helps us connect you with service providers available in your area.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>TrustWork requires location access to take project/work location for reviewing the Work</string>
+	<string>Your location helps us connect you with service providers available in your area.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>TrustWork requires access save photos to your photo library to upload photo of work and location of work.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

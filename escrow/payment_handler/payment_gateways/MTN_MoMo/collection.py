@@ -1,12 +1,13 @@
 
-import os
-from uuid import uuid4
-import requests
 import json
 from uuid import uuid4
-from basicauth import encode
-from .mtn_momo import MtnMoMo
+
+import requests
 from django.conf import settings
+
+from .mtn_momo import MtnMoMo
+from .utils import normalize_mtn_cameroon_msisdn
+
 MTN_COLLECTION_PRIMARY_KEY=settings.MTN_COLLECTION_PRIMARY_KEY
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 ESCROW_BASE_API=settings.ESCROW_BASE_API
@@ -18,6 +19,7 @@ class MtnMoMoCollection(MtnMoMo):
         self.collections_primary_key = MTN_COLLECTION_PRIMARY_KEY
 
     def requestToPay(self, amount, phone_number, external_id, payernote="TRUSTWORK", payermessage="SENT PROJECT FEE"):
+        phone_number = normalize_mtn_cameroon_msisdn(phone_number)
         uuidgen = str(uuid4())
         url = f"{self.base_url}/collection/v1_0/requesttopay"
         payload = json.dumps({
@@ -66,9 +68,10 @@ class MtnMoMoCollection(MtnMoMo):
         response = requests.request("GET", url, headers=headers, data=payload)
         json_respon = response.json()
         return json_respon
-    
+
     # Check MTN Account is valid or not
     def getAccountStatus(self, account_number: str):
+        account_number = normalize_mtn_cameroon_msisdn(account_number)
         url = f"{self.base_url}/collection/v1_0/accountholder/msisdn/{account_number}/active"
         headers = {
             'Ocp-Apim-Subscription-Key': self.collections_primary_key,
@@ -76,7 +79,7 @@ class MtnMoMoCollection(MtnMoMo):
             'X-Target-Environment': self.environment_mode,
         }
         response = requests.request("GET", url, headers=headers)
-        
+
         if not response.ok:
             return {"result":False}
         return response.json()

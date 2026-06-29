@@ -1,26 +1,23 @@
-from rest_framework import serializers
-from project_management.models import Project,Transactions
-from profile_management.models import Profile
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-from master.models import JobCategory,Location
-from project_management.models import Feedback
 from api.profile.serializers import ProfileSerializer
-from api.master.serializers import LocationSerailizer
+from customuser.models import CustomUser
+from master.models import JobCategory, Location
+from profile_management.models import Profile
+from project_management.models import Bid, Project, Transactions
+
 # from api.project.serializers import JobCategorySerializer
 
 
 user = get_user_model()
 
-from rest_framework import serializers
-from project_management.models import Project, Bid, Profile  # Adjust the import path as necessary
-from master.models import JobCategory,Location
 
 class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = JobCategory
         fields = '__all__'
-    
+
     def validate_image(self, value):
         if not value and self.instance:
             return self.instance.image
@@ -53,7 +50,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     # bid_time_line_hour=serializers.SerializerMethodField()
     client = ProfileSerializer(read_only=True)
     # can__send_bid=serializers.SerializerMethodField()
-        
+
     def get_bid(self, obj):
         try:
             #bid = obj.bid.filter(status__iexact="Accepted").last()
@@ -75,29 +72,23 @@ class ProjectSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             profile = request.user.profile
-            
+
             # if obj.project.status == "myoffer":
             #     return True
-            
+
             existing_bid = Bid.objects.filter(
-                service_provider=profile, 
+                service_provider=profile,
                 project=obj.id
             ).exists()
-            
+
             return not existing_bid
         return False
-    
+
     def get_can__send_bid(self, obj):
-        try:
-            if obj.can__send_bid:
-                return obj.can__send_bid
-            else:
-                return True
-        except:
-            return True
+        return getattr(obj, "can__send_bid", None) or True
     def get_email(self, obj):
         return obj.client.user.email
-    
+
     def get_payment_status(self, obj):
         transaction=Transactions.objects.filter(bid__project=obj,status="in_progress").last()
         if transaction:
@@ -110,23 +101,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         if transaction:
             return transaction.status
         return ""
-    
+
     # def get_provider(self, obj):
     #     accepted_bid = obj.bid.filter(status__iexact="accepted").last()
     #     if accepted_bid:
     #         return ProfileSerializer(accepted_bid.service_provider).data
     #     return None
 
-    def get_provider(self,obj):
-        if obj.bid.filter(status__iexact="accepted").last():
-            return ProfileSerializer(obj.bid.filter(status__iexact="accepted").last().service_provider).data
-        elif obj.status=="completed" or obj.status=="Completed":
-            return ProfileSerializer(obj.bid.filter(status__iexact="accepted").last().service_provider.all()).data # .last()
-        elif obj.status=="ongoing" or obj.status=="Ongoing":
-            return ProfileSerializer(obj.bid.filter(status__iexact="ongoing").last().service_provider.all()).data
-        else:
-            return ProfileSerializer(obj.bid.all().last().service_provider).data
-        
     def get_bid_cost(self, obj):
         try:
             last_bid = obj.bid.filter(status__iexact="accepted").last()
@@ -134,7 +115,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             if last_bid:
                 return last_bid.project_total_cost
             return ""
-        except:
+        except Exception:
             return ""
 
 
@@ -165,7 +146,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     #     if request and request.user.is_authenticated:
     #         return obj.bid.service_provider == request.user.profile
     #     return True
-    
+
     # def get_project_total_cost(self, obj):
     #     accepted_bids = obj.bid.filter(status='accepted')
     #     if accepted_bids.exists():
@@ -173,9 +154,6 @@ class ProjectSerializer(serializers.ModelSerializer):
     #     return None
     # def get_project_total_cost(self,obj):
     #     return obj.project_budget
-    def get_client_full_name(self, obj):
-        return obj.client.user.full_name if obj.client else ""
-
     # def get_client_profile_pic(self, obj):
     #     if obj.client and obj.client.profile_picture:
     #         return obj.client.profile_picture.url
@@ -192,7 +170,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_project_category(self, obj):
         try:
             return JobCategorySerializer(JobCategory.objects.filter(id=obj.project_category.id).first()).data
-        except:
+        except Exception:
             return ""
 
 
@@ -219,13 +197,13 @@ class ProjectSerializer(serializers.ModelSerializer):
     ################## ADDED ################
     # def get_can_send_bid(self, obj):
     #     request = self.context.get('request')
-    #     if request and hasattr(request, 'user'): 
+    #     if request and hasattr(request, 'user'):
     #         user = request.user
     #         try:
     #             user_profile = Profile.objects.get(user=user)
-    #             existing_bid = Bid.objects.filter(service_provider=user_profile, project=obj).exists() 
+    #             existing_bid = Bid.objects.filter(service_provider=user_profile, project=obj).exists()
     #             return not existing_bid
-    #         except Profile.DoesNotExist: 
+    #         except Profile.DoesNotExist:
     #             return True
     #     return False
     class Meta:
@@ -243,14 +221,14 @@ class ProjectSerializer(serializers.ModelSerializer):
         location = Location.objects.filter(
             latitude=latitude,
             longitude=longitude,
-            country= country, 
+            country= country,
             code= code
         ).last()
         if not location:
             location = Location.objects.create(
                 latitude=latitude,
                 longitude=longitude,
-                country= country, 
+                country= country,
                 code= code)
             # validated_data["country"] = location
 
@@ -286,7 +264,7 @@ class AdminProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
-    
+
     def get_field_names(self, declared_fields, info):
         fields= super().get_field_names(declared_fields, info)
         # return fields.append("client")
@@ -294,7 +272,7 @@ class AdminProjectSerializer(serializers.ModelSerializer):
         return fields
     def get_email(self, obj):
         return obj.client.user.email
-    
+
     def get_payment_status(self, obj):
         return " "
         # obj.payment_status if obj.payment_status else
@@ -304,31 +282,6 @@ class AdminProjectSerializer(serializers.ModelSerializer):
     #     if accepted_bid:
     #         return ProfileSerializer(accepted_bid.service_provider).data
     #     return None
-
-    def get_provider(self,obj):
-        if obj.bid.filter(status__iexact="accepted").last():
-            return ProfileSerializer(obj.bid.filter(status__iexact="accepted").last().service_provider).data
-        elif obj.status=="completed" or obj.status=="Completed":
-            return ProfileSerializer(obj.bid.filter(status__iexact="completed").last().service_provider).data
-        elif obj.status=="ongoing" or obj.status=="Ongoing":
-            return ProfileSerializer(obj.bid.filter(status__iexact="ongoing").last().service_provider).data
-        else:
-            return ProfileSerializer(obj.service_provider).data
-
-
-    def get_project_total_cost(self, obj):
-        accepted_bids = obj.bid.filter(status='accepted')
-        if accepted_bids.exists():
-            return accepted_bids.first().project_total_cost
-        return None
-
-    def get_client_full_name(self, obj):
-        return obj.client.user.full_name if obj.client else ""
-
-    def get_client_profile_pic(self, obj):
-        if obj.client and obj.client.profile_picture:
-            return obj.client.profile_picture.url
-        return ""
 
     # def get_project_location(self,obj):
     #     if obj.project_location:
@@ -374,13 +327,13 @@ class AdminProjectSerializer(serializers.ModelSerializer):
 
     # def get_can_send_bid(self, obj):
     #     request = self.context.get('request')
-    #     if request and hasattr(request, 'user'): 
+    #     if request and hasattr(request, 'user'):
     #         user = request.user
     #         try:
     #             user_profile = Profile.objects.get(user=user)
-    #             existing_bid = Bid.objects.filter(service_provider=user_profile, project=obj).exists() 
+    #             existing_bid = Bid.objects.filter(service_provider=user_profile, project=obj).exists()
     #             return not existing_bid
-    #         except Profile.DoesNotExist: 
+    #         except Profile.DoesNotExist:
     #             return False
     #     return False
     # def create(self, validated_data):
@@ -414,10 +367,17 @@ class AdminProjectSerializer(serializers.ModelSerializer):
 
         return project
 
+class ProDetailSerializer(serializers.ModelSerializer):
+    project_category = JobCategorySerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = '__all__'
+
 class BidSerializer(serializers.ModelSerializer):
     client = serializers.SerializerMethodField()
-    # project = ProjectSerializer(read_only=True)
-    project = serializers.SerializerMethodField()
+    project = ProDetailSerializer(read_only=True)
+    # project = serializers.SerializerMethodField()
     service_provider = serializers.SerializerMethodField()
     # can__send_bid = serializers.SerializerMethodField()
     bis_sent = serializers.SerializerMethodField()
@@ -428,7 +388,7 @@ class BidSerializer(serializers.ModelSerializer):
         if hasattr(obj.project, 'client'):
             return ProfileSerializer(obj.project.client).data
         return None
-    
+
     def get_service_provider(self, obj):
         if obj.service_provider.profile_picture:
             return {"id":obj.service_provider.id,"full_name":obj.service_provider.user.full_name, "profile_picture":obj.service_provider.profile_picture.url, "email":obj.service_provider.user.email, "phone":obj.service_provider.phone, "profile_rating":obj.service_provider.profile_rating, "address":obj.service_provider.address}
@@ -440,7 +400,7 @@ class BidSerializer(serializers.ModelSerializer):
     def get_client_name(self, obj):
         full_name =obj.project.client.user.full_name
         return full_name
-    
+
 
     def get_bis_sent(self, obj):
         request = self.context.get('request')
@@ -456,26 +416,27 @@ class BidSerializer(serializers.ModelSerializer):
     #         if Bid.objects.filter(service_provider=service_provider, project=project).exists():
     #             raise serializers.ValidationError("You have already submitted a bid for this project.")
     #     return data
-    
+
     def validate(self, data):
         request = self.context.get('request')
         if request:
             service_provider = Profile.objects.get(user=request.user)
             project = data.get('project')
-        
+
             # Check if any non-rejected bids exist
             has_active_bid = Bid.objects.filter(
-                service_provider=service_provider, 
+                service_provider=service_provider,
                 project=project
             ).exclude(status='Rejected').exists()
-        
+
             if has_active_bid:
                 raise serializers.ValidationError("You already have an active bid for this project. You cannot submit another bid until your current bid is rejected.")
         return data
-    def get_project(self, obj):
-        project = list(Project.objects.filter(id=obj.project_id).values())[0]
-        project['bid_cost']=obj.project_total_cost
-        return project
+
+    # def get_project(self, obj):
+    #     project = list(Project.objects.filter(id=obj.project_id).values())[0]
+    #     project['bid_cost']=obj.project_total_cost
+    #     return project
 
     # def get_can__send_bid(self, obj):
     #     try:
@@ -488,21 +449,21 @@ class BidSerializer(serializers.ModelSerializer):
     #     request = self.context.get('request')
     #     if request and request.user.is_authenticated:
     #         profile = request.user.profile
-            
+
     #         if obj.project.status == "myoffer":
     #             return False
-            
+
     #         existing_bid = Bid.objects.filter(
-    #             service_provider=profile, 
+    #             service_provider=profile,
     #             project=obj.project
     #         ).exists()
-            
+
     #         return not existing_bid
     #     return False
-    
+
     def get_can__send_bid(self, obj):
         request = self.context.get('request')
-    
+
         if not request or not request.user.is_authenticated:
             return False  # Block if no user or request
 
@@ -511,9 +472,9 @@ class BidSerializer(serializers.ModelSerializer):
 
         # Ensure no active or pending bid exists except 'Rejected'
         existing_bid = Bid.objects.filter(
-            service_provider=profile, 
+            service_provider=profile,
             project=project
-        ).exclude(status__iexact='Rejected').exists()  
+        ).exclude(status__iexact='Rejected').exists()
 
         return not existing_bid  # Return False if active bid exists
 
@@ -536,17 +497,11 @@ class BidSerializerProjectView(serializers.ModelSerializer):
     can_send_bid=serializers.SerializerMethodField()
     bid = serializers.SerializerMethodField()
     def get_can_send_bid(self,obj):
-        try:
-            if obj.can_send_bid:
-                return obj.can_send_bid
-            else:
-                return True
-        except:
-            return True
+        return getattr(obj, "can_send_bid", None) or True
     def get_bid(self, obj):
         bid = obj.bid.filter(status='Accepted') #.all()
         return BidSerializer(bid, many=True).data
-    
+
     # project=ProjectSerializer(read_only=True)
     def get_project_category(self,obj):
         if obj.project_category:
@@ -557,12 +512,9 @@ class BidSerializerProjectView(serializers.ModelSerializer):
     def get_client_name(self, obj):
         full_name =obj.client.user.full_name
         return full_name if full_name else " "
-    
+
     def get_client_location(self, obj):
-        if obj.client.location:
-            location = obj.client.location.country
-        else:
-            location=''
+        location = obj.client.location.country if obj.client.location else ''
         return location if location else " "
     class Meta:
         model = Project
@@ -577,7 +529,7 @@ class ProviderSerializer(serializers.ModelSerializer):
     total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
     total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
     referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
-    full_name = serializers.CharField(source='user.full_name') 
+    full_name = serializers.CharField(source='user.full_name')
     user_type = serializers.CharField(source='user.get_user_type_display',read_only=True)
     class Meta:
         model = Profile
@@ -596,7 +548,7 @@ class TransactionProjectSerializer(serializers.ModelSerializer):
 class TransactionBidSerializer(serializers.ModelSerializer):
     service_provider_name = serializers.CharField(source='service_provider.full_name', read_only=True)
     service_provider = ProviderSerializer(read_only=True)
-    
+
     class Meta:
         model = Bid
         fields = ['id', 'bid_details', 'quotation_details', 'project_total_cost', 'time_line', 'time_line_hour', 'is_accepted', 'service_provider_name', 'service_provider']
@@ -609,7 +561,11 @@ class TransectionSerializer(serializers.ModelSerializer):
     created_at = serializers.SerializerMethodField()
     class Meta:
         model = Transactions
-        fields = ['escrow_id', 'status', 'transaction_type', 'bid', 'project', 'transection_amount', 'created_at']
+        fields = [
+            'escrow_id', 'external_order_id', 'payment_token', 'gateway_transaction_id',
+            'status', 'transaction_type', 'bid', 'project', 'transection_amount',
+            'created_at'
+        ]
 
     def get_created_at(self, obj):
         return obj.created_at.strftime('%Y-%m-%d %H:%M:%S')
@@ -637,19 +593,15 @@ class TransectionSerializer(serializers.ModelSerializer):
 #             'project_location', 'status'
 #         ]
 
-from customuser.models import CustomUser
-
-class SwitchRoleSerializer(serializers.ModelSerializer): 
+class SwitchRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['user_type']
 
-    def update(self, instance, validated_data): 
+    def update(self, instance, validated_data):
         if instance.user_type == 'client':
-            instance.user_type = 'provider' 
+            instance.user_type = 'provider'
         elif instance.user_type == 'provider':
-            instance.user_type = 'client' 
+            instance.user_type = 'client'
         instance.save()
         return instance
-    
-

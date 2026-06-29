@@ -6,6 +6,14 @@ export const PricingCardPaper = styled(Paper)`
   border-radius: 16px;
   padding: 50px 38px;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
+
+  .plant-top {
+    width: 100%;
+  }
 
   .MuiTypography-body2 {
     span {
@@ -29,6 +37,20 @@ export const PricingCardPaper = styled(Paper)`
       &:not(:last-child) {
         margin-bottom: 16px;
       }
+    }
+  }
+
+  .selectPlanBtn {
+    height: 50px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: capitalize;
+    box-shadow: 0px 14px 25px 0px rgba(66, 124, 54, 0.2);
+
+    @media (max-width: 599px) {
+      height: 46px;
+      font-size: 14px;
     }
   }
 `;

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Terms & Conditions section
 class TermsConditionsSection(models.Model):
     section_header = models.CharField(max_length=255, blank=True, null=True)

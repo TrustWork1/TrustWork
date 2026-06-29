@@ -8,6 +8,8 @@ export default {
   BASE_URL: 'https://api.trustwork.live/api',
   IMAGE_URL: 'https://api.trustwork.live',
   SOCKET_URL: 'wss://api.trustwork.live/ws/chat/',
+  ORANGE_PAY_URL: 'https://api.trustwork.live/api/orange/pay/',
+  ORANGE_PAY_TOKEN: 'WU5PVEVIRUFEMjpAWU5vVGVIRUBEMlBST0RBUEk=',
 
   // // LOCAL URL
   // BASE_URL: 'http://10.2.0.202:8000/api',
@@ -20,4 +22,6 @@ export default {
   TRUSTWORKREMBERTKN: 'TRUSTWORKREMBERTKN',
   TRUSTWORKTKNADDRESS: 'TRUSTWORKTKNADDRESS',
   GOOGLEAPIKEY: 'AIzaSyAwJjLJ7uO32wLKrn9ciickzC-i3O8ogcM',
+  // ORANGE_PAY_URL: 'https://trustwork-api.dedicateddevelopers.us/api/orange/pay/',
+  // ORANGE_PAY_TOKEN: 'WU5PVEVIRUFEMjpAWU5vVGVIRUBEMlBST0RBUEk=',
 };

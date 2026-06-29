@@ -77,69 +77,8 @@ const StackNav = props => {
             );
           })
         ) : AuthReducer?.roleType === 'provider' ? (
-          AuthReducer?.isPaymentVerified ? (
-            Object.entries({
-              ProviderBottomTabNav,
-              ProfileProvider,
-              Notification,
-              ServiceProvidersDetails,
-              ServiceDetails,
-              CreateProject,
-              ProjectDetails,
-              ProjectDetailsProvider,
-              DocView,
-              ProviderProjectDetails,
-              SendBid,
-              AccountSetting,
-              EditProfile,
-              HelpSupport,
-              Chat,
-              WithdrawMoney,
-              PaymentHistory,
-              PaymentMethods,
-              ManageService,
-              ChangePass,
-              AboutUs,
-              Referal,
-              Payment,
-              BidDetails,
-            }).map(([name, component]) => {
-              return (
-                <Stack.Screen key={name} name={name} component={component} />
-              );
-            })
-          ) : AuthReducer?.isProfileVerified ? (
-            Object.entries({
-              UserMembershipPlan,
-              SubscriptionPayment,
-              ProviderBottomTabNav,
-              ProfileProvider,
-              Notification,
-              ServiceProvidersDetails,
-              ServiceDetails,
-              CreateProject,
-              ProjectDetails,
-              ProjectDetailsProvider,
-              ProviderProjectDetails,
-              SendBid,
-              AccountSetting,
-              EditProfile,
-              HelpSupport,
-              Chat,
-              WithdrawMoney,
-              PaymentHistory,
-              PaymentMethods,
-              ManageService,
-              ChangePass,
-              AboutUs,
-              Referal,
-              DocView,
-            }).map(([name, component]) => {
-              return (
-                <Stack.Screen key={name} name={name} component={component} />
-              );
-            })
-          ) : (
+          // Case 1: Profile not completed → go to profile update first
+          !AuthReducer?.isProfileVerified ? (
             Object.entries({
               ProviderUpdateProfile,
               UserMembershipPlan,
@@ -172,10 +111,79 @@ const StackNav = props => {
                 <Stack.Screen key={name} name={name} component={component} />
               );
             })
-          )
-        ) : AuthReducer?.roleType === 'client' ? (
-          AuthReducer?.isPaymentVerified ? (
+          ) : !AuthReducer?.isPaymentVerified ? (
+            // Case 2: Profile done but payment not verified → go to membership plan
             Object.entries({
+              UserMembershipPlan,
+              SubscriptionPayment,
+              ProviderBottomTabNav,
+              ProfileProvider,
+              Notification,
+              ServiceProvidersDetails,
+              ServiceDetails,
+              CreateProject,
+              ProjectDetails,
+              ProjectDetailsProvider,
+              ProviderProjectDetails,
+              SendBid,
+              AccountSetting,
+              EditProfile,
+              HelpSupport,
+              Chat,
+              WithdrawMoney,
+              PaymentHistory,
+              PaymentMethods,
+              ManageService,
+              ChangePass,
+              AboutUs,
+              Referal,
+              DocView,
+            }).map(([name, component]) => {
+              return (
+                <Stack.Screen key={name} name={name} component={component} />
+              );
+            })
+          ) : (
+            // Case 3: Profile done + payment verified → normal app flow
+            Object.entries({
+              ProviderBottomTabNav,
+              ProfileProvider,
+              Notification,
+              ServiceProvidersDetails,
+              ServiceDetails,
+              CreateProject,
+              ProjectDetails,
+              ProjectDetailsProvider,
+              DocView,
+              ProviderProjectDetails,
+              SendBid,
+              AccountSetting,
+              EditProfile,
+              HelpSupport,
+              Chat,
+              WithdrawMoney,
+              PaymentHistory,
+              PaymentMethods,
+              ManageService,
+              ChangePass,
+              AboutUs,
+              Referal,
+              Payment,
+              BidDetails,
+            }).map(([name, component]) => {
+              return (
+                <Stack.Screen key={name} name={name} component={component} />
+              );
+            })
+          )
+        ) : AuthReducer?.roleType === 'client' ||
+          AuthReducer?.roleType === 'admin' ? (
+          // Case 1: Profile not completed → go to profile update first
+          !AuthReducer?.isProfileVerified ? (
+            Object.entries({
+              UserUpdateProfile,
+              UserMembershipPlan,
+              SubscriptionPayment,
               UserBottomTabNav,
               Profile,
               Notification,
@@ -184,6 +192,7 @@ const StackNav = props => {
               CreateProject,
               EditProject,
               ProjectDetails,
+              DocView,
               ProjectDetailsProvider,
               ProviderProjectDetails,
               SendBid,
@@ -198,14 +207,13 @@ const StackNav = props => {
               ChangePass,
               AboutUs,
               Referal,
-              Payment,
-              DocView,
             }).map(([name, component]) => {
               return (
                 <Stack.Screen key={name} name={name} component={component} />
               );
             })
-          ) : AuthReducer?.isProfileVerified ? (
+          ) : !AuthReducer?.isPaymentVerified ? (
+            // Case 2: Profile done but payment not verified → go to membership plan
             Object.entries({
               UserMembershipPlan,
               SubscriptionPayment,
@@ -238,10 +246,8 @@ const StackNav = props => {
               );
             })
           ) : (
+            // Case 3: Profile done + payment verified → normal app flow
             Object.entries({
-              UserUpdateProfile,
-              UserMembershipPlan,
-              SubscriptionPayment,
               UserBottomTabNav,
               Profile,
               Notification,
@@ -250,7 +256,6 @@ const StackNav = props => {
               CreateProject,
               EditProject,
               ProjectDetails,
-              DocView,
               ProjectDetailsProvider,
               ProviderProjectDetails,
               SendBid,
@@ -265,6 +270,8 @@ const StackNav = props => {
               ChangePass,
               AboutUs,
               Referal,
+              Payment,
+              DocView,
             }).map(([name, component]) => {
               return (
                 <Stack.Screen key={name} name={name} component={component} />

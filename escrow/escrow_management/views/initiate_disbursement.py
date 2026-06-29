@@ -1,13 +1,19 @@
-from rest_framework.views import APIView
+from uuid import UUID
+
+from django.db import transaction
+from rest_framework import status
 from rest_framework.response import Response
-from escrow_management.models import *
+from rest_framework.views import APIView
+
+from escrow_management.models import Escrow, Events, Transactions
+
 # from payment_handler.payment_gateways.MTN_MoMo.collection import MtnMoMoCollection
 from payment_handler.payment_gateways.MTN_MoMo.disbursement import MtnMoMoDisbursement
-from django.db import transaction
-import json
-import re
-from rest_framework import status
-from uuid import UUID
+from payment_handler.payment_gateways.MTN_MoMo.utils import (
+    is_mtn_account_active,
+    mtn_failure_message,
+    normalize_mtn_cameroon_msisdn,
+)
 
 disbursement=MtnMoMoDisbursement()
 
@@ -49,9 +55,23 @@ class InitiateDisbursementAPI(APIView):
             escrow_id=request.data.get("escrow_id")
             external_callback_url=request.data.get("callback_url")
 
+            try:
+                phone_number = normalize_mtn_cameroon_msisdn(phone_number)
+            except ValueError as exc:
+                return Response({"status": "failed", "message": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+            account_status = disbursement.getAccountStatus(phone_number)
+            if not is_mtn_account_active(account_status):
+                return Response(
+                    {
+                        "status": "failed",
+                        "message": "The MTN MoMo payee account was not found or is not active.",
+                        "account_status": account_status,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             escrow_obj=Escrow.objects.get(id=escrow_id)
-            payee=escrow_obj.payee
-            
             escrow_obj.external_callback_url=external_callback_url
             escrow_obj.payment_method += ", mtn-momo"
             escrow_obj.save()
@@ -61,7 +81,7 @@ class InitiateDisbursementAPI(APIView):
                 response=disbursement.disburse(amount=amount, external_id=str(escrow_obj.id), phone_number=phone_number)
                 # print("Response: ",response)
 
-                if response.get("status_code") == 500:
+                if response.get("status_code") not in {200, 201, 202}:
                     escrow_obj.status = "disbursement_failed"
                     escrow_obj.save()
                     Events.objects.create(
@@ -70,8 +90,12 @@ class InitiateDisbursementAPI(APIView):
                         escrow=escrow_obj
                     )
                     return Response(
-                        {"response": {"status": "failed"}, "message": "Failed to initiate disbursement"},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        {
+                            "response": {"status": "failed"},
+                            "message": "Failed to initiate disbursement",
+                            "provider_response": response.get("response_text", ""),
+                        },
+                        status=status.HTTP_502_BAD_GATEWAY
                     )
 
                 escrow_obj.disbursement_ref_id = UUID(response.get('ref'))
@@ -80,7 +104,7 @@ class InitiateDisbursementAPI(APIView):
                 transaction_id=Transactions.objects.create(escrow=escrow_obj, amount=amount, status="pending", transaction_type="disbursement", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
                 status_response=disbursement.getTransactionStatus(response.get('ref'))
                 # print("status_response: ",status_response)
-                
+
                 Events.objects.create(
                     event_type="disbursement_in_progress",
                     event_description="Disbursement is pending confirmation",
@@ -95,10 +119,21 @@ class InitiateDisbursementAPI(APIView):
                     transaction_id.status = "failed"
                     transaction_id.save()
 
+                    reason = status_response.get("reason", "Unknown failure")
                     Events.objects.create(
                         event_type="disbursement_failed",
-                        event_description=status_response.get("reason", "Unknown failure"),
+                        event_description=reason,
                         escrow=escrow_obj
+                    )
+                    return Response(
+                        {
+                            "transaction_id": transaction_id.id,
+                            "response": status_response,
+                            "message": mtn_failure_message(reason),
+                            "provider_reason": reason,
+                            "escrow_id": escrow_obj.id,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
                 elif payment_status == "successful":
@@ -131,7 +166,7 @@ class InitiateDisbursementAPI(APIView):
                 "message": "An unexpected error occurred.",
                 "details": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
 class DisbursementTransactionStatusAPI(APIView):
     def get(self,request,txn_id):
         '''
@@ -142,7 +177,7 @@ class DisbursementTransactionStatusAPI(APIView):
         if status:
             print(status)
         return Response({"status":status})
-    
+
 class MtnAccountAddStatusAPI(APIView):
     def get(self,request):
         '''
@@ -150,5 +185,8 @@ class MtnAccountAddStatusAPI(APIView):
         '''
         account_number=request.data.get("account_number")
         disbursement=MtnMoMoDisbursement()
-        response=disbursement.getAccountStatus(account_number=account_number)
+        try:
+            response=disbursement.getAccountStatus(account_number=account_number)
+        except ValueError as exc:
+            return Response({"result": False, "message": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(response, status=status.HTTP_200_OK)

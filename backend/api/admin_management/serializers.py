@@ -1,12 +1,14 @@
 from rest_framework import serializers
-from adminsite_management.models import CMS, FAQ,QMS,QMSResponse
+
+from adminsite_management.models import CMS, FAQ, QMS, QMSResponse
 from api.profile.serializers import ProfileSerializer
 from project_management.models import Currency
+
 
 class CMSSerializer(serializers.ModelSerializer):
     class Meta:
         model = CMS
-        fields = ['id', 'title', 'content', 'status']  # 'id' field is included for better API representation
+        fields = ['id', 'title', 'content', 'status', 'user_type']  # 'id' field is included for better API representation
 
 class FAQSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,7 +23,7 @@ class QMSSerializer(serializers.ModelSerializer):
 
     def create(self,validated_data):
         return QMS.objects.create(**validated_data)
-    
+
 class QMSReponseSerializer(serializers.ModelSerializer):
     qms=QMSSerializer(read_only=True)
     class Meta:

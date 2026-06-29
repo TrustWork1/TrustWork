@@ -6,6 +6,7 @@ import {
   ImageBackground,
   SafeAreaView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -91,7 +92,7 @@ const EditProfile = props => {
         setSelectedImage(imageObj.uri);
         setSelectedImgObj(imageObj);
       })
-      .catch(err => console.log(err));
+      .catch(err => {});
   };
 
   function FromGalary(type) {
@@ -118,7 +119,7 @@ const EditProfile = props => {
         setSelectedImage(imageObj.uri);
         setSelectedImgObj(imageObj);
       })
-      .catch(err => console.log(err));
+      .catch(err => {});
   }
   const validPhone = isValidPhone(phone);
 
@@ -320,70 +321,79 @@ const EditProfile = props => {
                   }
                 />
               </View> */}
-              <View style={[css.rowBetween, css.asc, {width: normalize(280)}]}>
-                <Dropdown
-                  show={code?.length > 0 ? true : false}
-                  isPhone={true}
-                  data={CountryCode}
-                  height={normalize(50)}
-                  width={normalize(75)}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  fonts={Fonts.VerdanaProMedium}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  marginTop={
-                    Platform.OS == 'ios' ? normalize(20) : normalize(15)
-                  }
-                  paddingLeft={normalize(12)}
-                  valueColor={Colors.themeBlack}
-                  paddingHorizontal={normalize(5)}
-                  // label={'Project Category'}
-                  // placeholder={'Select Category'}
-                  value={code}
-                  isSerachBar={true}
-                  // disabled={item?.bid_count > 0 || false}
-                  // modalHeight
-                  marginBottom={normalize(10)}
-                  marginLeft={normalize(10)}
-                  outlineTxtwidth={normalize(50)}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  onChange={(selecetedItem, index) => {
-                    setCode(selecetedItem?.dial_code);
-                  }}
-                />
+              <View
+                style={{
+                  width: normalize(300),
+                  marginLeft: normalize(10),
+                  marginTop: normalize(15),
+                }}>
+                <Text
+                  style={{
+                    color: Colors.themeBlack,
+                    fontFamily: Fonts.FustatMedium,
+                    textAlign: 'left',
+                    paddingBottom: normalize(2),
+                    fontSize: 14,
+                    lineHeight: normalize(22),
+                  }}>
+                  Phone Number
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: normalize(8),
+                  }}>
+                  <Dropdown
+                    show={code?.length > 0 ? true : false}
+                    isPhone={true}
+                    data={CountryCode}
+                    height={normalize(50)}
+                    width={normalize(85)}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    fonts={Fonts.VerdanaProMedium}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    marginTop={0}
+                    paddingLeft={normalize(8)}
+                    valueColor={Colors.themeBlack}
+                    value={code}
+                    isSerachBar={true}
+                    outlineTxtwidth={normalize(50)}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    onChange={(selecetedItem, index) => {
+                      setCode(selecetedItem?.dial_code);
+                    }}
+                  />
 
-                <TextIn
-                  show={phone?.length > 0 ? true : false}
-                  value={phone}
-                  isVisible={false}
-                  onChangeText={val => {
-                    setPhone(val?.replace(/[^0-9]/g, ''));
-                  }}
-                  height={normalize(50)}
-                  width={normalize(200)}
-                  fonts={Fonts.FustatMedium}
-                  borderColor={Colors.themeBoxBorder}
-                  borderWidth={1}
-                  maxLength={10}
-                  keyboardType={'number-pad'}
-                  marginTop={normalize(10)}
-                  marginBottom={normalize(10)}
-                  marginLeft={normalize(-80)}
-                  outlineTxtwidth={normalize(50)}
-                  label={'Phone Number'}
-                  placeholder={'Enter Phone Number'}
-                  //placeholderIcon={Icons.Email}
-                  placeholderTextColor={Colors.themePlaceholder}
-                  borderRadius={normalize(6)}
-                  fontSize={14}
-                  //Eyeshow={true}
-                  paddingLeft={normalize(10)}
-                  paddingRight={normalize(10)}
-                  editable={
-                    AuthReducer?.ProfileResponse?.data?.phone ? false : true
-                  }
-                />
+                  <TextIn
+                    show={phone?.length > 0 ? true : false}
+                    value={phone}
+                    isVisible={false}
+                    onChangeText={val => {
+                      setPhone(val?.replace(/[^0-9]/g, ''));
+                    }}
+                    height={normalize(50)}
+                    width={normalize(207)}
+                    fonts={Fonts.FustatMedium}
+                    borderColor={Colors.themeBoxBorder}
+                    borderWidth={1}
+                    maxLength={10}
+                    keyboardType={'number-pad'}
+                    marginTop={0}
+                    outlineTxtwidth={normalize(50)}
+                    placeholder={'Enter Phone Number'}
+                    placeholderTextColor={Colors.themePlaceholder}
+                    borderRadius={normalize(6)}
+                    fontSize={14}
+                    paddingLeft={normalize(10)}
+                    paddingRight={normalize(10)}
+                    editable={
+                      AuthReducer?.ProfileResponse?.data?.phone ? false : true
+                    }
+                  />
+                </View>
               </View>
               {userType === 'Service Provider' && (
                 <>

@@ -9,7 +9,6 @@ export async function requestUserPermission() {
     authStatus === messaging?.AuthorizationStatus?.PROVISIONAL;
 
   if (enabled) {
-    console.log('Authorization status::::::::::::::', authStatus);
     getFcmToken();
   }
 }
@@ -25,11 +24,9 @@ const getFcmToken = async () => {
         //   :
         await messaging().getToken();
       if (fcmToken) {
-        console.log('new generated fcm token=============>', fcmToken);
         await AsyncStorage.setItem('fcmToken', fcmToken);
       }
     } catch (error) {
-      console.log('Error', error);
     }
   }
 };

@@ -1,34 +1,87 @@
+import os
+import re
+
+import environ
+import stripe
+from django.conf import settings
+from django.core.mail import send_mail
+from django.db.models import FloatField, Q, Sum
+from django.db.models.functions import Cast
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils import timezone
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-from adminsite_management.models import CMS, FAQ,QMS,QMSResponse
-from .serializers import CMSSerializer, FAQSerializer,QMSSerializer,QMSReponseSerializer,CurrencySerializer
-from profile_management.models import Profile
-from rest_framework import status
-from rest_framework.views import APIView
-from django.core.mail import send_mail
-from django.conf import settings
+
+from adminsite_management.models import CMS, FAQ, QMS, QMSResponse
+
 # from adminsite_management.models import CMS, FAQ
 from api.pagination import CustomPagination, CustomPaginationTransition
-from drf_yasg.views import get_schema_view
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from django.db.models import Q, Sum, FloatField
-from django.db.models.functions import Cast
-from datetime import datetime
-from django.utils import timezone
-from django.template.loader import render_to_string
-from rest_framework.permissions import IsAuthenticated
-import re
-import os
-import environ
+from customuser.models import CustomUser
+from profile_management.models import BankDetails, Profile
+from project_management.models import Currency, Project, Transactions
+
+from .serializers import (
+    CMSSerializer,
+    CurrencySerializer,
+    FAQSerializer,
+    QMSReponseSerializer,
+    QMSSerializer,
+)
+
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+
+CMS_ABOUT_US_TITLE = "About Us"
+CMS_USER_TYPES = {"client", "provider"}
 
 
-# CMS SearchView 
-class ProfileAPIViewSearch(APIView):
+def _normalize_cms_user_type(user_type):
+    if user_type is None:
+        return None
+
+    user_type = str(user_type).strip().lower()
+    if user_type in ("", "null", "none", "common"):
+        return None
+    if user_type in CMS_USER_TYPES:
+        return user_type
+
+    return ""
+
+
+def _about_us_query(user_type, active_only=True):
+    query = CMS.objects.filter(title__iexact=CMS_ABOUT_US_TITLE)
+    if active_only:
+        query = query.filter(status="active")
+    if user_type is None:
+        return query.filter(user_type__isnull=True)
+    return query.filter(user_type=user_type)
+
+
+def _get_about_us_content(user_type, include_fallback=True, active_only=True):
+    cms_entry = _about_us_query(user_type, active_only=active_only).order_by("-updated_at", "-id").first()
+    if cms_entry or not include_fallback:
+        return cms_entry
+    return _about_us_query(None, active_only=active_only).order_by("-updated_at", "-id").first()
+
+
+def _cms_response(data, message="CMS entry fetched successfully!", response_status=status.HTTP_200_OK):
+    return Response({
+        "status": response_status,
+        "type": "success" if 200 <= response_status < 300 else "error",
+        "message": message,
+        "data": data,
+    }, status=response_status)
+
+
+# CMS SearchView
+class CMSSearchAPIView(APIView):
 
     def get(self, request):
         search_query = request.query_params.get('search', '')
@@ -70,7 +123,7 @@ class CMSListCreateAPIView(APIView):
                 openapi.IN_HEADER,
                 description="Authorization token (Bearer Token)",
                 type=openapi.TYPE_STRING,
-                required=True 
+                required=True
             )
         ],
         request_body=CMSSerializer,
@@ -234,8 +287,143 @@ class CMSDetailAPIView(APIView):
         return Response(response,status=status.HTTP_200_OK)
 
 
-# FAQ 
-class ProfileAPIViewSearch(APIView):
+class CMSAboutUsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Get role-specific About Us CMS content for the logged-in mobile user.",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Token <accessToken>)",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        responses={200: CMSSerializer(), 404: "About Us content not found"},
+    )
+    def get(self, request):
+        user_type = getattr(request.user, "user_type", None)
+        if user_type not in CMS_USER_TYPES:
+            return _cms_response(
+                None,
+                message="About Us content is available only for client or provider users.",
+                response_status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cms_entry = _get_about_us_content(user_type)
+        if not cms_entry:
+            return _cms_response(
+                None,
+                message="About Us content not found.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = CMSSerializer(cms_entry)
+        return _cms_response(serializer.data, message="About Us fetched successfully!")
+
+
+class CMSAboutUsAdminAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Get About Us CMS content by user_type for admin CMS screens.",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Token <accessToken>)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user_type',
+                openapi.IN_QUERY,
+                description="Use client, provider, common, or omit for common fallback content.",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ],
+        responses={200: CMSSerializer(), 404: "About Us content not found"},
+    )
+    def get(self, request):
+        user_type = _normalize_cms_user_type(request.query_params.get("user_type"))
+        if user_type == "":
+            return _cms_response(
+                None,
+                message="Invalid user_type. Use client, provider, common, or leave blank.",
+                response_status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cms_entry = _get_about_us_content(user_type, include_fallback=False, active_only=False)
+        if not cms_entry:
+            return _cms_response(
+                None,
+                message="About Us content not found.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = CMSSerializer(cms_entry)
+        return _cms_response(serializer.data, message="About Us fetched successfully!")
+
+    @swagger_auto_schema(
+        operation_description="Create or update About Us CMS content by user_type for admin CMS screens.",
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Authorization token (Token <accessToken>)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user_type',
+                openapi.IN_QUERY,
+                description="Use client, provider, common, or omit for common fallback content.",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ],
+        request_body=CMSSerializer,
+        responses={200: CMSSerializer(), 201: CMSSerializer(), 400: "Validation errors"},
+    )
+    def put(self, request):
+        user_type = _normalize_cms_user_type(request.query_params.get("user_type"))
+        if user_type == "":
+            return _cms_response(
+                None,
+                message="Invalid user_type. Use client, provider, common, or leave blank.",
+                response_status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cms_entry = _get_about_us_content(user_type, include_fallback=False, active_only=False)
+        payload = request.data.copy()
+        payload["title"] = payload.get("title") or CMS_ABOUT_US_TITLE
+        payload["user_type"] = user_type
+
+        if cms_entry:
+            serializer = CMSSerializer(cms_entry, data=payload, partial=True)
+            response_status = status.HTTP_200_OK
+            message = "About Us updated successfully!"
+        else:
+            serializer = CMSSerializer(data=payload)
+            response_status = status.HTTP_201_CREATED
+            message = "About Us created successfully!"
+
+        if serializer.is_valid():
+            serializer.save(title=CMS_ABOUT_US_TITLE, user_type=user_type)
+            return _cms_response(serializer.data, message=message, response_status=response_status)
+
+        return _cms_response(
+            serializer.errors,
+            message="Failed to save About Us content.",
+            response_status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+# FAQ
+class FAQSearchAPIView(APIView):
 
     def get(self, request):
         search_query = request.query_params.get('search', '')
@@ -338,15 +526,10 @@ class FAQDetailAPIView(APIView):
         except FAQ.DoesNotExist:
             return Response({'error': 'FAQ entry not found'}, status=status.HTTP_404_NOT_FOUND)
         faq_entry.delete()
-        response={
-            "status" : 200,
-            "type" : "success",
-            "message" : "data deleted successfully"
-        }
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # QMS Field Search
-class ProfileAPIViewSearch(APIView):
+class QMSSearchAPIView(APIView):
 
     def get(self, request,user_type):
         search_query = request.query_params.get('search', '')
@@ -396,7 +579,7 @@ class QMSAPIView(APIView):
             try:
                 query = QMS.objects.get(pk=pk)
                 serializer = QMSSerializer(query)
-                
+
             except QMS.DoesNotExist:
                 return Response({'error': 'QMS query not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -487,7 +670,7 @@ class QMSResponseApiView(APIView):
             "data":data
         }
         return Response(response,status=status.HTTP_200_OK)
-    
+
 
     @swagger_auto_schema(
             operation_description="Create QMS Response.",
@@ -497,7 +680,6 @@ class QMSResponseApiView(APIView):
                 }
     )
     def post(self,request):
-        qms_response=QMSResponse.objects.filter(qms__pk=request.data['qms']).last()
         # if qms_response:
         #     return Response({"errors":["Already Exists"]}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -540,14 +722,12 @@ class QMSResponseApiView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from customuser.models import CustomUser
-from project_management.models import Project, Transactions, Currency
 class DashboardAnalyticsView(APIView):
     def get(self,request):
         projects= Project.objects.all().count()
         clients = CustomUser.objects.filter(user_type="client").count()
         providers = CustomUser.objects.filter(user_type="provider").count()
-        
+
         # Aggregate total project budget for active projects
         total_transaction = Transactions.objects.filter(status="completed", transaction_type="collection").annotate(
             cost=Cast('bid__project_total_cost', FloatField())
@@ -560,17 +740,9 @@ class DashboardAnalyticsView(APIView):
             "total_transaction": total_transaction
         }, status=status.HTTP_200_OK)
 
-from django.http import HttpResponse
-from django.shortcuts import redirect
-from profile_management.models import BankDetails, Profile
-import stripe
-from django.shortcuts import redirect, get_object_or_404
-
-stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
-
 class XafCurrency(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         currency = Currency.objects.last()
         if currency:
@@ -581,7 +753,7 @@ class XafCurrency(APIView):
     def post(self, request):
         if Currency.objects.exists():
             return Response({"detail": "Currency data already exists. Use PUT to update."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = CurrencySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -610,7 +782,7 @@ def reauth_with_token(request, token):
     bank = BankDetails.objects.filter(onboarding_token=token, payment_type="stripe", status="inactive").order_by('-created_at').first()
     if not bank or not bank.stripe_account_id:
         return redirect("https://connect.stripe.com/hosted/setup/c/complete")
-    
+
     account_link = stripe.AccountLink.create(
         account=bank.stripe_account_id,
         refresh_url=f"{TRUSTWORK_BASE_API}/api/reauth/{token}/",

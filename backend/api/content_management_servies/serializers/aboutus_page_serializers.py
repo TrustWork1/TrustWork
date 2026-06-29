@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from content_management.models.aboutus_page_models import *
+
+from content_management.models.aboutus_page_models import (
+    AboutUs,
+    WhyYouTrustUsFeature,
+    WhyYouTrustUsSection,
+)
+
 
 class AboutUsSerializer(serializers.ModelSerializer):
     class Meta:

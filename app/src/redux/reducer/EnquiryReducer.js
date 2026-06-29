@@ -48,7 +48,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     availableDatesFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -61,7 +61,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     availableTimeSlotsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -74,7 +74,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     appointmentBookingFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -87,7 +87,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     sendEnquiryFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -100,7 +100,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     enquiryListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -113,7 +113,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     deleteEnquiryFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -126,7 +126,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     enquiryDetailsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -139,7 +139,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     quotationDetailsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -152,7 +152,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     quotationAcceptRejectFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -165,7 +165,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     paymentIntentFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -178,7 +178,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     paymentDetailsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -191,7 +191,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     estimationAcceptRejectFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -204,7 +204,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     uploadDigitalSignFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -217,7 +217,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorSiteVisitListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -230,7 +230,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorAddSiteVisitDataFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -243,7 +243,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorAddSiteVisitDataUpdateFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -256,7 +256,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorAddSiteVisitListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -269,7 +269,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorDeleteSiteVisitFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -282,7 +282,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorShowSiteVisitSOWFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -295,7 +295,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorUploadDigitalSignFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -308,7 +308,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     appointmentTimelineListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -321,7 +321,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     sendAppointmentTimelineMessageFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -334,7 +334,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorRescheduleFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -347,7 +347,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorVisitEstimationFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -360,7 +360,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     rejectSOWFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -373,7 +373,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     managerVendorListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -386,7 +386,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     clientUploadDigitalSignFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -399,7 +399,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     vendorUploadContractSignFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -412,7 +412,7 @@ const EnquirySlice = createSlice({
       state.status = action.type;
     },
     groupChatSeenFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
   },

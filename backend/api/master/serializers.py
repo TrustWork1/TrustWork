@@ -1,12 +1,13 @@
 from rest_framework import serializers
-from master.models import Location,JobCategory
-from project_management.models import Feedback, Project
+
+from master.models import JobCategory, Location
+
 
 class LocationSerailizer(serializers.ModelSerializer):
     class Meta:
         model=Location
         fields="__all__"
-        
+
 
 class JobCategorySerailizer(serializers.ModelSerializer):
     class Meta:

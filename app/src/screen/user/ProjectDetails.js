@@ -76,7 +76,6 @@ const ProjectDetails = props => {
         case 'Chat/createChatRoomRequest':
           break;
         case 'Chat/createChatRoomSuccess':
-          console.log('userData---->', userData);
           NavigationService?.navigate('ClientChat', {
             data: userData,
             type: 'create',
@@ -287,8 +286,6 @@ const ProjectDetails = props => {
   };
 
   const renderActiveComponent = (item, index) => {
-    console.log(item);
-    console.log('image provider--->',`${constants.IMAGE_URL}${item?.service_provider?.profile_picture}`)
     return (
       <>
         {ProjectReducer?.projectDetailsResponse?.data?.transaction_status ==
@@ -458,6 +455,7 @@ const ProjectDetails = props => {
                           NavigationService.navigate('Payment', {
                             bidId: item?.id,
                             amount: item?.project_total_cost,
+                            projectId: item?.id == undefined ? projectId : item?.id,
                           });
                         }}
                         style={styles.acceptBidBtn}>

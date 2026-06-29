@@ -1,18 +1,27 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+import os
+
+import environ
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.content_management_servies.serializers.aboutus_page_serializers import (
+    AboutUsSerializer,
+    WhyYouTrustUsFeatureSerializer,
+    WhyYouTrustUsSectionSerializer,
+)
+from content_management.models.aboutus_page_models import (
+    AboutUs,
+    WhyYouTrustUsFeature,
+    WhyYouTrustUsSection,
+)
+from content_management.models.home_page_models import DownloadSection
 
 from .home_page_views import replace_file_field
-from content_management.models.home_page_models import DownloadSection
-from content_management.models.aboutus_page_models import *
-from api.content_management_servies.serializers.aboutus_page_serializers import *
 
-import os
-import environ
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
@@ -45,9 +54,9 @@ class AboutUsSectionView(APIView):
                 data['image1'] = TRUSTWORK_BASE_API+about_us.image1.url
             if about_us.image2:
                 data['image2'] = TRUSTWORK_BASE_API+about_us.image2.url
-            
+
             return Response(data, status=status.HTTP_200_OK)
-        except:
+        except Exception:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
@@ -68,7 +77,7 @@ class AboutUsSectionView(APIView):
         # Check if AboutUs already has data
         if AboutUs.objects.exists():
             return Response({"error": "About Us Section already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         serializer = AboutUsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -80,7 +89,7 @@ class AboutUsSectionView(APIView):
                 data['image2'] = request.build_absolute_uri(serializer.instance.image2.url)
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @swagger_auto_schema(
         operation_description="About-Us Page Section",
         manual_parameters=[
@@ -139,7 +148,7 @@ class TrustUsSectionView(APIView):
             trustus_section = WhyYouTrustUsSection.objects.last()
             if not trustus_section:
                 return Response([], status=status.HTTP_200_OK)
-            
+
             serializer = WhyYouTrustUsSectionSerializer(trustus_section)
             data = serializer.data
             if trustus_section.section_image:
@@ -147,7 +156,7 @@ class TrustUsSectionView(APIView):
             if trustus_section.image:
                 data['image'] = TRUSTWORK_BASE_API+trustus_section.image.url
             return Response(data, status=status.HTTP_200_OK)
-        except:
+        except Exception:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
@@ -169,12 +178,12 @@ class TrustUsSectionView(APIView):
         if WhyYouTrustUsSection.objects.exists():
             return Response({"message": "WhyYouTrustUs Section already exists. Use PUT to update."},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = WhyYouTrustUsSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
@@ -196,7 +205,7 @@ class TrustUsSectionView(APIView):
         if not trustus_section:
             return Response({"message": "WhyYouTrustUs Section does not exist. Use POST to create."},
                             status=status.HTTP_404_NOT_FOUND)
-        
+
         # Handle both images separately
         new_image1 = request.FILES.get('section_image')
         new_image2 = request.FILES.get('image')
@@ -208,7 +217,7 @@ class TrustUsSectionView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "WhyYouTrustUs Section updated successfully"}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -355,7 +364,7 @@ class AboutUsView(APIView):
                 "image1": TRUSTWORK_BASE_API+about_us.image1.url if about_us.image1 else None,
                 "image2": TRUSTWORK_BASE_API+about_us.image2.url if about_us.image2 else None
             }
-        
+
         # Why You Trust Us Header
         trustus_section = WhyYouTrustUsSection.objects.last()
         if trustus_section:
@@ -380,7 +389,7 @@ class AboutUsView(APIView):
                 "vision_title": trustus_section.vision_title,
                 "vision_description": trustus_section.vision_description
             }
-        
+
         # Download Section
         download_section = DownloadSection.objects.last()
         if download_section:

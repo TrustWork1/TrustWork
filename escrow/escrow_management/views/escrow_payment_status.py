@@ -1,11 +1,11 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from escrow_management.models import *
-import json
-import re
-from rest_framework import status
 from uuid import UUID
+
 from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from escrow_management.models import Escrow, Events, Transactions
 from payment_handler.payment_gateways.MTN_MoMo.collection import MtnMoMoCollection
 
 
@@ -19,7 +19,7 @@ class EscrowTransactionStatus(APIView):
 
             try:
                 escrow = Escrow.objects.get(id=escrow_uuid)
-                reference_id=escrow.reference_id
+                reference_id = escrow.collection_ref_id
             except Escrow.DoesNotExist:
                 return Response({"error": "Escrow not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -57,10 +57,10 @@ class EscrowTransactionStatus(APIView):
                 if transaction:
                     transaction.status = "completed"
                     transaction.save()
-                
+
                 Events.objects.create(
                     event_type=escrow.status,
-                    event_description=f"MTN Collection callback received with status: {status}",
+                    event_description=f"MTN Collection callback received with status: {payment_status}",
                     escrow=escrow
                 )
 

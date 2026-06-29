@@ -79,15 +79,12 @@ const Referal = props => {
     };
 
     try {
-      const ShareResponse = await Share.open(shareOptions);
-      console.log(JSON.stringify(ShareResponse));
+      await Share.open(shareOptions);
     } catch (error) {
-      console.log('Error ->', error);
     }
   };
 
   const renderSteps = (item, index) => {
-    console.log(item);
     return (
       <View style={styles.itemContainer}>
         <View style={styles.iconWrapper}>
@@ -146,14 +143,27 @@ const Referal = props => {
         </View>
 
         <View style={styles.codeWrapper}>
-          <Text style={styles.label}>Referral Code</Text>
-          <View style={styles.codeContainer}>
-            <Text style={styles.referralCode}>{code}</Text>
-            <TouchableOpacity
-              style={styles.copyButton}
-              onPress={() => Clipboard.setString(code)}>
-              <Text style={styles.copyText}>COPY</Text>
-            </TouchableOpacity>
+          <View style={styles.codeRowContainer}>
+            <View style={styles.codeBlock}>
+              <Text style={styles.label}>Referral Code</Text>
+              <View style={styles.codeContainer}>
+                <Text style={styles.referralCode}>{code}</Text>
+                <TouchableOpacity
+                  style={styles.copyButton}
+                  onPress={() => Clipboard.setString(code)}>
+                  <Text style={styles.copyText}>COPY</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.countBlock}>
+              <Text style={styles.label}>Total Referrals</Text>
+              <View style={styles.countContainer}>
+                <Text style={styles.countText}>
+                  {ProfileReducer?.ReferralStepsResponse?.total_referal_count ??
+                    0}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -214,8 +224,19 @@ const styles = StyleSheet.create({
     color: Colors.themeBlack,
   },
   codeWrapper: {
-    alignItems: 'center',
     marginVertical: normalize(20),
+  },
+  codeRowContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: normalize(12),
+  },
+  codeBlock: {
+    alignItems: 'center',
+  },
+  countBlock: {
+    alignItems: 'center',
   },
   label: {
     fontSize: normalize(14),
@@ -224,7 +245,6 @@ const styles = StyleSheet.create({
     marginBottom: normalize(5),
   },
   codeContainer: {
-    width: normalize(200),
     flexDirection: 'row',
     backgroundColor: Colors.themeGreen,
     borderRadius: normalize(20),
@@ -233,9 +253,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: normalize(5),
   },
   referralCode: {
-    flex: 1,
     paddingVertical: normalize(12),
-    paddingHorizontal: normalize(20),
+    paddingHorizontal: normalize(15),
     color: Colors.themeWhite,
     fontSize: normalize(12),
     fontFamily: Fonts.FustatBold,
@@ -243,7 +262,7 @@ const styles = StyleSheet.create({
   copyButton: {
     backgroundColor: Colors.themeWhite,
     paddingVertical: normalize(8),
-    paddingHorizontal: normalize(20),
+    paddingHorizontal: normalize(15),
     borderTopRightRadius: normalize(20),
     borderBottomRightRadius: normalize(20),
   },
@@ -251,6 +270,20 @@ const styles = StyleSheet.create({
     color: Colors.themeGreen,
     fontFamily: Fonts.FustatBold,
     fontSize: normalize(12),
+  },
+  countContainer: {
+    backgroundColor: Colors.themeGreen,
+    borderRadius: normalize(20),
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(20),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: normalize(60),
+  },
+  countText: {
+    color: Colors.themeWhite,
+    fontSize: normalize(16),
+    fontFamily: Fonts.FustatBold,
   },
   heading: {
     fontSize: normalize(14),

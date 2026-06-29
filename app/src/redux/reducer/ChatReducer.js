@@ -24,7 +24,7 @@ const ChatSlice = createSlice({
       state.status = action.type;
     },
     chatUserListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -37,7 +37,7 @@ const ChatSlice = createSlice({
       state.status = action.type;
     },
     createChatRoomFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -50,7 +50,7 @@ const ChatSlice = createSlice({
       state.status = action.type;
     },
     messageListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -63,7 +63,7 @@ const ChatSlice = createSlice({
       state.status = action.type;
     },
     attachFileFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -76,7 +76,7 @@ const ChatSlice = createSlice({
       state.status = action.type;
     },
     markReadChatFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
   },

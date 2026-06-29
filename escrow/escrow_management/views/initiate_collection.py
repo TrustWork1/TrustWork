@@ -1,15 +1,22 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from escrow_management.models import *
-from payment_handler.payment_gateways.MTN_MoMo.collection import MtnMoMoCollection
-from django.db import transaction
-from payment_handler.payment_gateways.stripe.collection import stripe_collection
-import json
-import re
-from rest_framework import status
-from django.conf import settings
-import stripe
 from uuid import UUID
+
+import stripe
+from django.conf import settings
+from django.db import transaction
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from escrow_management.models import Escrow, Events, Transactions
+from payment_handler.payment_gateways.MTN_MoMo.collection import MtnMoMoCollection
+from payment_handler.payment_gateways.MTN_MoMo.utils import (
+    is_mtn_account_active,
+    mtn_failure_message,
+    normalize_mtn_cameroon_msisdn,
+)
+from payment_handler.payment_gateways.stripe.collection import stripe_collection
+from user_management.models import User
+
 
 def validate_json_structure(data):
     if not isinstance(data, dict):
@@ -44,52 +51,91 @@ class InitiatePaymentAPI(APIView):
         try:
             collection=MtnMoMoCollection()
 
-                    
+
             # if not validate_json_structure(request.data):
             #     return Response({"message":"Invalid Json"})
-            
+
             amount=request.data.get("amount")
             phone_number=request.data.get("phone_number")
             external_resource_id=request.data.get("external_resource_id")
             external_callback_url=request.data.get("callback_url")
             payer=request.data.get("payer")
             payee=request.data.get("payee")
-            
+
+            try:
+                phone_number = normalize_mtn_cameroon_msisdn(phone_number)
+            except ValueError as exc:
+                return Response({"status": "failed", "message": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+            account_status = collection.getAccountStatus(phone_number)
+            if not is_mtn_account_active(account_status):
+                return Response(
+                    {
+                        "status": "failed",
+                        "message": "The MTN MoMo payer account was not found or is not active.",
+                        "account_status": account_status,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             payer,_=User.objects.get_or_create(phone_number=payer['mobile_number'], email=payer['email'])
             payee,_=User.objects.get_or_create(phone_number=payee['mobile_number'], email=payee['email'])
-            
+
             escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="mtn-momo")
             Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
-            
+
             response=collection.requestToPay(amount=amount, external_id=str(escrow.id), phone_number=phone_number)
             # print("Response: ",response)
-            
-            if response.get('status_code') == 500:
+
+            if response.get('status_code') not in {200, 201, 202}:
                 escrow.status = "collection_failed"
                 escrow.save()
                 Events.objects.create(event_type="collection_failed", event_description="Payment initiation failed", escrow=escrow)
-                return Response({"response": {"status": "failed"}, "message": "Failed to initiate payment"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+                return Response({
+                    "response": {"status": "failed"},
+                    "message": "Failed to initiate payment",
+                    "provider_response": response.get("response_text", ""),
+                }, status=status.HTTP_502_BAD_GATEWAY)
+
             Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
             escrow.collection_ref_id = UUID(response.get('ref'))
             escrow.save()
             status_response=collection.getTransactionStatus(response.get('ref'))
             # print("status_response: ",status_response)
-            
-            payment_status = status_response.get('status')
-            
-            if payment_status.lower() == "pending":
+
+            payment_status = str(status_response.get('status') or "").lower()
+
+            if payment_status == "pending":
                 transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
-            
-            elif payment_status.lower() == "failed":
+
+            elif payment_status == "failed":
                 escrow=Escrow.objects.get(id=escrow.id, external_resource_id=external_resource_id, payment_method="mtn-momo")
                 escrow.status = "collection_failed"
                 escrow.save()
                 transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="failed", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
-                Events.objects.create(event_type="collection_failed", event_description=status_response['reason'], escrow=escrow)
-            
+                reason = status_response.get("reason", "")
+                Events.objects.create(event_type="collection_failed", event_description=reason, escrow=escrow)
+                return Response(
+                    {
+                        "transaction_id": transaction_id.id,
+                        "response": status_response,
+                        "message": mtn_failure_message(reason),
+                        "provider_reason": reason,
+                        "escrow_id": escrow.id,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            elif payment_status == "successful":
+                escrow.status = "collection_success"
+                escrow.save()
+                transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="completed", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+
+            else:
+                transaction_id=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="mtn-momo", external_transaction_id=response['ref'], external_callback_url=external_callback_url)
+
             return Response({"transaction_id":transaction_id.id, 'response':status_response, "escrow_id":escrow.id})
-        
+
         except Exception as e:
             return Response({
                 "status": "error",
@@ -119,10 +165,13 @@ class ValidMtnAccount(APIView):
         '''
         account_number=request.data.get("account_number")
         collection=MtnMoMoCollection()
-        response=collection.getAccountStatus(account_number=account_number)
+        try:
+            response=collection.getAccountStatus(account_number=account_number)
+        except ValueError as exc:
+            return Response({"result": False, "message": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(response, status=status.HTTP_200_OK)
-    
-    
+
+
 class InitiateStripeCollection(APIView):
     def post(self,request):
         amount=float(request.data.get("amount"))
@@ -130,20 +179,20 @@ class InitiateStripeCollection(APIView):
         external_callback_url=request.data.get("callback_url")
         payer=request.data.get("payer")
         payee=request.data.get("payee")
-        
+
         payer,_=User.objects.get_or_create(external_user_id=payer['user_id'])
         payee,_=User.objects.get_or_create(external_user_id=payee['user_id'])
-        
+
         escrow=Escrow.objects.create(amount=amount, external_resource_id=external_resource_id, status="pending", payer=payer, payee=payee, external_callback_url=external_callback_url, payment_method="stripe")
         Events.objects.create(event_type="collection_initialized", event_description="", escrow=escrow)
         # collection=MtnMoMoCollection()
         transaction=Transactions.objects.create(escrow=escrow, amount=amount, status="pending", transaction_type="collection", payment_method="stripe", external_callback_url=external_callback_url)
-        
+
         response=stripe_collection(amount,escrow.id, transaction.id)
         transaction.external_transaction_id=response['payment_id']
         transaction.save()
         Events.objects.create(event_type="collection_in_progress", event_description="", escrow=escrow)
-        
+
         return Response({"transaction_id":transaction.id, "escrow_id":escrow.id, **response} )
 
 
@@ -183,6 +232,13 @@ class StripeCollectionStatus(APIView):
                     event_description="Stripe payment succeeded",
                     escrow=escrow_obj
                 )
+
+                """
+                Project/bid payment referral rewards are intentionally not
+                applied in escrow. TrustWork owns users/referral counters and
+                should handle that only if project payments are approved for
+                referral rewards later.
+                """
 
                 print(f"PaymentIntent {payment_id} marked as completed.")
             except Transactions.DoesNotExist:

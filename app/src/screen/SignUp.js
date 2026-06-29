@@ -30,15 +30,109 @@ import {Colors, Fonts, Icons, Sizes} from '../themes/Themes';
 import errorMessages from '../utils/errorMessages';
 import connectionrequest from '../utils/helpers/NetInfo';
 import showErrorAlert from '../utils/helpers/Toast';
+import {isValidEmail} from '../utils/helpers/Validation';
 import constants from '../utils/helpers/constants';
 import normalize from '../utils/helpers/normalize';
-import css from '../themes/css';
 import CountryCode from '../components/General/CountryCode';
 import Dropdown from '../components/Dropdown';
 import HTMLTextComponent from '../components/HTMLTextComponent';
 import {cmsRequest} from '../redux/reducer/ProfileReducer';
 
 let status = '';
+const SMS_WALLET_BALANCE_ERROR =
+  'Unable to send OTP SMS because the SMS wallet balance is too low. Please contact support.';
+
+const legalHtmlTags = {
+  p: {
+    marginTop: 0,
+    marginBottom: normalize(12),
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(13),
+    lineHeight: normalize(21),
+    color: Colors.themeBlack,
+  },
+  div: {
+    marginTop: 0,
+    marginBottom: normalize(8),
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(13),
+    lineHeight: normalize(21),
+    color: Colors.themeBlack,
+  },
+  strong: {
+    fontFamily: Fonts.FustatBold,
+    fontSize: normalize(15),
+    lineHeight: normalize(22),
+    color: Colors.themeBlack,
+  },
+  a: {
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(13),
+    lineHeight: normalize(21),
+    color: Colors.themeGreen,
+    textDecorationLine: 'underline',
+  },
+  li: {
+    marginBottom: normalize(6),
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(13),
+    lineHeight: normalize(21),
+    color: Colors.themeBlack,
+  },
+  ol: {
+    marginTop: normalize(4),
+    marginBottom: normalize(10),
+    paddingLeft: normalize(18),
+  },
+  ul: {
+    marginTop: normalize(4),
+    marginBottom: normalize(10),
+    paddingLeft: normalize(18),
+  },
+};
+
+const LegalModalShell = ({title, subtitle, children, onClose}) => {
+  return (
+    <View style={styles.legalModalContainer}>
+      <View style={styles.legalModalHeader}>
+        <View style={styles.legalHeaderTextContainer}>
+          <Text style={styles.legalModalTitle}>{title}</Text>
+          <Text style={styles.legalModalSubtitle}>{subtitle}</Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onClose}
+          style={styles.legalCloseBtn}>
+          <Image
+            source={Icons.Cross}
+            resizeMode="contain"
+            style={styles.legalCloseIcon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.legalDivider} />
+
+      <ScrollView
+        bounces={false}
+        nestedScrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+        style={styles.modalScrollView}
+        contentContainerStyle={styles.modalScrollContent}>
+        {children}
+      </ScrollView>
+
+      <View style={styles.legalFooter}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onClose}
+          style={styles.legalPrimaryBtn}>
+          <Text style={styles.legalPrimaryBtnTxt}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const SignUp = props => {
   const isFocused = useIsFocused();
@@ -46,13 +140,12 @@ const SignUp = props => {
   const AuthReducer = useSelector(state => state.AuthReducer);
   const ProfileReducer = useSelector(state => state.ProfileReducer);
 
-  var validate = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-  var mobileValidate = /^\d*[1-9]\d*$/;
-
   const [selectedTab, setSelectedTab] = useState('client');
   const [showSeen, setShowSeen] = useState(false);
   const [TandCModal, setTandCModal] = useState(false);
   const [rulesMoadal, setRulesMoadal] = useState(false);
+  const [smsWalletErrorModal, setSmsWalletErrorModal] = useState(false);
+  const [smsWalletErrorMessage, setSmsWalletErrorMessage] = useState('');
 
   const inputRef1 = useRef(null);
   const inputRef2 = useRef(null);
@@ -132,21 +225,19 @@ const SignUp = props => {
   };
 
   const onSignUp = () => {
-    const validate = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    const trimmedEmail = email.trim();
 
     if (!name.trim()) {
       showErrorAlert(errorMessages.ENTER_FULL_NAME);
       return;
     }
 
-    // Ensure at least one of email or phone number is provided
-    if (!email && !phoneNo) {
-      showErrorAlert(errorMessages.ENTER_EMAIL_OR_MOBILE);
+    if (!trimmedEmail) {
+      showErrorAlert(errorMessages.ENTER_EMAIL);
       return;
     }
 
-    // Validate email if provided
-    if (email && !validate.test(email)) {
+    if (!isValidEmail(trimmedEmail)) {
       showErrorAlert(errorMessages.EMAIL_IN_CORRECT_FORMAT);
       return;
     }
@@ -213,7 +304,7 @@ const SignUp = props => {
       full_name: name,
       phone_extension: code,
       phone: phoneNo || '',
-      email: email || '',
+      email: trimmedEmail,
       password: password,
       user_type: selectedTab,
       latitude: latitude,
@@ -238,9 +329,17 @@ const SignUp = props => {
   };
 
   const verifyOTP = () => {
-    if (email?.trim() == '') {
+    if (!one) {
+      showErrorAlert('Please fillup your first OTP');
+    } else if (!two) {
+      showErrorAlert('Please fillup your second OTP');
+    } else if (!three) {
+      showErrorAlert('Please fillup your third OTP');
+    } else if (!four) {
+      showErrorAlert('Please fillup your fourth OTP');
+    } else {
       let obj = {
-        phone: phoneNo,
+        email: email.trim(),
         otp: String(one + two + three + four),
         // otp: parseInt(value),
       };
@@ -248,56 +347,55 @@ const SignUp = props => {
         .then(() => {
           dispatch(verificationOtpRequest(obj));
         })
-        .catch(err => {
+        .catch(() => {
           showErrorAlert('Please connect to the internet');
         });
-    } else {
-      if (!one) {
-        showErrorAlert('Please fillup your first OTP');
-      } else if (!two) {
-        showErrorAlert('Please fillup your second OTP');
-      } else if (!three) {
-        showErrorAlert('Please fillup your third OTP');
-      } else if (!four) {
-        showErrorAlert('Please fillup your fourth OTP');
-      } else {
-        let obj = {
-          email: email,
-          otp: String(one + two + three + four),
-          // otp: parseInt(value),
-        };
-        connectionrequest()
-          .then(() => {
-            dispatch(verificationOtpRequest(obj));
-          })
-          .catch(err => {
-            showErrorAlert('Please connect to the internet');
-          });
-      }
     }
   };
 
   const RulesComponent = () => {
+    const rulesContent = ProfileReducer?.cmsResponse?.data?.[6]?.content;
+
     return (
-      <View style={styles.modalViewContainer}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <LegalModalShell
+        title="Smart Contract Rules"
+        subtitle="Review the terms that keep TRUST WORK projects clear and secure."
+        onClose={closeRulesModal}>
+        {rulesContent ? (
           <HTMLTextComponent
-            htmlContent={ProfileReducer?.cmsResponse?.data?.[6]?.content}
+            htmlContent={rulesContent}
+            containerStyle={styles.legalHtmlContainer}
+            tagsStyles={legalHtmlTags}
           />
-        </ScrollView>
-      </View>
+        ) : (
+          <Text style={styles.rulesEmptyTxt}>
+            Smart Contract Rules are not available right now.
+          </Text>
+        )}
+      </LegalModalShell>
     );
   };
 
   const TermsConditionComponent = () => {
+    const termsContent = ProfileReducer?.cmsResponse?.data?.[1]?.content;
+
     return (
-      <View style={styles.modalViewContainer}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <LegalModalShell
+        title="Acceptance"
+        subtitle="Read the terms, conditions, and privacy policy before continuing."
+        onClose={() => setTandCModal(false)}>
+        {termsContent ? (
           <HTMLTextComponent
-            htmlContent={ProfileReducer?.cmsResponse?.data?.[1]?.content}
+            htmlContent={termsContent}
+            containerStyle={styles.legalHtmlContainer}
+            tagsStyles={legalHtmlTags}
           />
-        </ScrollView>
-      </View>
+        ) : (
+          <Text style={styles.rulesEmptyTxt}>
+            Terms and conditions are not available right now.
+          </Text>
+        )}
+      </LegalModalShell>
     );
   };
 
@@ -313,6 +411,10 @@ const SignUp = props => {
         break;
       case 'Auth/signUpFailure':
         status = AuthReducer.status;
+        if (AuthReducer?.error?.message === SMS_WALLET_BALANCE_ERROR) {
+          setSmsWalletErrorMessage(AuthReducer.error.message);
+          setSmsWalletErrorModal(true);
+        }
         break;
 
       case 'Auth/verificationOtpRequest':
@@ -368,34 +470,38 @@ const SignUp = props => {
     setThree('');
     setFour('');
 
-    if (email?.trim() == '') {
-      let obj = {
-        phone: phoneNo,
-      };
-      connectionrequest()
-        .then(() => {
-          dispatch(ResendOtpRequest(obj));
-        })
-        .catch(err => {
-          showErrorAlert('Please connect to the internet');
-        });
-    } else if (phoneNo?.trim() == '') {
-      let obj = {
-        email: email,
-      };
-      connectionrequest()
-        .then(() => {
-          dispatch(ResendOtpRequest(obj));
-        })
-        .catch(err => {
-          showErrorAlert('Please connect to the internet');
-        });
-    }
+    let obj = {
+      email: email.trim(),
+    };
+    connectionrequest()
+      .then(() => {
+        dispatch(ResendOtpRequest(obj));
+      })
+      .catch(() => {
+        showErrorAlert('Please connect to the internet');
+      });
   }
 
   const enterOTPComponent = () => {
     return (
       <View style={styles.modalSubContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          hitSlop={{
+            top: normalize(8),
+            bottom: normalize(8),
+            left: normalize(8),
+            right: normalize(8),
+          }}
+          onPress={closeOTPModal}
+          style={styles.otpModalCloseBtn}>
+          <Image
+            source={Icons.Cross}
+            resizeMode="contain"
+            style={styles.otpModalCloseIcon}
+          />
+        </TouchableOpacity>
+
         <View
           style={{
             justifyContent: 'center',
@@ -692,6 +798,22 @@ const SignUp = props => {
     setConfirmPassword('');
   };
 
+  const closeOTPModal = () => {
+    setShowSeen(false);
+    setOne('');
+    setTwo('');
+    setThree('');
+    setFour('');
+  };
+
+  const closeRulesModal = () => {
+    setRulesMoadal(false);
+  };
+
+  const closeSmsWalletErrorModal = () => {
+    setSmsWalletErrorModal(false);
+  };
+
   const ToggleTab = () => {
     return (
       <View style={styles.tabContainer}>
@@ -847,67 +969,76 @@ const SignUp = props => {
                   />
 
                   <View
-                    style={[css.rowBetween, css.asc, {width: normalize(280)}]}>
-                    <Dropdown
-                      show={code?.length > 0 ? true : false}
-                      isPhone={true}
-                      data={CountryCode}
-                      height={normalize(50)}
-                      width={normalize(75)}
-                      borderColor={Colors.themeBoxBorder}
-                      borderWidth={1}
-                      fonts={Fonts.VerdanaProMedium}
-                      borderRadius={normalize(6)}
-                      fontSize={14}
-                      marginTop={
-                        Platform.OS == 'ios' ? normalize(10) : normalize(15)
-                      }
-                      paddingLeft={normalize(12)}
-                      valueColor={Colors.themeBlack}
-                      paddingHorizontal={normalize(5)}
-                      // label={'Project Category'}
-                      // placeholder={'Select Category'}
-                      value={code}
-                      isSerachBar={true}
-                      // disabled={item?.bid_count > 0 || false}
-                      // modalHeight
-                      marginBottom={normalize(10)}
-                      marginLeft={normalize(10)}
-                      outlineTxtwidth={normalize(50)}
-                      placeholderTextColor={Colors.themePlaceholder}
-                      onChange={(selecetedItem, index) => {
-                        setCode(selecetedItem?.dial_code);
-                      }}
-                    />
+                    style={{
+                      width: normalize(280),
+                      marginLeft: normalize(20),
+                      marginTop: normalize(10),
+                      marginBottom: 0,
+                    }}>
+                    <Text
+                      style={{
+                        color: Colors.themeBlack,
+                        fontFamily: Fonts.FustatMedium,
+                        textAlign: 'left',
+                        paddingBottom: normalize(2),
+                        fontSize: 14,
+                        lineHeight: normalize(22),
+                      }}>
+                      Phone Number
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: normalize(8),
+                      }}>
+                      <Dropdown
+                        show={code?.length > 0 ? true : false}
+                        isPhone={true}
+                        data={CountryCode}
+                        height={normalize(50)}
+                        width={normalize(85)}
+                        borderColor={Colors.themeBoxBorder}
+                        borderWidth={1}
+                        fonts={Fonts.VerdanaProMedium}
+                        borderRadius={normalize(6)}
+                        fontSize={14}
+                        marginTop={0}
+                        paddingLeft={normalize(8)}
+                        valueColor={Colors.themeBlack}
+                        value={code}
+                        isSerachBar={true}
+                        outlineTxtwidth={normalize(50)}
+                        placeholderTextColor={Colors.themePlaceholder}
+                        onChange={(selecetedItem, index) => {
+                          setCode(selecetedItem?.dial_code);
+                        }}
+                      />
 
-                    <TextIn
-                      show={phoneNo?.length > 0 ? true : false}
-                      value={phoneNo}
-                      isVisible={false}
-                      onChangeText={val => {
-                        setPhoneNo(val?.replace(/[^0-9]/g, ''));
-                      }}
-                      height={normalize(50)}
-                      width={normalize(200)}
-                      fonts={Fonts.FustatMedium}
-                      borderColor={Colors.themeBoxBorder}
-                      borderWidth={1}
-                      maxLength={10}
-                      keyboardType={'number-pad'}
-                      marginTop={normalize(10)}
-                      marginBottom={normalize(10)}
-                      marginLeft={normalize(-80)}
-                      outlineTxtwidth={normalize(50)}
-                      label={'Phone Number'}
-                      placeholder={'Enter Phone Number'}
-                      //placeholderIcon={Icons.Email}
-                      placeholderTextColor={Colors.themePlaceholder}
-                      borderRadius={normalize(6)}
-                      fontSize={14}
-                      //Eyeshow={true}
-                      paddingLeft={normalize(10)}
-                      paddingRight={normalize(10)}
-                    />
+                      <TextIn
+                        show={phoneNo?.length > 0 ? true : false}
+                        value={phoneNo}
+                        isVisible={false}
+                        onChangeText={val => {
+                          setPhoneNo(val?.replace(/[^0-9]/g, ''));
+                        }}
+                        height={normalize(50)}
+                        width={normalize(187)}
+                        fonts={Fonts.FustatMedium}
+                        borderColor={Colors.themeBoxBorder}
+                        borderWidth={1}
+                        maxLength={10}
+                        keyboardType={'number-pad'}
+                        marginTop={0}
+                        outlineTxtwidth={normalize(50)}
+                        placeholder={'Enter Phone Number'}
+                        placeholderTextColor={Colors.themePlaceholder}
+                        borderRadius={normalize(6)}
+                        fontSize={14}
+                        paddingLeft={normalize(10)}
+                        paddingRight={normalize(10)}
+                      />
+                    </View>
                   </View>
 
                   {selectedTab === 'provider' && (
@@ -965,7 +1096,7 @@ const SignUp = props => {
                         marginBottom={normalize(10)}
                         marginLeft={normalize(20)}
                         outlineTxtwidth={normalize(50)}
-                        label={'Company/Organization Name'}
+                        label={'Company/Organization Name (Optional)'}
                         placeholder={'Enter Company/Organization Name'}
                         //placeholderIcon={Icons.Email}
                         placeholderTextColor={Colors.themePlaceholder}
@@ -991,7 +1122,7 @@ const SignUp = props => {
                         marginBottom={normalize(10)}
                         marginLeft={normalize(20)}
                         outlineTxtwidth={normalize(50)}
-                        label={'Taxpayers Number'}
+                        label={'Taxpayers Number (Optional)'}
                         placeholder={'Enter Taxpayers Number'}
                         //placeholderIcon={Icons.Email}
                         placeholderTextColor={Colors.themePlaceholder}
@@ -1116,7 +1247,7 @@ const SignUp = props => {
                 </View>
 
                 <View style={styles.termTxtConatiner}>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <View style={styles.termRow}>
                     <TouchableOpacity
                       onPress={() => setIsCheckedRules(!isCheckedRules)}>
                       <Image
@@ -1129,15 +1260,17 @@ const SignUp = props => {
                         style={styles.checkBox}
                       />
                     </TouchableOpacity>
-                    <Text style={styles.commonText}>
-                      {'Accept Trustwork Smart Contract Rules.'}
-                      <TouchableOpacity
-                        onPress={() => {
-                          setRulesMoadal(true);
-                        }}>
-                        <Text style={styles.greenTxt}>view</Text>
-                      </TouchableOpacity>
+                    <Text style={styles.termText}>
+                      Accept Trustwork Smart Contract Rules.
                     </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setRulesMoadal(true);
+                      }}
+                      style={styles.termViewBtn}>
+                      <Text style={styles.termViewTxt}>view</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
 
@@ -1173,13 +1306,9 @@ const SignUp = props => {
         </View>
       </ImageBackground>
       <Modal
-        propagateSwipe
-        visible={showSeen}
-        backdropOpacity={0}
+        isVisible={showSeen}
+        backdropOpacity={0.5}
         useNativeDriverForBackdrop={true}
-        animationIn="slideInDown"
-        animationOut="slideOutDown"
-        useNativeDriver={true}
         swipeDirection={['down']}
         avoidKeyboard={true}
         style={styles.modalContainer}
@@ -1188,7 +1317,7 @@ const SignUp = props => {
       </Modal>
 
       <Modal
-        visible={TandCModal}
+        isVisible={TandCModal}
         avoidKeyboard={true}
         style={styles.modalContainer}
         onBackButtonPress={() => setTandCModal(!TandCModal)}
@@ -1197,12 +1326,37 @@ const SignUp = props => {
       </Modal>
 
       <Modal
-        visible={rulesMoadal}
+        isVisible={rulesMoadal}
         avoidKeyboard={true}
         style={styles.modalContainer}
-        onBackButtonPress={() => setRulesMoadal(!rulesMoadal)}
-        onBackdropPress={() => setRulesMoadal(!rulesMoadal)}>
+        onBackButtonPress={closeRulesModal}
+        onBackdropPress={closeRulesModal}>
         {RulesComponent()}
+      </Modal>
+
+      <Modal
+        isVisible={smsWalletErrorModal}
+        backdropOpacity={0.5}
+        useNativeDriverForBackdrop={true}
+        avoidKeyboard={true}
+        style={styles.bottomErrorModalContainer}
+        onBackButtonPress={closeSmsWalletErrorModal}
+        onBackdropPress={closeSmsWalletErrorModal}>
+        <View style={styles.errorModalContent}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={closeSmsWalletErrorModal}
+            style={styles.errorModalCloseBtn}>
+            <Image
+              source={Icons.Cross}
+              resizeMode="contain"
+              style={styles.errorModalCloseIcon}
+            />
+          </TouchableOpacity>
+
+          <Text style={styles.errorModalTitle}>Unable to Send OTP</Text>
+          <Text style={styles.errorModalMessage}>{smsWalletErrorMessage}</Text>
+        </View>
       </Modal>
     </View>
   );
@@ -1225,23 +1379,106 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: normalize(20),
   },
-  modalContainer: {
+  legalModalContainer: {
+    width: '92%',
+    maxHeight: Sizes.height * 0.82,
+    backgroundColor: Colors.themeWhite,
+    borderRadius: normalize(18),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: normalize(8),
+    },
+    shadowOpacity: 0.14,
+    shadowRadius: normalize(16),
+    elevation: 8,
+  },
+  legalModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingTop: normalize(18),
+    paddingBottom: normalize(14),
+    paddingLeft: normalize(18),
+    paddingRight: normalize(12),
+    backgroundColor: Colors.themeWhite,
+  },
+  legalHeaderTextContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    paddingRight: normalize(10),
+  },
+  legalModalTitle: {
+    color: Colors.themeBlack,
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(21),
+    lineHeight: normalize(27),
+  },
+  legalModalSubtitle: {
+    color: Colors.themeInactiveTxt,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(13),
+    lineHeight: normalize(19),
+    marginTop: normalize(5),
+  },
+  legalCloseBtn: {
+    height: normalize(34),
+    width: normalize(34),
+    borderRadius: normalize(17),
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    margin: 0,
+    justifyContent: 'center',
+    backgroundColor: Colors.themeDocBackground,
+  },
+  legalCloseIcon: {
+    height: normalize(13),
+    width: normalize(13),
+    tintColor: Colors.themeGreen,
+  },
+  legalDivider: {
+    height: 1,
+    backgroundColor: Colors.themeBoxBorder,
+  },
+  modalScrollView: {
+    width: '100%',
+    maxHeight: Sizes.height * 0.58,
+  },
+  modalScrollContent: {
+    alignItems: 'center',
+    paddingTop: normalize(16),
+    paddingBottom: normalize(20),
+    paddingHorizontal: normalize(8),
+  },
+  legalHtmlContainer: {
     width: '100%',
   },
-  modalViewContainer: {
-    width: '90%',
-    height: normalize(450),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: normalize(40),
+  rulesEmptyTxt: {
+    color: Colors.themeInactiveTxt,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(14),
+    lineHeight: normalize(21),
+    textAlign: 'center',
+    paddingVertical: normalize(28),
+    paddingHorizontal: normalize(14),
+  },
+  legalFooter: {
+    paddingTop: normalize(12),
+    paddingBottom: Platform.OS === 'ios' ? normalize(18) : normalize(14),
+    paddingHorizontal: normalize(18),
+    borderTopWidth: 1,
+    borderTopColor: Colors.themeBoxBorder,
     backgroundColor: Colors.themeWhite,
-    padding: normalize(15),
-    borderRadius: normalize(10),
+  },
+  legalPrimaryBtn: {
+    height: normalize(46),
+    borderRadius: normalize(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.themeGreen,
+  },
+  legalPrimaryBtnTxt: {
+    color: Colors.themeWhite,
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(15),
+    lineHeight: normalize(20),
   },
   headerContainer: {
     flex: 1,
@@ -1316,6 +1553,28 @@ const styles = StyleSheet.create({
     paddingVertical: normalize(15),
     paddingHorizontal: normalize(20),
   },
+  termRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  termText: {
+    flex: 1,
+    color: Colors.themeBlack,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: 13,
+    lineHeight: normalize(17),
+  },
+  termViewBtn: {
+    paddingVertical: normalize(4),
+    paddingLeft: normalize(8),
+  },
+  termViewTxt: {
+    color: Colors.themeGreen,
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(14),
+    lineHeight: normalize(17),
+  },
   arrowLeft: {
     height: normalize(18),
     width: normalize(18),
@@ -1361,6 +1620,7 @@ const styles = StyleSheet.create({
   },
   modalHeaderTxtContainer: {
     paddingHorizontal: normalize(10),
+    paddingTop: normalize(18),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1397,6 +1657,64 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
+  },
+  otpModalCloseBtn: {
+    height: normalize(36),
+    width: normalize(36),
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    right: normalize(8),
+    top: normalize(8),
+    zIndex: 1,
+  },
+  otpModalCloseIcon: {
+    height: normalize(16),
+    width: normalize(16),
+    tintColor: Colors.themeGreen,
+  },
+  bottomErrorModalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  errorModalContent: {
+    width: '100%',
+    backgroundColor: Colors.themeWhite,
+    borderTopLeftRadius: normalize(22),
+    borderTopRightRadius: normalize(22),
+    paddingTop: normalize(22),
+    paddingBottom: Platform.OS === 'ios' ? normalize(30) : normalize(24),
+    paddingHorizontal: normalize(20),
+  },
+  errorModalCloseBtn: {
+    height: normalize(30),
+    width: normalize(30),
+    borderRadius: normalize(15),
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.themeDocBackground,
+  },
+  errorModalCloseIcon: {
+    height: normalize(12),
+    width: normalize(12),
+  },
+  errorModalTitle: {
+    color: Colors.themeBlack,
+    fontFamily: Fonts.FustatSemiBold,
+    fontSize: normalize(20),
+    lineHeight: normalize(26),
+    marginTop: normalize(6),
+    textAlign: 'center',
+  },
+  errorModalMessage: {
+    color: Colors.themeInactiveTxt,
+    fontFamily: Fonts.FustatMedium,
+    fontSize: normalize(14),
+    lineHeight: normalize(20),
+    marginTop: normalize(10),
+    textAlign: 'center',
   },
   footerORTxt: {
     fontFamily: Fonts.FustatMedium,

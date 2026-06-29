@@ -17,23 +17,17 @@ class WSservice {
           'x-access-token': Token,
         },
       });
-      console.log('Initialize Socket Connection', this.socket);
       this.socket.on('connected', data => {
-        console.log('==== Socket Connected ====', data);
       });
       this.socket.on('disconnect', data => {
-        console.log('==== Socket Disconnected ====');
       });
       this.socket.on('error', data => {
-        console.log('==== Socket Connection Error ====', data);
       });
     } catch (err) {
-      console.log('Socket Error', err);
     }
   };
 
   emit(event, data = {}) {
-    console.log(data);
     this.socket.emit(event, data);
   }
   on(event, cb) {

@@ -24,10 +24,9 @@ import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 import Loader from '../../utils/helpers/Loader';
 
-let status = '';
-
 const ExploreProject = props => {
   const mapRef = useRef(null);
+  const handledStatus = useRef('');
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -45,18 +44,20 @@ const ExploreProject = props => {
     if (isFocused) {
       getAddress();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const getAddress = () => {
     AsyncStorage.getItem(constants.TRUSTWORKTKNADDRESS)
       .then(res => {
+        const address = res ? JSON.parse(res) : {};
         getServiceProviderList({
           count: 1,
-          lat: JSON.parse(res)?.latitude,
-          long: JSON.parse(res)?.longitude,
+          lat: address?.latitude,
+          long: address?.longitude,
         });
-        setLat(JSON.parse(res)?.latitude);
-        setLong(JSON.parse(res)?.longitude);
+        setLat(address?.latitude);
+        setLong(address?.longitude);
       })
       .catch(err => {
         console.log(err);
@@ -126,14 +127,18 @@ const ExploreProject = props => {
     );
   };
 
-  if (status == '' || ProjectReducer.status != status) {
+  useEffect(() => {
+    if (handledStatus.current === ProjectReducer.status) {
+      return;
+    }
+
     switch (ProjectReducer.status) {
       case 'Project/projectListByLocationRequest':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
 
         break;
       case 'Project/projectListByLocationSuccess':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
 
         let projects = Array.isArray(
           ProjectReducer?.projectListByLocationResponse?.data,
@@ -158,7 +163,6 @@ const ExploreProject = props => {
             address: project.project_address,
           }));
 
-        console.log('Markers:', markers);
         setMapData(markers);
 
         // setProviderList(
@@ -169,15 +173,19 @@ const ExploreProject = props => {
         //         ...ProjectReducer?.projectListByLocationResponse?.data,
         //       ],
         // );
-        setProviderList(ProjectReducer?.projectListByLocationResponse?.data);
+        setProviderList(projects);
 
         setTotalCount(ProjectReducer?.projectListByLocationResponse?.total);
         break;
       case 'Project/projectListByLocationFailure':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
         break;
     }
-  }
+  }, [
+    ProjectReducer.status,
+    ProjectReducer?.projectListByLocationResponse?.data,
+    ProjectReducer?.projectListByLocationResponse?.total,
+  ]);
 
   const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
     const paddingToBottom = 20;

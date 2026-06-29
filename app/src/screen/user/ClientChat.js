@@ -33,7 +33,11 @@ const ClientChat = props => {
   const [chatWithMe, setChatWithMe] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [socket, setSocket] = useState(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  // Use a ref so sendMsg always accesses the live socket instance
+  const socketRef = useRef(null);
+  // Reconnect attempt counter ref
+  const reconnectTimeout = useRef(null);
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -44,15 +48,9 @@ const ClientChat = props => {
       ? ChatReducer?.createChatRoomResponse?.data?.id
       : userdata?.id;
 
-  const ws = new WebSocket(constants?.SOCKET_URL + roomId + '/');
-  console.log(
-    'check-->',
-    AuthReducer?.ProfileResponse?.data?.id !=
-      props?.route?.params?.data?.user2?.id
-      ? props?.route?.params?.data?.user2
-      : props?.route?.params?.data?.user1,
-  );
+  console.log('roomId --->', roomId, '| type:', props?.route?.params?.type, '| userdata?.id:', userdata?.id);
   console.log('otherUser--->', otherUser, userdata);
+
   useEffect(() => {
     if (!Object.keys(otherUser)?.length > 0) {
       AuthReducer?.ProfileResponse?.data?.id !=
@@ -61,86 +59,131 @@ const ClientChat = props => {
         : setOtherUser(props?.route?.params?.data?.user1);
     }
   }, [props?.route?.params?.data]);
-  useEffect(() => {
-    console.log('listRef--->', listRef);
-    if (listRef.current) {
-      listRef.current.scrollToEnd();
-    }
-  }, []);
 
   useEffect(() => {
     connectionrequest()
       .then(() => {
         dispatch(messageListRequest(roomId));
       })
-      .catch(err => {
+      .catch(() => {
         showErrorAlert('Please connect to the internet');
       });
   }, [isFocused, page]);
 
-  useEffect(() => {
+  // Connect socket — only depends on roomId, not isFocused
+  // so it doesn't reconnect every time the screen gains/loses focus
+  const connectSocket = () => {
+    if (!roomId) return;
+
+    // Don't create a new socket if one is already open or connecting
+    if (
+      socketRef.current &&
+      (socketRef.current.readyState === WebSocket.OPEN ||
+        socketRef.current.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
+    console.log('Connecting WebSocket to:', constants?.SOCKET_URL + roomId + '/');
+    const ws = new WebSocket(constants?.SOCKET_URL + roomId + '/');
+    socketRef.current = ws;
+
     ws.onopen = () => {
-      console.log('WebSocket connected');
-      setSocket(ws);
+      console.log('WebSocket connected ✓');
+      setIsSocketConnected(true);
+      // Clear any pending reconnect timer
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+        reconnectTimeout.current = null;
+      }
     };
-  }, [isFocused]);
+
+    ws.onmessage = event => {
+      try {
+        const newMsg = JSON.parse(event.data);
+        console.log('Message received:', newMsg);
+        if (newMsg?.message) {
+          setChatWithMe(prev => [...prev, newMsg.message]);
+          setTimeout(() => {
+            scrollRef.current?.scrollToEnd({animated: true});
+          }, 500);
+        }
+      } catch (e) {
+        console.log('Failed to parse message:', e);
+      }
+    };
+
+    ws.onerror = error => {
+      console.log('WebSocket error:', error);
+      setIsSocketConnected(false);
+    };
+
+    ws.onclose = event => {
+      console.log('WebSocket closed. Code:', event.code, 'Reason:', event.reason);
+      setIsSocketConnected(false);
+      socketRef.current = null;
+      // Auto-reconnect after 3 seconds if screen is still focused
+      reconnectTimeout.current = setTimeout(() => {
+        console.log('Attempting to reconnect WebSocket...');
+        connectSocket();
+      }, 3000);
+    };
+  };
+
+  // Connect on mount and when roomId becomes available
+  useEffect(() => {
+    if (!roomId) return;
+    connectSocket();
+
+    return () => {
+      // Clear reconnect timer
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+        reconnectTimeout.current = null;
+      }
+      // Close socket on unmount
+      if (
+        socketRef.current &&
+        (socketRef.current.readyState === WebSocket.OPEN ||
+          socketRef.current.readyState === WebSocket.CONNECTING)
+      ) {
+        socketRef.current.close();
+      }
+      socketRef.current = null;
+      setIsSocketConnected(false);
+    };
+  }, [roomId]);
 
   const sendMsg = () => {
     if (msg?.trim() == '') {
       showErrorAlert('Please enter message');
+      return;
+    }
+
+    const ws = socketRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      const message = {
+        user_id: AuthReducer?.ProfileResponse?.data?.id,
+        message: msg,
+        room_id:
+          userdata?.id == undefined
+            ? ChatReducer?.createChatRoomResponse?.data?.id
+            : userdata?.id,
+      };
+      console.log('Sending message:', message);
+      ws.send(JSON.stringify(message));
+      setMsg('');
     } else {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        const message = {
-          user_id: AuthReducer?.ProfileResponse?.data?.id,
-          message: msg,
-          room_id:
-            userdata?.id == undefined
-              ? ChatReducer?.createChatRoomResponse?.data?.id
-              : userdata?.id,
-        };
-        socket.send(JSON.stringify(message));
-        // let newMsg = {
-        //   chat_room: message?.room_id,
-        //   created_at: new Date().toISOString(),
-        //   id: chatWithMe?.length + 1,
-        //   message: msg,
-        //   sender: AuthReducer?.ProfileResponse?.data?.full_name,
-        //   sender_id: AuthReducer?.ProfileResponse?.data?.id,
-        //   sender_pic: AuthReducer?.ProfileResponse?.data?.profile_picture,
-        //   status: 'ac',
-        //   updated_at: new Date().toISOString(),
-        // };
-        // let arr = [...chatWithMe];
-        // arr.push(newMsg);
-        // console.log(arr);
-        // setChatWithMe(arr);
-        // setTimeout(() => {
-        //   scrollRef.current?.scrollToEnd({animated: true});
-        // }, 1000);
-        // console.log('Message sent:', chatWithMe);
-        setMsg('');
+      // Socket is still connecting — retry once after a short delay
+      if (ws && ws.readyState === WebSocket.CONNECTING) {
+        console.log('Socket still connecting, retrying in 1s...');
+        setTimeout(() => sendMsg(), 1000);
+      } else {
+        console.log('Socket not connected. readyState:', ws?.readyState, '— reconnecting...');
+        connectSocket();
+        showErrorAlert('Reconnecting... please try again in a moment.');
       }
     }
-  };
-  // console.log(chatWithMe);
-
-  // useEffect(() => {st
-  ws.onmessage = event => {
-    let newMsg = JSON.parse(event.data);
-
-    receiveMessage(newMsg?.message);
-    console.log('Message received:', newMsg);
-    // console.log('chatWithMe-->', chatWithMe);
-  };
-  // }, [ws.onmessage]);
-
-  const receiveMessage = msg => {
-    let arr = [...chatWithMe];
-    arr.push(msg);
-    setChatWithMe(arr);
-    setTimeout(() => {
-      scrollRef.current?.scrollToEnd({animated: true});
-    }, 500);
   };
 
   const render_Chat = ({item, index}) => {
@@ -263,6 +306,22 @@ const ClientChat = props => {
                     /> */}
                 </View>
               </ScrollView>
+              {/* Connection status indicator */}
+              {!isSocketConnected && (
+                <View style={{
+                  backgroundColor: '#FF6B6B',
+                  paddingVertical: normalize(4),
+                  paddingHorizontal: normalize(12),
+                  marginHorizontal: normalize(15),
+                  borderRadius: normalize(8),
+                  marginBottom: normalize(6),
+                  alignItems: 'center',
+                }}>
+                  <Text style={{color: '#fff', fontSize: normalize(11)}}>
+                    Connecting to chat...
+                  </Text>
+                </View>
+              )}
               {/* /////////////// message box ////////////// */}
               <View
                 style={{
@@ -299,9 +358,7 @@ const ClientChat = props => {
                   />
                 </View>
                 <TouchableOpacity
-                  onPress={() => {
-                    sendMsg();
-                  }}>
+                  onPress={() => sendMsg()}>
                   <Image source={Icons.sendMsg} style={[styles.sendStyle]} />
                 </TouchableOpacity>
               </View>

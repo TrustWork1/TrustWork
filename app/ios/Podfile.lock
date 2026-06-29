@@ -1915,15 +1915,53 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNImageCropPicker (0.41.6):
+  - RNImageCropPicker (0.51.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
     - React-RCTImage
-    - RNImageCropPicker/QBImagePickerController (= 0.41.6)
-    - TOCropViewController (~> 2.7.4)
-  - RNImageCropPicker/QBImagePickerController (0.41.6):
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNImageCropPicker/QBImagePickerController (= 0.51.1)
+    - TOCropViewController (~> 2.8.0)
+    - Yoga
+  - RNImageCropPicker/QBImagePickerController (0.51.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
     - React-RCTImage
-    - TOCropViewController (~> 2.7.4)
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - TOCropViewController (~> 2.8.0)
+    - Yoga
   - RNNotifee (7.9.0):
     - React-Core
     - RNNotifee/NotifeeCore (= 7.9.0)
@@ -2003,7 +2041,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - RNWorklets
     - Yoga
-  - RNScreens (4.16.0):
+  - RNScreens (4.18.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2024,9 +2062,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.16.0)
+    - RNScreens/common (= 4.18.0)
     - Yoga
-  - RNScreens/common (4.16.0):
+  - RNScreens/common (4.18.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2225,7 +2263,7 @@ PODS:
   - StripeUICore (24.20.0):
     - StripeCore (= 24.20.0)
   - Toast (4.1.1)
-  - TOCropViewController (2.7.4)
+  - TOCropViewController (2.8.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2634,10 +2672,10 @@ SPEC CHECKSUMS:
   RNFBMessaging: fb5a9b0a3043d5d3e6e9fe7b27b78fcc3a0f753f
   RNGestureHandler: f548d618f6f08e41d8f85f5de8a8e7dfd6c7a673
   RNIap: d73cedfb73b396cad75f90f4ed7d64352d6381cf
-  RNImageCropPicker: d5387003612dd08d52fb062760136e0e473df186
+  RNImageCropPicker: 1eefdb201d03ba6373b38dbb73bff452bd03a1d3
   RNNotifee: 271cfeb505183d2cd1b858c14c3968b6ca30a642
   RNReanimated: 3372b6ba5b3b40258a5800eac03b7e8bc85539da
-  RNScreens: 21653ad95ea24514c81076a7af524705cd0edc21
+  RNScreens: b0691b7488fc428136a2e7abab32f751b01b2696
   RNShare: 912030634243db0ffa20f79bdce13fd250bc49ac
   RNWorklets: 1959aefeea2592bed1a02e200a535cc92b50d2aa
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
@@ -2651,7 +2689,7 @@ SPEC CHECKSUMS:
   StripePaymentsUI: d6b0285fdda8ac9cf8e83de423ca4efbf8b29439
   StripeUICore: 31c439e9a03cd178415fa9dd65cc1ce71db260ec
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
-  TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  TOCropViewController: 797deaf39c90e6e9ddd848d88817f6b9a8a09888
   Yoga: e14bad835e12b6c7e2260fc320bd00e0f4b45add
 
 PODFILE CHECKSUM: 9e8865d89229cb750a339b8f145735af13c455b9

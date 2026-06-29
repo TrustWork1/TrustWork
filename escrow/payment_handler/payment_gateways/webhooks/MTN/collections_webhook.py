@@ -1,13 +1,21 @@
+import logging
+import random
+import string
+from time import sleep
+from uuid import UUID
+
 import requests
 from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from escrow_management.models import Escrow,Transactions,Events, MtnSubscriptionTransaction
-from uuid import UUID
-from time import sleep
-import string, random
 from django.utils import timezone
-import logging
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from escrow_management.models import (
+    Escrow,
+    Events,
+    MtnSubscriptionTransaction,
+    Transactions,
+)
 
 logger = logging.getLogger("payment_handler.payment_gateways.webhooks.MTN.collections_webhook")
 
@@ -16,7 +24,7 @@ TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 class MtnCollectionWebhook(APIView):
     '''
     gets the transaction status for the given id
-    
+
     {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, "status": "SUCCESSFUL"}
     '''
 
@@ -27,8 +35,6 @@ class MtnCollectionWebhook(APIView):
         return self.handle_callback(request.data)
 
     def handle_callback(self, request_data):
-        from uuid import UUID
-        from time import sleep
         sleep(2)
 
         try:
@@ -51,10 +57,10 @@ class MtnCollectionWebhook(APIView):
                 except MtnSubscriptionTransaction.DoesNotExist:
                     logger.error(f"Subscription not found for externalId={external_id}")
                     return Response({"status": "ignored", "reason": "subscription_not_found"}, status=200)
-                
+
                 if subscription.payment_status in ["used", "paid"]:
                     return Response({"status": "ignored", "reason": "already_subscription_paid"}, status=200)
-                
+
                 subscription.payment_status = "paid" if status == "SUCCESSFUL" else "failed"
                 subscription.save()
 
@@ -63,6 +69,11 @@ class MtnCollectionWebhook(APIView):
                     subscription.unique_code_status = "active"
                     subscription.save()
                     phone_no = request_data.get("payer", {}).get("partyId")
+                    """
+                    Referral rewards are finalized inside TrustWork after the
+                    paid subscriber consumes this subscription code. Escrow only
+                    confirms payment and sends the code back to TrustWork.
+                    """
                     try:
                         url = f"{TRUSTWORK_BASE_API}/api/send_subscription_code/"
                         headers = {"Content-Type": "application/json"}
@@ -76,7 +87,7 @@ class MtnCollectionWebhook(APIView):
                         logger.exception("Error sending subscription code")
                         print(f"Error during sending subscription code: {e}")
                 return Response({"status": status}, status=200)
-            
+
             else:
                 # Handle escrow collection
                 try:
@@ -101,21 +112,26 @@ class MtnCollectionWebhook(APIView):
                     event_description=f"MTN Collection callback received with status: {status}",
                     escrow=escrow
                 )
-                
+
                 try:
                     url = f"{TRUSTWORK_BASE_API}/api/webhooks/escrow_collection/"
                     headers = {"Content-Type": "application/json"}
                     requests.post(url, json=request_data, headers=headers)
+                    """
+                    Project/bid payment referral rewards are intentionally not
+                    applied in escrow. If business approves that rule later,
+                    TrustWork should handle it after this collection callback.
+                    """
                 except requests.exceptions.RequestException as e:
                     logger.error(f"Error during collection response sending: {e}")
                     print(f"Error during collection response sending: {e}")
 
                 return Response({"status": status}, status=200)
-        
+
         except Exception as e:
             logger.exception("Unexpected error in MTN callback handler")
             return Response({"error": str(e)}, status=500)
-    
+
     @staticmethod
     def generate_unique_code():
         characters = string.ascii_uppercase + string.digits

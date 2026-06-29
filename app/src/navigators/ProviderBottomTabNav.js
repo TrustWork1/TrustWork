@@ -25,7 +25,7 @@ const ProviderBottomTabNav = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          bottom: 50,
+          bottom: Platform.OS === 'ios' ? 90 : 10,
           left: 20,
           right: 20,
           borderTopWidth: 0,
@@ -182,6 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    top: normalize(18),
+    top: Platform.OS === 'ios' ? normalize(18) : normalize(5),
   },
 });

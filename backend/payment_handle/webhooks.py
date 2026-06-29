@@ -1,22 +1,24 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+import base64
+import hashlib
+import json
+import os
+import uuid
+
+import environ
+import jwt
+import requests
+import stripe
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from project_management.models import Transactions,Notification
-from api.project.serializers import TransectionSerializer
-from api.pagination import CustomPagination, CustomPaginationProjectProfile
-from project_management.models import Bid, Project
-from django.conf import settings
-import json
-import stripe
-import requests
-from profile_management.models import Subscriptions, BankDetails, Profile
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-import os
-import environ
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from profile_management.models import Subscriptions
+from project_management.models import Bid, Notification, Transactions
+
 env = environ.Env()
 environ.Env.read_env(".env")
 ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
@@ -27,7 +29,7 @@ class EscrowCollectionWebhook(APIView):
     permission_classes=[AllowAny]
     def post(self,request):
         """
-        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
+        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'},
 
         """
         print("MTN Callback url called")
@@ -38,7 +40,7 @@ class EscrowCollectionWebhook(APIView):
 
         if not external_id:
             return Response({"error": "Missing externalId"}, status=400)
-        
+
         try:
             transaction=Transactions.objects.filter(escrow_id=external_id, transaction_type="collection").last()
 
@@ -52,7 +54,19 @@ class EscrowCollectionWebhook(APIView):
                 transaction.project.save()
                 transaction.save()
 
-                client_notification=Notification.objects.create(
+                """
+                Project/bid payment referral rewards are intentionally disabled.
+                If business confirms project payments should count as referrals,
+                call the project-payment referral helper here after collection
+                success, using transaction.bid.project.client.user as payer.
+                """
+                # handle_successful_referral_project_payment(
+                #     payer_user=transaction.bid.project.client.user,
+                #     amount=transaction.bid.project_total_cost,
+                #     provider="mtn_project_collection",
+                # )
+
+                Notification.objects.create(
                     sender=transaction.bid.project.client,
                     receiver=transaction.bid.project.client,
                     title="Payment Successfull",
@@ -65,7 +79,7 @@ class EscrowCollectionWebhook(APIView):
                 transaction.status = "failed"
                 transaction.save()
 
-                client_notification=Notification.objects.create(
+                Notification.objects.create(
                     sender=transaction.bid.project.client,
                     receiver=transaction.bid.project.client,
                     title="Payment Failed",
@@ -81,12 +95,12 @@ class EscrowCollectionWebhook(APIView):
             return Response({"error": "Transaction not found"}, status=404)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-    
+
 class EscrowDisbursementWebhook(APIView):
     permission_classes=[AllowAny]
     def post(self,request):
         """
-        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, 
+        {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'},
 
         """
         print("MTN Callback url called")
@@ -97,7 +111,7 @@ class EscrowDisbursementWebhook(APIView):
 
         if not external_id:
             return Response({"error": "Missing externalId"}, status=400)
-        
+
         try:
             transaction=Transactions.objects.filter(escrow_id=external_id, transaction_type="disbursement").last()
 
@@ -106,8 +120,8 @@ class EscrowDisbursementWebhook(APIView):
                 transaction.project.status="completed"
                 transaction.project.save()
                 transaction.save()
-                
-                provider_notification=Notification.objects.create(
+
+                Notification.objects.create(
                     sender=transaction.bid.project.client,
                     receiver=transaction.bid.project.client,
                     title="Payment Received",
@@ -121,7 +135,7 @@ class EscrowDisbursementWebhook(APIView):
                 # transaction.project.status="completed"
                 # transaction.project.save()
                 transaction.save()
-            
+
             return Response({"message": f"Callback processed with status: {status}"}, status=200)
 
         except Transactions.DoesNotExist:
@@ -130,11 +144,10 @@ class EscrowDisbursementWebhook(APIView):
             return Response({"error": str(e)}, status=500)
 
 
-import uuid, hashlib
 def convert_id_to_uuid(original_id):
     sha256_hash = hashlib.sha256(original_id.encode()).hexdigest()
     unique_id = uuid.UUID(sha256_hash[:32])
-    
+
     return unique_id
 class ProcessStripeSession(APIView):
     # def post(self, request):
@@ -147,14 +160,14 @@ class ProcessStripeSession(APIView):
     #     project_details.status = "ongoing"
     #     bid_details.save()
     #     project_details.save()
-    #     user_id = request.user.id 
+    #     user_id = request.user.id
     #     uuid_session_id = convert_id_to_uuid(session_id)
     #     print("uuid_session_id", uuid_session_id)
     #     if not session_id and bid_id:
     #         return Response({'error': 'Session ID & Bid ID is required'}, status=status.HTTP_400_BAD_REQUEST)
     #     payment = Transactions.objects.filter(bid_id=bid_id) # project_id=project_id, bid_id=bid_id,
     #     try:
-            
+
     #         project_b_url = f"{ESCROW_BASE_API}/webhooks/stripe/process-session/" # stripe/api/process-stripe-session/   /stripe/process-session/"
     #     # project_b_url = "http://127.0.0.1:8000/webhooks/stripe/process-session/" # /stripe/process-session/"
     #         payload = {'session_id': session_id, 'bid_id':bid_id}
@@ -185,7 +198,6 @@ class ProcessStripeSession(APIView):
         bid_details = Bid.objects.select_related("project").get(id=bid_id)
         project_details = bid_details.project
 
-        user_id = request.user.id
         uuid_session_id = convert_id_to_uuid(session_id)
         print("uuid_session_id", uuid_session_id)
 
@@ -245,14 +257,23 @@ class ProcessStripeSession(APIView):
         bid_details.save()
         project_details.save()
 
+        """
+        Project/bid payment referral rewards are intentionally disabled.
+        If business confirms project payments should count as referrals, call
+        the project-payment referral helper here after Stripe collection success.
+        """
+        # handle_successful_referral_project_payment(
+        #     payer_user=payment.bid.project.client.user,
+        #     amount=payment.bid.project_total_cost,
+        #     provider="stripe_project_collection",
+        # )
+
         return Response({'message': 'Payment successfully processed'}, status=status.HTTP_200_OK)
-    
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GooglePlayWebhookView(APIView):
     def post(self, request):
-        import base64
-
         message_data = request.data.get("message", {}).get("data")
         if not message_data:
             return Response({"error": "Invalid data"}, status=400)
@@ -266,7 +287,7 @@ class GooglePlayWebhookView(APIView):
             return Response({"message": "No subscription notification found"}, status=200)
         notification_type = subscription.get("notificationType")
         purchase_token = subscription.get("purchaseToken")  # Unique Token
-        
+
         if notification_type in [3, 13] and purchase_token:  # 3 means CANCELED(play store)
             event = "CANCELED" if notification_type == 3 else "EXPIRED"
             print(event)
@@ -278,8 +299,6 @@ class GooglePlayWebhookView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class AppStoreWebhookView(APIView):
     def post(self, request):
-        import jwt
-
         signed_payload = request.data.get("signedPayload")
         if not signed_payload:
             return Response({"error": "Invalid data"}, status=400)
@@ -291,7 +310,6 @@ class AppStoreWebhookView(APIView):
 
             data = payload.get("data", {})
             signed_transaction_info = data.get("signedTransactionInfo")
-            signed_renewal_info = data.get("signedRenewalInfo")
 
             if not signed_transaction_info:
                 return Response({"error": "Missing signedTransactionInfo"}, status=400)
@@ -303,7 +321,6 @@ class AppStoreWebhookView(APIView):
             # print("Decoded Renewal Info:", json.dumps(renewal_info, indent=2))
 
             original_transaction_id = transaction_info.get("originalTransactionId")
-            product_id = transaction_info.get("productId")
             notification_type = payload.get("notificationType")
 
             if notification_type in ["CANCEL", "EXPIRED", "DID_CHANGE_RENEWAL_STATUS"] and original_transaction_id:

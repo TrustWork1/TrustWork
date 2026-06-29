@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from profile_management.models import AppReferContent
+
 
 class AppReferSerializer(serializers.ModelSerializer):
 

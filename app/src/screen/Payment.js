@@ -1,14 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,8 +13,7 @@ import {
 } from 'react-native';
 import {Colors, Fonts, GifImage, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
-import BottomSheet from '@gorhom/bottom-sheet';
-import {useIsFocused} from '@react-navigation/native';
+// import {useIsFocused} from '@react-navigation/native';
 import {
   CardField,
   StripeProvider,
@@ -40,44 +36,39 @@ import {
   addBankAccountRequest,
   BankTransferRequest,
 } from '../redux/reducer/ProfileReducer';
-import {bidStatusRequest} from '../redux/reducer/ProjectReducer';
+import {
+  bidStatusRequest,
+  orangePayRequest,
+} from '../redux/reducer/ProjectReducer';
 import css, {width} from '../themes/css';
 import errorMessages from '../utils/errorMessages';
 import Loader from '../utils/helpers/Loader';
 import connectionrequest from '../utils/helpers/NetInfo';
 import showErrorAlert from '../utils/helpers/Toast';
-
-let status = '';
-let status1 = '';
-let status2 = '';
-
+// Global variables removed to fix UI crash
 let listData = [
-  // {
-  //   id: 1,
-  //   name: 'Bank Transfer',
-  //   category: 'Lorem ipsum dolor sit amet consectetur',
-  // },
   {
     id: 1,
     name: 'MTN Payment',
-    category: 'Lorem ipsum dolor sit amet consectetur',
+    category: 'Pay using your MTN Mobile Money wallet',
+  },
+  {
+    id: 2,
+    name: 'Orange Pay',
+    category: 'Pay using your Orange Pay wallet',
   },
 ];
-
 const Payment = props => {
   const bidId = props?.route?.params?.bidId;
   const bidAmount = props?.route?.params?.amount;
+  const projectId = props?.route?.params?.projectId;
   const {confirmPayment, loading} = useConfirmPayment();
-
-  const isFocused = useIsFocused();
+  // const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
   const ProjectReducer = useSelector(state => state.ProjectReducer);
   const ProfileReducer = useSelector(state => state.ProfileReducer);
-
-  const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['1%', '40%']);
-
+  // const snapPoints = useMemo(() => ['1%', '40%']);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -92,7 +83,6 @@ const Payment = props => {
         setKeyboardVisible(false); // or some other action
       },
     );
-
     return () => {
       keyboardDidHideListener.remove();
       keyboardDidShowListener.remove();
@@ -100,28 +90,18 @@ const Payment = props => {
   }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [IsProceed, setIsProceed] = useState(false);
-  const [cardNo, setCardNo] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [name, setName] = useState('');
   const [showSeen, setShowSeen] = useState(false);
   const [mtnRequest, setMtnRequest] = useState(false);
   const [phoneNo, setPhoneNo] = useState('');
   const [openPayNow, setOpenPayNow] = useState(null);
   const [isValidateMobile, setIsValidateMobile] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [bankId, setBankId] = useState('');
   const [bName, setBname] = useState('');
   const [AccountNo, setAccountNo] = useState('');
   const [ifsc, setIFSC] = useState('');
-
   const phoneRegex = /^[0-9]{9,15}$/;
-
   const handleSheetChanges = useCallback(index => {
-    console.log('handleSheetChanges', index);
   }, []);
-
   const bidStatusChange = (status, id) => {
     let obj = {
       data: {action: status, phone_number: phoneNo},
@@ -131,6 +111,29 @@ const Payment = props => {
       .then(() => {
         dispatch(bidStatusRequest(obj));
         // console.log(obj);
+      })
+      .catch(err => {
+        showErrorAlert('Please connect to the internet');
+      });
+  };
+
+  const orangePayFun = () => {
+    let finalPhone = phoneNo;
+    if (phoneNo.length === 9) {
+      finalPhone = `237${phoneNo}`;
+    }
+
+    let obj = {
+      description: 'Orange Pay Payment',
+      subscriberMsisdn: finalPhone,
+      payment_type: 'orange',
+      bid_id: String(bidId),
+      project_id: projectId,
+      user_id: String(AuthReducer?.signinResponse?.UserData?.id)
+    };
+    connectionrequest()
+      .then(() => {
+        dispatch(orangePayRequest(obj));
       })
       .catch(err => {
         showErrorAlert('Please connect to the internet');
@@ -164,32 +167,20 @@ const Payment = props => {
       });
   };
 
-  if (status == '' || AuthReducer.status != status) {
+  // Handle AuthReducer status changes
+  useEffect(() => {
     switch (AuthReducer.status) {
       case 'Auth/CreatePaymentRequest':
-        status = AuthReducer.status;
         setIsLoading(true);
         break;
       case 'Auth/CreatePaymentSuccess':
-        status = AuthReducer.status;
         setIsLoading(false);
-        console.log(
-          'clientSecret-->',
-          AuthReducer?.CreatePaymentResponse?.data,
-        );
-
         setIsProceed(true);
         break;
       case 'Auth/CreatePaymentFailure':
-        status = AuthReducer.status;
-        break;
-
-      ////////////////////////// Stripe payment ////////////////
-      case 'Auth/StripePaymentRequest':
-        status = AuthReducer.status;
+        setIsLoading(false);
         break;
       case 'Auth/StripePaymentSuccess':
-        status = AuthReducer.status;
         setIsLoading(false);
         setIsProceed(false);
         setTimeout(() => {
@@ -197,70 +188,60 @@ const Payment = props => {
         }, 1000);
         break;
       case 'Auth/StripePaymentFailure':
-        status = AuthReducer.status;
         setIsLoading(false);
         setIsProceed(false);
         break;
     }
-  }
+  }, [AuthReducer.status]);
 
-  if (status1 == '' || ProjectReducer.status != status1) {
+  // Handle ProjectReducer status changes
+  useEffect(() => {
     switch (ProjectReducer.status) {
-      case 'Project/bidStatusRequest':
-        status1 = ProjectReducer.status;
-        break;
       case 'Project/bidStatusSuccess':
-        status1 = ProjectReducer.status;
         if (
           ProjectReducer?.bidStatusResponse?.data?.payment_response == 'FAILED'
         ) {
           Alert.alert('Fail!', `Payment is Unsuccessful`, [
             {
               text: 'OK',
-              onPress: () =>
-                console.log(
-                  'FAILED response--->',
-                  ProjectReducer.bidStatusResponse.data.payment_response,
-                ),
+              onPress: () => {},
             },
           ]);
         } else {
           setMtnRequest(true);
         }
-
         break;
-      case 'Project/bidStatusFailure':
-        status1 = ProjectReducer.status;
+      case 'Project/orangePaySuccess':
+        Alert.alert(
+          'Success!',
+          'Payment request initiated successfully. Please approve the payment on your Orange Money app or by dialing *150#.',
+          [
+            {
+              text: 'OK',
+              onPress: () => NavigationService.goBack(),
+            },
+          ],
+        );
+        break;
+      case 'Project/orangePayFailure':
+        Alert.alert('Fail!', 'Payment initiation failed. Please try again.');
         break;
     }
-  }
-
-  if (status2 == '' || ProfileReducer.status != status2) {
+  }, [ProjectReducer.status]);
+  // Handle ProfileReducer status changes
+  useEffect(() => {
     switch (ProfileReducer.status) {
-      case 'Profile/addBankAccountRequest':
-        status2 = ProfileReducer.status;
-
-        break;
       case 'Profile/addBankAccountSuccess':
-        status2 = ProfileReducer.status;
         dispatch(BankTransferRequest({bid_id: bidId}));
         break;
       case 'Profile/addBankAccountFailure':
-        status2 = ProfileReducer.status;
-        break;
-
-      case 'Profile/BankTransferRequest':
-        status2 = ProfileReducer.status;
         break;
       case 'Profile/BankTransferSuccess':
-        status2 = ProfileReducer.status;
         break;
       case 'Profile/BankTransferFailure':
-        status2 = ProfileReducer.status;
         break;
     }
-  }
-
+  }, [ProfileReducer.status]);
   const handlePayPress = async () => {
     try {
       const {paymentIntent, error} = await confirmPayment(
@@ -269,9 +250,7 @@ const Payment = props => {
           paymentMethodType: 'Card',
         },
       );
-      console.log('enter payment', paymentIntent);
       if (error) {
-        console.error('Payment confirmation error:', error);
         setIsProceed(false);
         setIsLoading(false);
 
@@ -279,17 +258,12 @@ const Payment = props => {
         Alert.alert('Fail!', `Payment is Unsuccessful`, [
           {
             text: 'OK',
-            onPress: () =>
-              console.log(
-                'sucess response--->',
-                AuthReducer?.CreatePaymentResponse?.data?.client_secret,
-              ),
+            onPress: () => {},
           },
         ]);
 
         // Handle error
       } else if (paymentIntent) {
-        console.log('Success:', paymentIntent);
         let obj = {
           session_id: paymentIntent?.id,
           bid_id: bidId,
@@ -297,7 +271,6 @@ const Payment = props => {
         dispatch(StripePaymentRequest(obj));
       }
     } catch (e) {
-      console.error('Error:', e);
     } finally {
     }
   };
@@ -312,7 +285,7 @@ const Payment = props => {
 
   const paymentComponent = () => (
     <View style={styles.paymentContainer}>
-      {openPayNow === 'MTN Payment' && (
+      {(openPayNow === 'MTN Payment' || openPayNow === 'Orange Pay') && (
         <View>
           <TextIn
             show={phoneNo?.length > 0}
@@ -357,7 +330,10 @@ const Payment = props => {
 
       <View style={styles.btnMainContainer}>
         <NextBtn
-          loading={ProjectReducer?.status == 'Project/bidStatusRequest'}
+          loading={
+            ProjectReducer?.status == 'Project/bidStatusRequest' ||
+            ProjectReducer?.status == 'Project/orangePayRequest'
+          }
           height={normalize(50)}
           title={'Pay Now'}
           borderColor={Colors.themeGreen}
@@ -368,6 +344,10 @@ const Payment = props => {
               ? !phoneRegex.test(phoneNo)
                 ? showErrorAlert('Invalid phone number')
                 : bidStatusChange('accept', bidId)
+              : openPayNow === 'Orange Pay'
+              ? !phoneRegex.test(phoneNo)
+                ? showErrorAlert('Invalid phone number')
+                : orangePayFun()
               : null
           }
         />
@@ -655,9 +635,13 @@ const Payment = props => {
                 />
                 <View style={styles.modalHeaderTxtContainer}>
                   <Text style={styles.modalHeaderTxt}>Success!</Text>
-                  <Text style={styles.title}>Payment request sent to MTN</Text>
+                  <Text style={styles.title}>
+                    Payment request sent to{' '}
+                    {openPayNow == 'Orange Pay' ? 'Orange Money' : 'MTN'}
+                  </Text>
                   <Text style={styles.message}>
-                    Please approve the payment request on your MTN Mobile Money
+                    Please approve the payment request on your{' '}
+                    {openPayNow == 'Orange Pay' ? 'Orange Money' : 'MTN Mobile Money'}{' '}
                     app or dial *165#.
                   </Text>
                 </View>

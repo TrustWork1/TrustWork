@@ -1,37 +1,69 @@
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView,Http404
-from project_management.models import Project, Bid
-from .serializers import ProjectSerializer, BidSerializer
-from rest_framework.permissions import IsAuthenticated
-from api.pagination import CustomPagination, CustomPaginationProjectProfile
-from django.shortcuts import get_object_or_404
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from chat_management.models import Messages
-from profile_management.models import Profile
-from project_management.models import Project, Transactions, Currency
-from profile_management.models import BankDetails
-from rest_framework import generics
-from .serializers import BidSerializerProjectView
-from master.models import JobCategory
-from .serializers import JobCategorySerializer
-from payment_handle.gateways.escrow import PaymentGatewayAPI
-from api.chat.serializers import MessagesSerializer
-from django.db.models import Q, ProtectedError
-from django.db import IntegrityError
-# from payment_handle.gateways.escrow import *
-from django.db import transaction
-from project_management.models import Notification
-import json
-import os, requests
+import contextlib
+import os
 from datetime import timedelta
-from django.utils import timezone
-from django.core.files.storage import default_storage
+
+import requests
 import stripe
 from django.conf import settings
+from django.core.files.storage import default_storage
+
+# from payment_handle.gateways.escrow import *
+from django.db.models import BooleanField, Case, ProtectedError, Q, Value, When
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView, Http404
+
+from api.chat.serializers import MessagesSerializer
+from api.pagination import CustomPagination, CustomPaginationProjectProfile
+from api.profile.serializers import FeedbackSerializer, ProfileSerializer
+from chat_management.models import Messages
+from master.models import JobCategory
+from payment_handle.gateways.escrow import (
+    PaymentGatewayAPI,
+    normalize_mtn_cameroon_msisdn,
+)
+from profile_management.models import BankDetails, Profile
+from project_management.models import Bid, Currency, Feedback, Project, Transactions
+
+from .serializers import (
+    AdminProjectSerializer,
+    BidSerializer,
+    BidSerializerProjectView,
+    JobCategorySerializer,
+    ProjectSerializer,
+    SwitchRoleSerializer,
+)
+
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 ESCROW_BASE_API = os.getenv('ESCROW_BASE_API')
+
+
+def _first_error_message(errors):
+    if isinstance(errors, dict):
+        for value in errors.values():
+            message = _first_error_message(value)
+            if message:
+                return message
+        return "Invalid request."
+    if isinstance(errors, list | tuple):
+        return _first_error_message(errors[0]) if errors else "Invalid request."
+    return str(errors) if errors else "Invalid request."
+
+
+def _project_error_response(message, data=None, response_status=status.HTTP_400_BAD_REQUEST):
+    return Response({
+        "status": str(response_status),
+        "type": "error",
+        "message": message,
+        "data": data,
+    }, status=response_status)
+
 
 class ProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -62,8 +94,8 @@ class ProjectList(APIView):
         if not user_profile:
             return Response({"detail": "Profile not found for the current user."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = ProjectSerializer(paginated_projects, many=True, context={"request": request})
-        
-        for project, data in zip(paginated_projects, serializer.data):
+
+        for project, data in zip(paginated_projects, serializer.data, strict=False):
             if project:
                 can_send_bid = not Bid.objects.filter(project=project, service_provider=user_profile).exists()
                 # bid_cost = Bid.objects.filter(project=Project.objects.get(project__id=id)).first().project_total_cost
@@ -84,7 +116,7 @@ class ProjectList(APIView):
                 required=True
             )
         ],
-        request_body=ProjectSerializer, 
+        request_body=ProjectSerializer,
     )
     # def post(self, request):
     #     # serializer = ProjectSerializer(data=request.data)
@@ -105,31 +137,39 @@ class ProjectList(APIView):
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def post(self, request):
         data = request.data
-    
-        client = Profile.objects.only('id').get(pk=data.get("client"))
-        job_category = JobCategory.objects.only('id').get(id=data['project_category'])
-    
-        serializer = ProjectSerializer(data=data)
+
+        try:
+            client = Profile.objects.only('id').get(pk=data.get("client"))
+        except (Profile.DoesNotExist, TypeError, ValueError):
+            return _project_error_response("Client profile not found.")
+
+        try:
+            job_category = JobCategory.objects.only('id').get(id=data.get('project_category'))
+        except (JobCategory.DoesNotExist, TypeError, ValueError):
+            return _project_error_response("Project category not found.")
+
+        serializer = ProjectSerializer(data=data, context={"request": request})
         if serializer.is_valid():
             project = serializer.save(client=client, project_category=job_category)
-    
-            if hasattr(project, 'project_location'):
-                project.project_location.country = data['project_location']
+
+            project_location = data.get('project_location')
+            if getattr(project, 'project_location', None) and project_location:
+                project.project_location.country = project_location
                 project.project_location.save()
-    
+
             response = {
                 "status": 201,
                 "type": "success",
                 "message": "Project created successfully",
-                "data": ProjectSerializer(project).data
+                "data": ProjectSerializer(project, context={"request": request}).data
             }
             return Response(response, status=status.HTTP_201_CREATED)
-    
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+        return _project_error_response(_first_error_message(serializer.errors), serializer.errors)
+
     # def post(self, request):
     #     data = request.data
-        
+
     #     # Step 1: Validate serializer first
     #     serializer = ProjectSerializer(data=data)
     #     if not serializer.is_valid():
@@ -158,7 +198,7 @@ class ProjectList(APIView):
     #                     "type": "error",
     #                     "message": "Project category does not exist."
     #                 }, status=status.HTTP_400_BAD_REQUEST)
-                
+
     #             # Step 5: Prepare the project data (NO SAVE YET)
     #             project = Project(
     #                 client=client_profile,
@@ -191,7 +231,6 @@ class ProjectList(APIView):
     #             "message": "Failed to create project. Please try again later."
     #         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-from master.models import Location    
 
 # from chat_management.models import Conversation, Message
 class ProjectDetail(APIView):
@@ -200,8 +239,8 @@ class ProjectDetail(APIView):
     def get_object(self, pk):
         try:
             return Project.objects.get(pk=pk)
-        except Project.DoesNotExist:
-            raise Http404
+        except Project.DoesNotExist as err:
+            raise Http404 from err
 
     @swagger_auto_schema(
             operation_description="Get a project",
@@ -220,15 +259,22 @@ class ProjectDetail(APIView):
 
     def get(self, request, pk):
         # project = self.get_object(pk)
-        project = Project.objects.get(id=pk)
+        project = self.get_object(pk)
         last_transaction = Transactions.objects.filter(project=project).last()
-        message=Messages.objects.filter(Q(chat_room__user1=request.user.profile,chat_room__user2=project.client)|Q(chat_room__user2=request.user.profile,chat_room__user1=project.client))
-        
+        try:
+            user_profile = request.user.profile
+        except Profile.DoesNotExist:
+            return _project_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
+        message=Messages.objects.filter(Q(chat_room__user1=user_profile,chat_room__user2=project.client)|Q(chat_room__user2=user_profile,chat_room__user1=project.client))
+
         if last_transaction:
             transaction_status=last_transaction.status
 
             # Update transition status after 10 minutes(if not payed)
-            if (transaction_status.lower() == "in_progress" and 
+            if (transaction_status.lower() == "in_progress" and
                 last_transaction.created_at + timedelta(minutes=10) < timezone.now()
             ):
                 try:
@@ -240,7 +286,7 @@ class ProjectDetail(APIView):
                         response_data = escrow_response.json()
                         escrow_data = response_data.get("status_response")
                         tx_status = escrow_data.get("status").upper()
-                        
+
                         if tx_status == "FAILED":
                             last_transaction.status = "failed"
                             last_transaction.save()
@@ -257,14 +303,12 @@ class ProjectDetail(APIView):
                         print(f"Escrow Transition update failed: {escrow_response.status_code} {escrow_response.text}")
                 except Exception as e:
                     print(f"Escrow API error: {e}")
-        
-        
-        if message.last():
-            message=MessagesSerializer(message.last()).data
-        else:
-            message=""
-        
-        serializer = ProjectSerializer(project)
+
+
+        last_message = message.last()
+        message = MessagesSerializer(last_message).data if last_message else ""
+
+        serializer = ProjectSerializer(project, context={"request": request})
         data = serializer.data
         # data.pop("client")
 
@@ -272,7 +316,7 @@ class ProjectDetail(APIView):
         # conversation = Conversation.objects.get(project=project)
         # message= Message.objects.filter(conversation=conversation).order_by("-sent_at").first()
         # message = Message.objects.filter(conversation__project=project).order_by("-sent_at").first()
-    
+
 
         # data["message"] = MessageSerializer(message).data
         return Response(data)
@@ -300,26 +344,25 @@ class ProjectDetail(APIView):
                 data=serializer.save(client=client)
             else:
                 data=serializer.save()
-                
-            try:
+
+            with contextlib.suppress(Exception):
                 job_categories = JobCategory.objects.get(id=eval(str(request.data['project_category'])))
-                data.project_category=job_categories            
-            except Exception as e:
-                print(e)
-                pass    
-            data.project_location.latitude = request.data.get("latitude")
-            data.project_location.longitude = request.data.get("longitude")
+                data.project_category=job_categories
+            if data.project_location:
+                data.project_location.latitude = request.data.get("latitude", data.project_location.latitude)
+                data.project_location.longitude = request.data.get("longitude", data.project_location.longitude)
+                data.project_location.save()
             data.save()
             response={
                 "status":200,
                 "type":"success",
-                "message":"profile updated successfully",
-                "data":serializer.data
+                "message":"Project updated successfully",
+                "data":ProjectSerializer(data, context={"request": request}).data
             }
             return Response(response, status=status.HTTP_200_OK)
             # serializer.save()
             # return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return _project_error_response(_first_error_message(serializer.errors), serializer.errors)
 
     @swagger_auto_schema(
         operation_description="Delete a project",
@@ -340,16 +383,14 @@ class ProjectDetail(APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-from api.project.serializers import AdminProjectSerializer,ProfileSerializer
-
 class AdminProjectDetail(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
         try:
             return Project.objects.get(pk=pk)
-        except Project.DoesNotExist:
-            raise Http404
+        except Project.DoesNotExist as err:
+            raise Http404 from err
 
     @swagger_auto_schema(
             operation_description="Get a project",
@@ -374,7 +415,7 @@ class AdminProjectDetail(APIView):
         # conversation = Conversation.objects.get(project=project)
         # message= Message.objects.filter(conversation=conversation).order_by("-sent_at").first()
         # message = Message.objects.filter(conversation__project=project).order_by("-sent_at").first()
-        
+
 
         serializer.data['client']=ProfileSerializer(project.client.id)
         data = serializer.data
@@ -400,23 +441,20 @@ class AdminProjectDetail(APIView):
         serializer = AdminProjectSerializer(project, data=request.data,partial=True)
         if serializer.is_valid():
             data=serializer.save()
-            try:
+            with contextlib.suppress(Exception):
                 job_categories = JobCategory.objects.get(id=eval(str(request.data['project_category'])))
                 data.project_category=job_categories
                 data.save()
-            except Exception as e:
-                print(e)
-                pass    
             response={
                 "status":200,
                 "type":"success",
-                "message":"profile updated successfully",
+                "message":"Project updated successfully",
                 "data":serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
             # serializer.save()
             # return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return _project_error_response(_first_error_message(serializer.errors), serializer.errors)
 
     @swagger_auto_schema(
         operation_description="Delete a project",
@@ -507,7 +545,7 @@ class ChangeProjectStatusView(APIView):
                         "type" : "error",
                         "message": "No collection transaction found for this project."
                     }, status=status.HTTP_404_NOT_FOUND)
-                
+
                 bid = latest_transaction.bid
                 escrow_id = latest_transaction.escrow_id if latest_transaction else None
 
@@ -519,7 +557,7 @@ class ChangeProjectStatusView(APIView):
                 if bank_details.payment_type == "stripe":
                     stripe_account_id=bank_details.stripe_account_id
                     response = gateway.disbursement_stripe_payment(escrow_id=escrow_id, stripe_account_id=stripe_account_id, amount=bid.project_total_cost)
-                    
+
                     Transactions.objects.create(
                         escrow_id=escrow_id,
                         status='in_progress',
@@ -531,7 +569,13 @@ class ChangeProjectStatusView(APIView):
                     project.save()
 
                 elif bank_details.payment_type == "mtn":
-                    mtn_number= bank_details.bank_account_number[1:]
+                    try:
+                        mtn_number = normalize_mtn_cameroon_msisdn(bank_details.bank_account_number)
+                    except ValueError as exc:
+                        return Response({
+                            "type": "error",
+                            "message": str(exc),
+                        }, status=status.HTTP_400_BAD_REQUEST)
                     amount=float(bid.project_total_cost)
                     currency=Currency.objects.last()
                     project_total_cost=round(float(currency.xaf_currency) * amount)
@@ -540,6 +584,18 @@ class ChangeProjectStatusView(APIView):
 
                     response = gateway.initialize_disbursement(escrow_id=escrow_id, phone_number=mtn_number, amount=project_total_cost)
                     print("Payment response: ",response)
+
+                    if not response:
+                        return Response({
+                            "type": "error",
+                            "message": "MTN disbursement initialization failed.",
+                        }, status=status.HTTP_502_BAD_GATEWAY)
+                    if response.get("status") == "failed":
+                        return Response({
+                            "type": "error",
+                            "message": response.get("message", "MTN disbursement initialization failed."),
+                            "payment_response": response,
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
                     if response.get("status_code") == 500:
                         tx_status = "failed"
@@ -560,22 +616,6 @@ class ChangeProjectStatusView(APIView):
                         transaction_type="disbursement",
                         payment_type="mtn"
                     )
-                if tx_status != "failed":
-                    sender_profile = Profile.objects.get(user=request.user)
-                    # print("Sender",sender_profile)
-                    # print("Receiver",receiver_profile)
-                    # print("Full name",receiver_profile.user.full_name)
-                    
-        #             notification = Notification.objects.create(
-        #                 sender=sender_profile,
-        #                 receiver=receiver_profile,
-        #                 title="Project Completed",
-        #                 message=f"The project '{project.project_title}' has been marked as completed.",
-        #                 object_type="project completed",
-        #                 project_id=project.id,
-        #                 bid_id=bid.id
-        #             )
-            
             except BankDetails.DoesNotExist:
                 return Response({
                     "type" : "error",
@@ -637,7 +677,7 @@ class ProjectBidApiView(APIView):
         #     500: "Server error"
         # }
     )
-    def get(self,request,project_id):  
+    def get(self,request,project_id):
         bids=Bid.objects.filter(project__id=project_id).order_by("-updated_at")
         paginator = CustomPagination()
         bids = paginator.paginate_queryset(bids, request)
@@ -686,6 +726,7 @@ class ProjectBidApiView(APIView):
         Accept or reject a specific bid. If accepting, rejects all other bids for the same project.
         """
         action = request.data.get("action", "").lower()
+        payment_status = None
 
         print(f"Received action: {action}")
 
@@ -698,7 +739,7 @@ class ProjectBidApiView(APIView):
                     "error": "Invalid action. Must be 'accept' or 'reject'."
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             bid = Bid.objects.get(id=bid_id)
 
@@ -722,15 +763,14 @@ class ProjectBidApiView(APIView):
                     bid.save()
                 # bid.project.project_budget=bid.project_total_cost
                 # bid.project.save()
-                
+
                 if request.data.get("phone_number") and action == "accept":
                     try:
-                        phone_number=request.data.get("phone_number", "").strip()
-                        # if not phone_number.startswith("237") and len(phone_number) <= 9:
-                        if not phone_number.startswith("237"):
-                            phone_number = "237"+ phone_number
+                        phone_number = normalize_mtn_cameroon_msisdn(
+                            request.data.get("phone_number", "")
+                        )
                         gateway=PaymentGatewayAPI()
-                        
+
                         client_details={
                             "mobile_number":request.data.get("phone_number",bid.service_provider.phone),
                             "email":bid.project.client.user.email
@@ -745,7 +785,14 @@ class ProjectBidApiView(APIView):
                         project_total_cost=round(float(currency.xaf_currency) * amount)
                         response=gateway.initialize_collection(project_total_cost,phone_number,client_details,provider_details,bid.project.id)
                         # print("Response: ", response)
-                        try:
+                        if not response:
+                            return Response({"error": "MTN payment initialization failed."}, status=status.HTTP_502_BAD_GATEWAY)
+                        if response.get("status") == "failed":
+                            return Response({
+                                "error": response.get("message", "MTN payment initialization failed."),
+                                "payment_response": response,
+                            }, status=status.HTTP_400_BAD_REQUEST)
+                        with contextlib.suppress(Exception):
                             payment_status=response['response']['status']
                             # print("payment_status: ",payment_status)
                             if payment_status.lower() == "failed":
@@ -759,25 +806,22 @@ class ProjectBidApiView(APIView):
                                 bid.project.status="ongoing"
                                 bid.project.save()
                                 bid.save()
-                        except:
-                            pass
-                        
+
+                    except ValueError as e:
+                        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
                     except Exception as e:
                         print(e)
-                        response={}
             elif action == "reject":
                 bid.status = 'Rejected'
                 bid.is_accepted = False
                 bid.project.status='active'
                 bid.project.save()
                 bid.save()
-                
+
 
             serializer = BidSerializer(bid).data
-            try:
+            if payment_status is not None:
                 serializer['payment_response']=payment_status
-            except:
-                pass
             return Response(serializer, status=status.HTTP_200_OK)
 
         except Bid.DoesNotExist:
@@ -790,7 +834,7 @@ class ProjectBidApiView(APIView):
     #         """
     #         try:
     #             bid = Bid.objects.get(id=bid_id)
-                
+
     #             bid.status = 'Accepted'
     #             bid.save()
 
@@ -866,7 +910,7 @@ class BidList(APIView):
     #         serializer.save(service_provider=Profile.objects.get(id=request.data['service_provider']),project=Project.objects.get(id=request.data['project']))  # Adjust if necessary
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def post(self, request, *args, **kwargs):
         profile = request.user.profile
         project_id = request.data.get('project')
@@ -883,7 +927,7 @@ class BidList(APIView):
 
         #  Block if an active bid already exists except 'Rejected'
         if Bid.objects.filter(
-            service_provider=profile, 
+            service_provider=profile,
             project=project
         ).exclude(status__iexact='Rejected').exists():
             return Response({'error': 'You already have an active bid on this project.'}, status=400)
@@ -894,7 +938,7 @@ class BidList(APIView):
             #  This line will now pass the Project object instead of project_id
             serializer.save(service_provider=profile, project=project)
             return Response(serializer.data, status=201)
-        
+
         return Response(serializer.errors, status=400)
 
 class BidDetail(APIView):
@@ -903,8 +947,8 @@ class BidDetail(APIView):
     def get_object(self, pk):
         try:
             return Bid.objects.get(pk=pk)
-        except Bid.DoesNotExist:
-            raise Http404
+        except Bid.DoesNotExist as err:
+            raise Http404 from err
 
     @swagger_auto_schema(
             operation_summary="Get a bid",
@@ -979,9 +1023,9 @@ class BidDetail(APIView):
     def delete(self, request, pk):
         try:
             bid = get_object_or_404(Bid, id=pk)
-            
+
             Transactions.objects.filter(bid=bid, status="failed").delete()
-            
+
             if Transactions.objects.filter(bid=bid).exists():
                 return Response(
                     {"error": "Cannot delete bid because it is referenced by non-failed transactions."},
@@ -996,11 +1040,8 @@ class BidDetail(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-from django.db.models import F, Case, When, Value, BooleanField
-
-from rest_framework.pagination import PageNumberPagination
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10 
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -1022,7 +1063,7 @@ class ServiceProviderListView(generics.ListAPIView):
             ],
         responses={200: BidSerializerProjectView(many=True)}
     )
-    # Previous Working Code 
+    # Previous Working Code
     # def get(self, request, *args, **kwargs):
     #     search_query = request.query_params.get('search', '')
     #     bids = Bid.objects.filter(service_provider=Profile.objects.get(user=request.user)).exclude(project__status__iexact='myoffer')
@@ -1034,10 +1075,10 @@ class ServiceProviderListView(generics.ListAPIView):
     #         queryset = Project.objects.filter(Q(project_title__icontains=search_query), Q(project_description__icontains=search_query), Q(project_status__icontains=search_query))
     #     if not queryset.exists():
     #         return Response([], status=status.HTTP_200_OK)
-        
+
     #     paginator = CustomPaginationProjectProfile()
     #     paginated_queryset = paginator.paginate_queryset(queryset.distinct("id"), request)
-        
+
     #     serializer = BidSerializerProjectView(paginated_queryset, many=True)
     #     return paginator.get_paginated_response(serializer.data)
     #     # # return Response([*queryset.values()])
@@ -1045,23 +1086,33 @@ class ServiceProviderListView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         search_query = request.query_params.get('search', '')
         status2 = request.query_params.get("status")
-        user_profile = Profile.objects.get(user=request.user)
+        try:
+            user_profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return _project_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
+        if status2 not in {"active", "completed"}:
+            return _project_error_response(
+                "Please provide the correct status name.",
+                data=[],
+                response_status=status.HTTP_400_BAD_REQUEST,
+            )
+        bids = Bid.objects.none()
         if status2=="active":
             bids = Bid.objects.filter(service_provider=user_profile).exclude(
                 Q(project__status__iexact="Completed") |
                 Q(project__status__iexact="myoffer") |
                 Q(status__iexact="Rejected")
             )
-        if status2=="completed":
+        elif status2=="completed":
             bids = Bid.objects.filter(service_provider=user_profile, status__iexact="Accepted").exclude(
                 Q(project__status__iexact="ongoing") |
                 Q(project__status__iexact="myoffer") |
                 Q(status__iexact="Rejected")
             )
-        try:  
-            queryset = Project.objects.filter(bid__in=bids).exclude(status__iexact='active').exclude(status__iexact='inactive').distinct()
-        except:
-            pass
+        queryset = Project.objects.filter(bid__in=bids).exclude(status__iexact='active').exclude(status__iexact='inactive').distinct()
         if search_query:
             queryset = queryset.filter(
                 Q(project_title__icontains=search_query) |
@@ -1069,22 +1120,19 @@ class ServiceProviderListView(generics.ListAPIView):
                 Q(status=search_query)
             )
         queryset=queryset.exclude(status__iexact="myoffer")
-        try:
-            if not queryset.exists():
-                return Response([], status=status.HTTP_200_OK)
-        except:
-            return Response([{"message":"Please provide the correct status name"}], status=status.HTTP_406_NOT_ACCEPTABLE)
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
         queryset=queryset.annotate(
             can__send_bid=Case(
-                When(Q(bid__service_provider=request.user.profile)&Q(status__iexact="Rejected"), then=Value(False)),
+                When(Q(bid__service_provider=user_profile)&Q(status__iexact="Rejected"), then=Value(False)),
                 default=Value(True),
                 output_field=BooleanField()
             )
         )
         paginator = CustomPaginationProjectProfile()
         paginated_queryset = paginator.paginate_queryset(queryset.order_by('-updated_at'), request)
-        
-        serializer = BidSerializerProjectView(paginated_queryset, many=True)
+
+        serializer = BidSerializerProjectView(paginated_queryset, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -1093,17 +1141,24 @@ class ServiceProviderHomeView(APIView):
     def get(self,request):
         search_query = request.query_params.get('search', '')
         excluded_statuses = ["completed", "ongoing", "myoffer", "inactive"]
+        try:
+            user_profile = request.user.profile
+        except Profile.DoesNotExist:
+            return _project_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
 
-        projects = (Project.objects.filter(project_category__in=request.user.profile.job_category.all()).exclude(
-            Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=request.user.profile.id)).order_by("created_at")
+        projects = (Project.objects.filter(project_category__in=user_profile.job_category.all()).exclude(
+            Q(status__in=excluded_statuses) | Q(project_type="myoffer") | Q(client=user_profile.id)).order_by("created_at")
         )
-        
+
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)
         # print(projects)
         projects=projects.annotate(
             can__send_bid=Case(
-                When(Q(bid__service_provider=request.user.profile)&Q(status__iexact="Rejected"), then=Value(False)),
+                When(Q(bid__service_provider=user_profile)&Q(status__iexact="Rejected"), then=Value(False)),
                 default=Value(True),
                 output_field=BooleanField()
             )
@@ -1111,7 +1166,7 @@ class ServiceProviderHomeView(APIView):
         projects=projects.distinct("id")
         paginator = CustomPagination()
         projects = paginator.paginate_queryset(projects, request)
-        serializer = ProjectSerializer(projects, many=True)
+        serializer = ProjectSerializer(projects, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
         # projects=ProjectSerializer(projects,many=True)
@@ -1133,19 +1188,25 @@ class MobileprojectActiveList(APIView):
     #         projects = paginator.paginate_queryset(projects, request)
     #         serializer = ProjectSerializer(projects, many=True)
     #         return paginator.get_paginated_response(serializer.data)
-        
+
     def get(self, request):
-        client_profile = Profile.objects.get(user=request.user).id        
+        try:
+            client_profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return _project_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
         # projects = Project.objects.filter(client=client_profile).order_by('created_at')
         search_query = request.query_params.get('search', '')
         projects = Project.objects.filter(Q(client=client_profile) &( Q(status="active") | Q(status="myoffer"))).order_by("created_at")
 
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)
-        
+
         paginator = CustomPagination()
         projects = paginator.paginate_queryset(projects, request)
-        serializer = ProjectSerializer(projects, many=True)
+        serializer = ProjectSerializer(projects, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -1161,7 +1222,7 @@ class MobileprojectActiveList(APIView):
 
 #         return super().create(request, *args, **kwargs)
 
- 
+
 class JobCategoryView(APIView):
     def get(self, request, pk=None):
         try:
@@ -1173,7 +1234,7 @@ class JobCategoryView(APIView):
                 job_categories = JobCategory.objects.all()
                 paginator = CustomPaginationProjectProfile()
                 projects_paginated = paginator.paginate_queryset(job_categories, request)
-                        
+
                 serializer = JobCategorySerializer(projects_paginated, many=True)
             return paginator.get_paginated_response(serializer.data)
             #     serializer = JobCategorySerializer(job_categories, many=True)
@@ -1192,7 +1253,7 @@ class JobCategoryView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"message": "Data Not found "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def put(self, request, pk):
         try:
             job_category = JobCategory.objects.get(pk=pk)
@@ -1203,7 +1264,7 @@ class JobCategoryView(APIView):
             return Response(serializer.errors, {'message': 'Job category updated successfully.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"message": "Error Occurred Please Check"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def delete(self, request, pk):
         try:
             job_category = JobCategory.objects.get(pk=pk)
@@ -1232,24 +1293,16 @@ class JobCategoryView(APIView):
 
 
 
-from .serializers import SwitchRoleSerializer 
-
 class SwitchRoleView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = SwitchRoleSerializer(instance=request.user) 
-        updated_user = serializer.update(request.user, {}) 
+        serializer = SwitchRoleSerializer(instance=request.user)
+        updated_user = serializer.update(request.user, {})
         return Response({
         "message": f"User type switched to {updated_user.user_type}.", "new_user_type": updated_user.user_type
         })
 ########################################################################################
-
-from project_management.models import Feedback, Project, Profile
-from api.profile.serializers import FeedbackSerializer
-
-
-
 
 class FeedbackDetailView(APIView):
     """
@@ -1328,8 +1381,6 @@ class FeedbackDetailView(APIView):
         feedback.delete()
         return Response({"message": "Feedback deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 ########################### 22-12
-
-from .serializers import  ProjectSerializer
 
 class FeedbackView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1423,7 +1474,7 @@ class FeedbackView(APIView):
 
 class ProviderFeedbackView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request, project_id):
         """
         Submit or update feedback from service provider to client.
@@ -1496,7 +1547,7 @@ class ProviderFeedbackView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, feedback_id):
         """
         Delete feedback based on the feedback_id.
@@ -1512,4 +1563,3 @@ class ProviderFeedbackView(APIView):
 
         feedback.delete()
         return Response({"message": "Feedback deleted successfully"}, status=status.HTTP_200_OK)
-    

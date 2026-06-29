@@ -7,7 +7,6 @@ const createSocketConnection = token => {
       authorization: `Token ${token}` || '',
     },
   });
-  console.log(socket);
   // return socket;
 };
 

@@ -1,6 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework.response import Response
 
+
 class ResponseMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if isinstance(response, Response):

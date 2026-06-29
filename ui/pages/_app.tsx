@@ -55,7 +55,7 @@ export default function CustomApp(props: CustomAppProps) {
                 containerClassName=''
                 containerStyle={{}}
                 toastOptions={{
-                  duration: 2000,
+                  duration: 3000,
                 }}
               />
 

@@ -1,8 +1,7 @@
-from django.db import models
 import uuid
 
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 # Create your models here.
 
@@ -52,7 +51,7 @@ class BankAddress(models.Model):
     }
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
-    country = models.CharField(max_length=6, choices=countries_currencies)  
+    country = models.CharField(max_length=6, choices=countries_currencies)
 
     def __str__(self):
         return f"{self.city}, {self.state}, {self.country}"
@@ -74,7 +73,7 @@ class DisbursementMethod(models.Model):
         ("nzd", "New Zealand Dollar"),
         ("rub", "Russian Ruble"),
         ("sgd", "Singapore Dollar"),
-        ("zar   ", "South African Rand"))   
+        ("zar   ", "South African Rand"))
 
     escrow_customer = models.ForeignKey("EscrowCustomer", on_delete=models.CASCADE)
     account_name = models.CharField(max_length=100)
@@ -120,10 +119,10 @@ class EscrowCustomer(models.Model):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20)
     address_line1 = models.CharField(max_length=100)
-    address_line2 = models.CharField(max_length=100, blank=True, null=True) 
+    address_line2 = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=50)
     state = models.CharField(max_length=50)
-    country = models.CharField(max_length=6, choices=countries_currencies) 
+    country = models.CharField(max_length=6, choices=countries_currencies)
     post_code = models.CharField(max_length=20)
     escrow_customer_id = models.CharField(max_length=100, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -151,24 +150,24 @@ class PaymentTransaction(models.Model):
     confirm_mode = models.CharField(max_length=10, blank=True, null=True)
     account_credential_type = models.CharField(max_length=20, blank=True, null=True)
     account_credential_value = models.CharField(max_length=50, blank=True, null=True)
-    
+
     offer_id = models.CharField(max_length=50, blank=True, null=True)
     offer_description = models.CharField(max_length=255, blank=True, null=True)
     offer_category = models.CharField(max_length=10, blank=True, null=True)
     offer_service_class = models.CharField(max_length=10, blank=True, null=True)
     offer_type = models.CharField(max_length=10, blank=True, null=True)
-    
+
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     net_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     vat_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=3)
-    
+
     customer_msisdn = models.CharField(max_length=20)
     transaction_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     # transaction_id = models.CharField(max_length=100, blank=True, null=True)
     payment_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

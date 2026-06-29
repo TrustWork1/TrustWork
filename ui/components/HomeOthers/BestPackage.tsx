@@ -12,6 +12,7 @@ export default function BestPackage({
   packageInfo: IHomeModel['PricingPlanSection'];
 }) {
   const plans = packageInfo?.pricing_plans?.map(item => ({
+    planId: item?.id,
     planName: item?.plan_name,
     aboutPlan: item?.description,
     price: Number(item?.price),

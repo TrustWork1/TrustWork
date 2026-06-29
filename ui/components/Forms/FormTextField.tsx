@@ -14,9 +14,18 @@ const FormTextField = <T extends FieldValues>({
   multiline = false,
   isDisable = false,
   endAdornment,
+  inputattributes,
   ...rest
 }: FormTextFieldProps<T>) => {
   const errorMessage = get(errors, name as string)?.message as string;
+  const inputAttributes =
+    type === 'number'
+      ? {
+          inputMode: 'numeric' as const,
+          pattern: '[0-9]*',
+          ...inputattributes,
+        }
+      : inputattributes;
 
   return (
     <>
@@ -33,15 +42,8 @@ const FormTextField = <T extends FieldValues>({
             disabled={isDisable}
             multiline={multiline}
             endAdornment={endAdornment}
-            {...(type === 'number' ? { type: 'number' } : {})}
-            inputattributes={
-              type === 'number'
-                ? {
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*',
-                  }
-                : undefined
-            }
+            {...(type ? { type } : {})}
+            inputattributes={inputAttributes}
             sx={
               type === 'number'
                 ? {

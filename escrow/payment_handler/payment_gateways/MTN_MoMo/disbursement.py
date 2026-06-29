@@ -1,11 +1,12 @@
 
-import os
-import requests
 import json
 from uuid import uuid4
-from basicauth import encode
-from .mtn_momo import MtnMoMo
+
+import requests
 from django.conf import settings
+
+from .mtn_momo import MtnMoMo
+from .utils import normalize_mtn_cameroon_msisdn
 
 MTN_DISBURSEMENT_PRIMARY_KEY=settings.MTN_DISBURSEMENT_PRIMARY_KEY
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
@@ -18,6 +19,7 @@ class MtnMoMoDisbursement(MtnMoMo):
         self.disbursement_primary_key = MTN_DISBURSEMENT_PRIMARY_KEY
 
     def disburse(self, amount, phone_number, external_id, payernote="TRUSTWORK", payermessage="RECEIVED PROJECT FEE"):
+        phone_number = normalize_mtn_cameroon_msisdn(phone_number)
         uuidgen = str(uuid4())
         url = f"{self.base_url}/disbursement/v1_0/transfer"
         payload = json.dumps({
@@ -53,9 +55,10 @@ class MtnMoMoDisbursement(MtnMoMo):
         response = requests.request("GET", url, headers=headers)
         json_respon = response.json()
         return json_respon
-    
+
     # check disbursement account is active or not
     def getAccountStatus(self, account_number: str):
+        account_number = normalize_mtn_cameroon_msisdn(account_number)
         url = f"{self.base_url}/disbursement/v1_0/accountholder/msisdn/{account_number}/active"
         headers = {
             'Ocp-Apim-Subscription-Key': self.disbursement_primary_key,
@@ -63,7 +66,7 @@ class MtnMoMoDisbursement(MtnMoMo):
             'X-Target-Environment': self.environment_mode,
         }
         response = requests.request("GET", url, headers=headers)
-        
+
         if not response.ok:
             return {"result":False}
         return response.json()

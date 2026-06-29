@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import moment from 'moment';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -24,7 +24,7 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import showErrorAlert from '../../utils/helpers/Toast';
 import constants from '../../utils/helpers/constants';
 import normalize from '../../utils/helpers/normalize';
-let status = '';
+// let status = '';
 
 const PaymentTab = () => {
   const [select, setSelect] = useState('pending');
@@ -32,6 +32,7 @@ const PaymentTab = () => {
   const [page1, setPage1] = useState(1);
   const [pendingList, setPendingList] = useState([]);
   const [paymentList, setPaymentList] = useState([]);
+  const handledStatus = useRef('');
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -41,10 +42,12 @@ const PaymentTab = () => {
 
   useEffect(() => {
     getPendingPaymentList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused, page]);
 
   useEffect(() => {
     getPaymentList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused, page1]);
 
   const getPendingPaymentList = () => {
@@ -125,6 +128,7 @@ const PaymentTab = () => {
                 NavigationService.navigate('Payment', {
                   bidId: item?.bid?.id,
                   amount: item?.bid?.project_total_cost,
+                  projectId: item?.project?.id,
                 })
               }
               style={styles.buttonFillColor}>
@@ -168,54 +172,70 @@ const PaymentTab = () => {
     );
   };
 
-  if (status == '' || ProjectReducer.status != status) {
+  useEffect(() => {
+    if (handledStatus.current === ProjectReducer.status) {
+      return;
+    }
+
     switch (ProjectReducer.status) {
       case 'Project/PendingPaymentRequest':
-        status = ProjectReducer.status;
-        if (page == 1) {
+        handledStatus.current = ProjectReducer.status;
+        if (page === 1) {
           setPendingList([]);
         }
         break;
       case 'Project/PendingPaymentSuccess':
-        status = ProjectReducer.status;
-        ProjectReducer?.PendingPaymentResponse?.data?.length > 0
-          ? pendingList?.length < 1
-            ? setPendingList(ProjectReducer?.PendingPaymentResponse?.data)
-            : setPendingList([
-                ...pendingList,
-                ...ProjectReducer?.PendingPaymentResponse?.data,
-              ])
-          : setPage1(1);
-
+        handledStatus.current = ProjectReducer.status;
+        if (ProjectReducer?.PendingPaymentResponse?.data?.length > 0) {
+          if (page === 1) {
+            setPendingList(ProjectReducer?.PendingPaymentResponse?.data);
+          } else {
+            setPendingList(prev => [
+              ...prev,
+              ...ProjectReducer?.PendingPaymentResponse?.data,
+            ]);
+          }
+        } else if (page === 1) {
+          setPendingList([]);
+        }
         break;
       case 'Project/PendingPaymentFailure':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
         break;
 
       //////////////// History ////////////
       case 'Project/PaymentHistoryRequest':
-        status = ProjectReducer.status;
-        if (page1 == 1) {
+        handledStatus.current = ProjectReducer.status;
+        if (page1 === 1) {
           setPaymentList([]);
         }
         break;
       case 'Project/PaymentHistorySuccess':
-        status = ProjectReducer.status;
-        ProjectReducer?.PaymentHistoryResponse?.data?.length > 0
-          ? paymentList?.length < 1
-            ? setPaymentList(ProjectReducer?.PaymentHistoryResponse?.data)
-            : setPaymentList([
-                ...paymentList,
-                ...ProjectReducer?.PaymentHistoryResponse?.data,
-              ])
-          : setPage1(1);
-
+        handledStatus.current = ProjectReducer.status;
+        if (ProjectReducer?.PaymentHistoryResponse?.data?.length > 0) {
+          if (page1 === 1) {
+            setPaymentList(ProjectReducer?.PaymentHistoryResponse?.data);
+          } else {
+            setPaymentList(prev => [
+              ...prev,
+              ...ProjectReducer?.PaymentHistoryResponse?.data,
+            ]);
+          }
+        } else if (page1 === 1) {
+          setPaymentList([]);
+        }
         break;
       case 'Project/PaymentHistoryFailure':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
         break;
     }
-  }
+  }, [
+    ProjectReducer.status,
+    ProjectReducer?.PaymentHistoryResponse?.data,
+    ProjectReducer?.PendingPaymentResponse?.data,
+    page,
+    page1,
+  ]);
 
   return (
     <View style={styles.mainContainer}>
@@ -441,24 +461,6 @@ const styles = StyleSheet.create({
     // lineHeight: normalize(22),
   },
 
-  listMainConatiner: {
-    backgroundColor: Colors.themeWhite,
-    borderRadius: normalize(12),
-    // paddingTop: normalize(12),
-    // paddingHorizontal: normalize(10),
-    // paddingVertical: normalize(15),
-  },
-
-  projectTitle: {
-    color: Colors.themeBlack,
-    fontSize: normalize(13),
-    fontFamily: Fonts.FustatSemiBold,
-  },
-  createConatiner: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '20%',
-  },
   commonInactiveTxt: {
     fontFamily: Fonts.FustatMedium,
     fontSize: normalize(12),
@@ -481,12 +483,6 @@ const styles = StyleSheet.create({
     color: Colors.themeWhite,
     lineHeight: normalize(22),
     textTransform: 'uppercase',
-  },
-  commonTxt: {
-    fontFamily: Fonts.FustatMedium,
-    fontSize: normalize(12),
-    color: Colors.themeBlack,
-    lineHeight: normalize(22),
   },
   buttonWithBorder: {
     borderColor: Colors.themeBlack,

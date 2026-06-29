@@ -15,6 +15,7 @@ interface MuiModalWrapperProps {
   subTitle?: string;
   isModalHead?: boolean;
   className?: string;
+  hideCloseButton?: boolean;
 }
 
 export default function MuiModalWrapper({
@@ -26,6 +27,7 @@ export default function MuiModalWrapper({
   title,
   subTitle,
   className,
+  hideCloseButton = false,
 }: MuiModalWrapperProps) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -44,9 +46,11 @@ export default function MuiModalWrapper({
       }}
       className={className}
     >
-      <IconButton onClick={onClose} className='dialog-close-btn'>
-        <CloseIcon IconColor='currentcolor' />
-      </IconButton>
+      {!hideCloseButton && (
+        <IconButton onClick={onClose} className='dialog-close-btn'>
+          <CloseIcon IconColor='currentcolor' />
+        </IconButton>
+      )}
 
       <DialogContent>
         {isModalHead && (

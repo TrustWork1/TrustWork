@@ -17,6 +17,7 @@ function SubscriptionUI({
   const updatedSubscriptions = useMemo(() => {
     return subscriptionPackageList?.map(item => {
       return {
+        planId: item?.id,
         planName: item?.plan_name,
         planSubTitle: item?.description,
         price: Number(item?.price),

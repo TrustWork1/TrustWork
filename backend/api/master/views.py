@@ -1,11 +1,12 @@
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-from .serializers import LocationSerailizer,JobCategorySerailizer
-from master.models import Location,JobCategory
 
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from master.models import JobCategory, Location
+
+from .serializers import JobCategorySerailizer, LocationSerailizer
+
 
 class LocationApiView(APIView):
     @swagger_auto_schema(
@@ -16,7 +17,7 @@ class LocationApiView(APIView):
         data=Location.objects.all()
         data=LocationSerailizer(data,many=True)
         return Response(data.data,status=status.HTTP_200_OK)
-        
+
 
 class JobCategoryApiView(APIView):
     @swagger_auto_schema(
@@ -36,7 +37,7 @@ class JobCategoryApiView(APIView):
                 if active_categories:
                     serializer = JobCategorySerailizer(active_categories, many=True)
                     return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
             elif user_type:
                 if user_type == 'client':
                     categories = JobCategory.objects.filter(profile__user__user_type='client').order_by('-updated_at')
@@ -51,7 +52,7 @@ class JobCategoryApiView(APIView):
                 data=JobCategory.objects.all().distinct().order_by('-updated_at')
                 serializer = JobCategorySerailizer(data, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
             serializer = JobCategorySerailizer(categories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:

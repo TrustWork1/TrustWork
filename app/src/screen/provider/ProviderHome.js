@@ -1,7 +1,7 @@
 import notifee, {EventType} from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -24,11 +24,10 @@ import connectionrequest from '../../utils/helpers/NetInfo';
 import normalize from '../../utils/helpers/normalize';
 import showErrorAlert from '../../utils/helpers/Toast';
 
-let status = '';
-
 const ProviderHome = props => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
+  const handledStatus = useRef('');
 
   const ProjectReducer = useSelector(state => state.ProjectReducer);
 
@@ -109,6 +108,7 @@ const ProviderHome = props => {
 
       getProjectList({count: 1});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const getProjectList = data => {
@@ -157,20 +157,24 @@ const ProviderHome = props => {
     );
   };
 
-  if (status == '' || ProjectReducer.status != status) {
+  useEffect(() => {
+    if (handledStatus.current === ProjectReducer.status) {
+      return;
+    }
+
     switch (ProjectReducer.status) {
       case 'Project/ProActiveProjectRequest':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
         break;
       case 'Project/ProActiveProjectSuccess':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
 
         setActiveProjects(
           page === 1
-            ? [...ProjectReducer?.ProActiveProjectResponse?.data]
-            : [
-                ...activeProjects,
-                ...ProjectReducer?.ProActiveProjectResponse?.data,
+            ? [...(ProjectReducer?.ProActiveProjectResponse?.data || [])]
+            : prev => [
+                ...prev,
+                ...(ProjectReducer?.ProActiveProjectResponse?.data || []),
               ],
         );
 
@@ -178,10 +182,16 @@ const ProviderHome = props => {
         setTotalpages(ProjectReducer?.ProActiveProjectResponse?.pages);
         break;
       case 'Project/ProActiveProjectFailure':
-        status = ProjectReducer.status;
+        handledStatus.current = ProjectReducer.status;
         break;
     }
-  }
+  }, [
+    ProjectReducer.status,
+    ProjectReducer?.ProActiveProjectResponse?.data,
+    ProjectReducer?.ProActiveProjectResponse?.pages,
+    ProjectReducer?.ProActiveProjectResponse?.total,
+    page,
+  ]);
 
   const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
     const paddingToBottom = 20;

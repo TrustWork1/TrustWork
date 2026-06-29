@@ -1,14 +1,17 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.parsers import MultiPartParser, FormParser
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from api.content_management_servies.serializers.contactus_page_serializers import (
+    ContactFormSerializer,
+    ContactUsSerializer,
+)
+from content_management.models.contactus_page_models import ContactForm, ContactUs
 from content_management.models.home_page_models import DownloadSection
-from content_management.models.contactus_page_models import *
-from api.content_management_servies.serializers.contactus_page_serializers import *
+
 
 class ContactUsDetailsView(APIView):
     permission_classes=[IsAuthenticated]
@@ -101,7 +104,7 @@ class ContactUsFormView(APIView):
         if self.request.method in ['GET', 'DELETE']:
             return [IsAuthenticated()]
         return [AllowAny()]
-    
+
     @swagger_auto_schema(
         operation_description="Contact-Us Form",
         manual_parameters=[
@@ -238,5 +241,5 @@ class ContactUsView(APIView):
                     "appstore_link": download_section.app_download.appstore_link if download_section.app_download else None
                 }
             }
-        
+
         return Response(response_data, status=status.HTTP_200_OK)

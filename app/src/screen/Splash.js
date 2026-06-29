@@ -35,7 +35,6 @@ const Splash = props => {
   useEffect(() => {
     connectionrequest()
       .then(() => {
-        
         dispatch(getTokenRequest());
       })
       .catch(err => {
@@ -87,7 +86,7 @@ const Splash = props => {
               position?.coords?.latitude,
               position?.coords?.longitude,
             ),
-          error => console.log('error::::', error),
+          error => {},
           {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
         );
       } else {
@@ -126,7 +125,7 @@ const Splash = props => {
           .then(location =>
             reverseGeocode(location?.latitude, location?.longitude),
           )
-          .catch(error => console.log('error::::', error));
+          .catch(error => {});
       } else {
         Alert.alert(
           'Permission Access Required',

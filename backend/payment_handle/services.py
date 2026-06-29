@@ -1,5 +1,6 @@
-import requests
 import base64
+
+import requests
 from django.conf import settings
 
 
@@ -29,7 +30,7 @@ class OrangeMoneyService:
         except Exception as e:
             print(f"Error obtaining token: {str(e)}")
             return None
-    
+
     def initiate_payment(self, amount, currency, order_id, customer_msisdn):
         access_token = self.get_access_token()
 

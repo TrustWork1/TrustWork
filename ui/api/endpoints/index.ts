@@ -7,6 +7,9 @@ export const mediaUrl = (url: string) => {
 };
 
 export const endpoints = {
+  auth: {
+    login: '/login/',
+  },
   cms: {
     homePage: '/home-page/',
     aboutUsPage: '/aboutus-page/',
@@ -17,8 +20,19 @@ export const endpoints = {
   },
   subscription: {
     list: '/app-packages/',
+    planDetails: '/v1/subscription/plans',
     cms: '/app-packages-cms/',
     request: '/send_subscription_request/',
+    checkEmail: '/v1/subscription/auth/check-email/',
+    resendPassword: '/v1/subscription/auth/resend-password/',
+    validateToken: `${baseUrl}/subscription/validate-token/`,
+    mtnInitiate: '/v1/subscription/mtn/initiate/',
+    mtnPreapprovalStatus: (referenceId: string) =>
+      `/v1/subscription/mtn/preapproval-status/${referenceId}/`,
+    orangeInitiate: '/v1/subscription/orange/initiate/',
+    orangeStatus: (referenceId: string) => `/v1/subscription/orange/status/${referenceId}/`,
+    stripeInitiate: '/v1/subscription/stripe/initiate/',
+    stripeStatus: (paymentIntentId: string) => `/v1/subscription/stripe/status/${paymentIntentId}/`,
   },
 };
 

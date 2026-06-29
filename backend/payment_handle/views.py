@@ -1,34 +1,26 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from .models import EscrowTransaction
-from .models import EscrowCustomer, DisbursementMethod, BankAddress
-from .serializers import EscrowCustomerSerializer, EscrowTransactionSerializer, PaymentTransactionDetailSerializer, ConfirmTransactionSerializer
-from django.conf import settings
 import requests
-from django.db import transaction
+from django.conf import settings
 from django.contrib.auth.models import User
-
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import status
-from .models import PaymentTransaction
-from .serializers import PaymentTransactionDetailSerializer
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import PaymentTransaction
-from rest_framework import status, generics
-from rest_framework.response import Response
-from .models import PaymentTransaction
-from .serializers import PaymentTransactionDetailSerializer
-from rest_framework import generics, status
-from rest_framework.response import Response
-from .models import PaymentTransaction
-from .serializers import ConfirmTransactionSerializer
+from rest_framework.views import APIView
+
+from .models import (
+    BankAddress,
+    DisbursementMethod,
+    EscrowCustomer,
+    EscrowTransaction,
+    PaymentTransaction,
+)
+from .serializers import (
+    ConfirmTransactionSerializer,
+    EscrowCustomerSerializer,
+    PaymentTransactionDetailSerializer,
+)
+
 # Create your views here.
 
 # Escrow Payment Transection APIView
@@ -36,7 +28,7 @@ class CreateEscrowCustomerView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = EscrowCustomerSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             data = serializer.validated_data
             disbursement_methods_payload = []
@@ -126,7 +118,7 @@ class CreateEscrowCustomerView(APIView):
                             bank_address = BankAddress.objects.create(
                                 city=bank_address_data['city'],
                                 state=bank_address_data['state'],
-                                country=bank_address_data['country'] 
+                                country=bank_address_data['country']
                             )
                             DisbursementMethod.objects.create(
                                 escrow_customer=escrow_customer,
@@ -149,7 +141,7 @@ class CreateEscrowCustomerView(APIView):
                 return Response({"error": "Failed to communicate with Escrow API", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class CreateEscrowTransactionView(APIView):
     def post(self, request):
         buyer_email = request.data.get('buyer_email')
@@ -172,7 +164,7 @@ class CreateEscrowTransactionView(APIView):
                 {
                     "role": "buyer",
                     "customer": buyer_email,
-                    "initiator": True 
+                    "initiator": True
                 },
                 {
                     "role": "seller",
@@ -281,7 +273,7 @@ class PaymentTransactionView(generics.CreateAPIView):
                 'transaction_id': transaction.transaction_id,
                 'order_id': transaction.order_id
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ConfirmTransactionView(generics.UpdateAPIView):
@@ -327,7 +319,7 @@ class PaymentTransactionDetailView(generics.RetrieveAPIView):
         transaction = get_object_or_404(PaymentTransaction, transaction_id=transaction_id)
         serializer = self.get_serializer(transaction)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class CancelTransactionView(generics.DestroyAPIView):
     queryset = PaymentTransaction.objects.all()
     lookup_field = 'transaction_id'
@@ -356,6 +348,5 @@ class CancelTransactionView(generics.DestroyAPIView):
             return Response({
                 'message': 'Transaction not found.'
             }, status=status.HTTP_404_NOT_FOUND)
-
 
 

@@ -1,23 +1,160 @@
-from django.urls import path,include
-from api.auth.views import VerifyOTPView, RegisterView, LoginView, LogoutView,RequestPasswordResetEmail,PasswordTokenCheckAPI,SetNewPasswordAPIView,ChangePasswordAPIView,UserProfileCreateView, ChangePasswordView, AdminLoginView
-from api.profile.views import BankDetailsAPIView,PrimaryBankView,ProfileDetailUpdateView, UserDocumentsAPIView, MembershipPlansAPIView, ProfileMembershipAPIView, UserProfileAPIView, ProfileAPIView,ChangeProfileStatusView,ProfileAPIViewSearch,SendRequestToSubscribe, SendSubscriptionCode, HandleMtnSubscription, HandleSubscription, CouponsView, ProfileSelfView, ProfileCoverImageUpdateAPIView, PaymentStatusView, ProfileDetails, ProjectDetails,PreviousWorksApiView #,HandleWithdraw
-from api.admin_management.views import CMSDetailAPIView,CMSListCreateAPIView,FAQListCreateAPIView,FAQDetailAPIView,QMSAPIView,QMSResponseApiView, DashboardAnalyticsView, XafCurrency, onboarding_return, reauth_with_token
-from api.master.views import LocationApiView,JobCategoryApiView
-from api.project.views import ProjectList,ChangeProjectStatusView, StripeDisbursementStatus, ProjectDetail,BidDetail,BidList,ProjectBidApiView, ServiceProviderListView,ServiceProviderHomeView, JobCategoryView,FeedbackView, AdminProjectDetail,ProviderFeedbackView, SwitchRoleView, MobileprojectActiveList #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
-from project_management.models import Project,Bid
-from api.project.mobile_views import MobileBidList, MobileProjectList, BidApiView, ClientActiveProjectsView, ProviderViewProject, ServiceDetailsAPIView, OfferProjectAPIView, OfferDetailAPIView, CreateAndOfferProjectAPIView, MyOfferProjectListAPIView #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
-from api.referal_management.views import ReferalHandlerView, AppReferView
-from api.auth.views import GenerateOTPView, AuthVerifyOTPView, ChangePasswordView,ResendOtp
-from api.chat.views import SendNotificationView,NotificationListView,ChangeNotificationStatusView,NotificationReadStatus,ChatHandlerView,ChatListView # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent 
-from api.payment_management.views import PaymentApiView, PendingPayment, PaymentFailerView
-from api.payment_management.views import CreateCheckoutSessionView, CheckPaymentStatus, StripeBalanceAPIView, DeleteStripeAccountAPIView, TriggerPayoutView, TransectionProjectView, TransectionView,PaymentHistoryApiView ,SendPaymentRequestApiView# InitiatePaymentAPIView, PaymentResponseAPIView, CreateCheckoutSessionViewAPI
+from django.urls import include, path
+
+from api.admin_management.views import (
+    CMSAboutUsAdminAPIView,
+    CMSAboutUsAPIView,
+    CMSDetailAPIView,
+    CMSListCreateAPIView,
+    DashboardAnalyticsView,
+    FAQDetailAPIView,
+    FAQListCreateAPIView,
+    QMSAPIView,
+    QMSResponseApiView,
+    XafCurrency,
+    onboarding_return,
+    reauth_with_token,
+)
+from api.auth.views import (
+    AdminLoginView,
+    AuthVerifyOTPView,
+    ChangePasswordAPIView,
+    ChangePasswordView,
+    GenerateOTPView,
+    LoginView,
+    LogoutView,
+    PasswordTokenCheckAPI,
+    RegisterView,
+    RequestPasswordResetEmail,
+    ResendOtp,
+    SetNewPasswordAPIView,
+    UserProfileCreateView,
+    VerifyOTPView,
+)
+from api.chat.views import (  # ,AttatchmentView # SendAttachmentAPIView #AttatchmentChatViewSent
+    ChangeNotificationStatusView,
+    ChatHandlerView,
+    ChatListView,
+    NotificationListView,
+    NotificationReadStatus,
+    SendNotificationView,
+)
+from api.content_management_servies.views.aboutus_page_views import (
+    AboutUsSectionView,
+    AboutUsView,
+    TrustUsFeatureView,
+    TrustUsSectionView,
+)
+from api.content_management_servies.views.contactus_page_views import (
+    ContactUsDetailsView,
+    ContactUsFormView,
+    ContactUsView,
+)
+from api.content_management_servies.views.home_page_views import (
+    AppInfoView,
+    DownloadSectionView,
+    FeaturesSectionView,
+    FeaturesView,
+    HomePageView,
+    HowItWorksSectionView,
+    HowItWorksView,
+    PackagesSectionCMSView,
+    PackagesSectionView,
+    ReferralSectionView,
+)
+from api.content_management_servies.views.privacy_policy_page_views import (
+    PrivacyPolicySectionView,
+    PrivacyPolicyView,
+)
+from api.content_management_servies.views.terms_condition_page_views import (
+    TermsConditionsSectionView,
+    TermsConditionsView,
+)
+from api.master.views import JobCategoryApiView, LocationApiView
+from api.payment_management.views import (  # InitiatePaymentAPIView, PaymentResponseAPIView, CreateCheckoutSessionViewAPI
+    CheckPaymentStatus,
+    CreateCheckoutSessionView,
+    DeleteStripeAccountAPIView,
+    OrangeApiPaymentStatusView,
+    OrangePaymentStatusView,
+    OrangePaymentSuccessView,
+    OrangePaymentView,
+    PaymentApiView,
+    PaymentFailerView,
+    PaymentHistoryApiView,
+    PendingPayment,
+    SendPaymentRequestApiView,
+    StripeBalanceAPIView,
+    TransectionProjectView,
+    TransectionView,
+    TriggerPayoutView,
+)
+from api.profile.views import (  #,HandleWithdraw
+    BankDetailsAPIView,
+    ChangeProfileStatusView,
+    CouponsView,
+    DummyUserDelete,
+    HandleMtnSubscription,
+    HandleSubscription,
+    MembershipPlansAPIView,
+    PaymentStatusView,
+    PreviousWorksApiView,
+    PrimaryBankView,
+    ProfileAPIView,
+    ProfileAPIViewSearch,
+    ProfileCoverImageUpdateAPIView,
+    ProfileDetails,
+    ProfileDetailUpdateView,
+    ProfileMembershipAPIView,
+    ProfileSelfView,
+    ProjectDetails,
+    SendRequestToSubscribe,
+    SendSubscriptionCode,
+    UserDocumentsAPIView,
+    UserProfileAPIView,
+)
+from api.project.mobile_views import (  #, ClientProjectsAdminView, AdminMobileProjectList # ProviderViewProjectActive
+    BidApiView,
+    ClientActiveProjectsView,
+    CreateAndOfferProjectAPIView,
+    MobileBidList,
+    MobileProjectList,
+    MyOfferProjectListAPIView,
+    OfferDetailAPIView,
+    OfferProjectAPIView,
+    ProviderViewProject,
+    ServiceDetailsAPIView,
+)
+from api.project.views import (  #, ServiceProviderListAdminView # , ServiceProviderListViewOfferView
+    AdminProjectDetail,
+    BidDetail,
+    BidList,
+    ChangeProjectStatusView,
+    FeedbackView,
+    JobCategoryView,
+    MobileprojectActiveList,
+    ProjectBidApiView,
+    ProjectDetail,
+    ProjectList,
+    ProviderFeedbackView,
+    ServiceProviderHomeView,
+    ServiceProviderListView,
+    StripeDisbursementStatus,
+    SwitchRoleView,
+)
+from api.referal_management.views import AppReferView, ReferalHandlerView
+from api.subscription_views import (
+    WebsiteMtnPreapprovalStatusView,
+    WebsiteMtnSubscriptionInitiateView,
+    WebsiteOrangeSubscriptionInitiateView,
+    WebsiteOrangeSubscriptionStatusView,
+    WebsiteStripeSubscriptionInitiateView,
+    WebsiteStripeSubscriptionStatusView,
+    WebsiteStripeSubscriptionWebhookView,
+    WebsiteSubscriptionEmailCheckView,
+    WebsiteSubscriptionPasswordResendView,
+    WebsiteSubscriptionPlanDetailView,
+)
 from payment_handle.webhooks import ProcessStripeSession
-from api.content_management_servies.views.home_page_views import AppInfoView, FeaturesSectionView, FeaturesView, HowItWorksSectionView, HowItWorksView, ReferralSectionView, DownloadSectionView, PackagesSectionCMSView, PackagesSectionView, HomePageView
-from api.content_management_servies.views.aboutus_page_views import AboutUsSectionView, TrustUsSectionView, TrustUsFeatureView, AboutUsView
-from api.content_management_servies.views.terms_condition_page_views import TermsConditionsSectionView, TermsConditionsView
-from api.content_management_servies.views.privacy_policy_page_views import PrivacyPolicySectionView, PrivacyPolicyView
-from api.content_management_servies.views.contactus_page_views import ContactUsDetailsView, ContactUsFormView, ContactUsView
-from api.profile.views import DummyUserDelete
 
 urlpatterns = [
     path('home-page/', HomePageView.as_view(), name='home-page'),
@@ -47,17 +184,17 @@ urlpatterns = [
     path('contactus-detail/', ContactUsDetailsView.as_view(), name='contactus-details'),
     path('contactus-form/', ContactUsFormView.as_view(), name='contactus-forms'),
     path('contactus-form/<int:pk>/', ContactUsFormView.as_view(), name='contactus-form'),
-    
+
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('login/', LoginView.as_view(), name='login'),
     path('admin/login/', AdminLoginView.as_view(), name='admin-login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    
+
     path('password-reset/', RequestPasswordResetEmail.as_view(), name='password-reset-'),
 
     path('admin/forgot-password/', RequestPasswordResetEmail.as_view(), name='password-reset'),
-    
+
     path('password-reset-confirm/<uidb64>/<token>/', PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
     path('password-reset-complete/', SetNewPasswordAPIView.as_view(), name='password-reset-complete-'),
     path('profile/change_password/',ChangePasswordAPIView.as_view(),name='change-password'),
@@ -87,9 +224,9 @@ urlpatterns = [
     path('users/details/<int:pk>/', ProfileAPIView.as_view(), name='profile-detail'),
     path('users/<str:user_type>/', ProfileAPIView.as_view(), name='profile-detail-list'),
     path("user/status/<int:pk>/",ChangeProfileStatusView.as_view(),name='change-profile-status'),
-    
+
     path("user/register/",UserProfileCreateView.as_view(),name='user-profile-create'),
-    
+
     # path('bids/',BidsApiView.as_view(),name='bids'),
 
     # path('projects/',ProjectApiView.as_view(),name='project-list'),
@@ -114,8 +251,8 @@ urlpatterns = [
     path('qms/delete/<int:pk>/',QMSAPIView.as_view(),name='qms'),
     path('qms/response/create/',QMSResponseApiView.as_view(),name='qms'),
     path('qms/response/details/<int:pk>/',QMSResponseApiView.as_view(),name='qms'),
-    
-    
+
+
     path('project/list/',ProjectList.as_view(),name='project'),
     path('project/details/<int:pk>',ProjectDetail.as_view(),name='project'),
     path('project/edit/<int:pk>/',ProjectDetail.as_view(),name='project'),
@@ -124,26 +261,26 @@ urlpatterns = [
     path('mobile/project/add/',MobileProjectList.as_view(),name='project'),
     # path('admin/mobile/project/view/',AdminMobileProjectList.as_view(),name='project'),
     path('mobile/category/add/',JobCategoryView.as_view(),name='project'),
-    
+
     path('bid/list/',BidList.as_view(),name='bid'),
     path('bid/add/',BidList.as_view(),name='bid'),
     path('bid/details/<int:pk>',BidDetail.as_view(),name='bid'),
     path('bid/edit/<int:pk>/',BidDetail.as_view(),name='bid'),
     path('bid/delete/<int:pk>/',BidDetail.as_view(),name='bid'),
     path("project/bid/<int:project_id>",ProjectBidApiView.as_view()),
-    
+
     path('project/bids/<int:bid_id>/', ProjectBidApiView.as_view(), name=' -bid'),
 
     path('mobile/bid/add/',MobileBidList.as_view(),name='bid'),
     path('mobile/project/view/list',MobileprojectActiveList.as_view(), name='project'),
-    
+
     path('project/list/',ProjectList.as_view(),name='project'),
     path('project/add/',ProjectList.as_view(),name='project'),
 
     path('project/status/change/<int:pk>/',ChangeProjectStatusView.as_view(),name='project'),
     path('stripe-payment-status/',StripeDisbursementStatus.as_view(),name='project'),
     path('admin/project/details/<int:pk>/',AdminProjectDetail.as_view(),name='project'),
-    
+
     path('bid/list/',BidList.as_view(),name='bid'),
     path('bid/add/',BidList.as_view(),name='bid'),
     path('bid/details/<int:pk>',BidDetail.as_view(),name='bid'),
@@ -151,13 +288,15 @@ urlpatterns = [
     path('bid/delete/<int:pk>/',BidDetail.as_view(),name='bid'),
     path('bid/status/change/<int:pk>/',BidDetail.as_view(),name='bid'),
     path("project/bid/<int:project_id>",ProjectBidApiView.as_view()),
-    
+
     path('bid-detail/<int:pk>/',BidApiView.as_view(),name='rejected-bid'),
     path('bid/filtered/', ClientActiveProjectsView.as_view(), name='filtered-project-list'),
     # path('admin/bid/filtered/', ClientProjectsAdminView.as_view(), name='filtered-project-list'),
 
     path('cms/list/', CMSListCreateAPIView.as_view(), name='cms-list-create'),#get
     path('cms/add/', CMSListCreateAPIView.as_view(), name='cms-list-create'),#post
+    path('cms/about-us/', CMSAboutUsAPIView.as_view(), name='cms-about-us'),#get
+    path('cms/about-us/admin/', CMSAboutUsAdminAPIView.as_view(), name='cms-about-us-admin'),#get/put
     path('cms/details/<int:pk>/', CMSDetailAPIView.as_view(), name='cms-detail'),#get
     path('cms/edit/<int:pk>/', CMSDetailAPIView.as_view(), name='cms-detail'),#put
     path('cms/delete/<int:pk>/', CMSDetailAPIView.as_view(), name='cms-delete'),#put
@@ -178,13 +317,13 @@ urlpatterns = [
     path('category/add/', JobCategoryView.as_view(), name='Job-Category-ViewSet'),
     path('category/edit/<int:pk>/', JobCategoryView.as_view(), name='Job-Category-ViewSet'),
     path('category/delete/<int:pk>/', JobCategoryView.as_view(), name='Job-Category-ViewSet'),
-   
+
     path('profile/', ProfileSelfView.as_view(), name='self-update-detail'),#put ProfileDetailUpdateView
-    
+
     path('profile/update-cover-image/', ProfileCoverImageUpdateAPIView.as_view(), name='profile-update-cover-image'),
-    
+
     path('profile/payment-status/', PaymentStatusView.as_view(), name='profile-payment-status'),
-    
+
     path('projects/service-providers/', ServiceProviderHomeView.as_view(), name='service-provider-list'),
     path('service-providers/projects/', ServiceProviderListView.as_view(), name='service-provider-project-list'),
     # path('service/projects/offer/', ServiceProviderListViewOfferView.as_view(), name='service-provider-project-list'),
@@ -201,7 +340,7 @@ urlpatterns = [
 
     path('project/view/', ProjectDetails.as_view(), name='project-details'),
     path('project/view/<int:pk>', ProjectDetails.as_view(), name='project-details'),
- 
+
 
     # path('chat-list/', SendMessageView.as_view(), name='send_message'),
 
@@ -248,8 +387,10 @@ urlpatterns = [
     path('membership-payment-pending/list/', PendingPayment.as_view(), name='PaymentApiViewGet'),
     path("webhooks/",include('api.webhook_urls')),
     path("send_subscription_request/",SendRequestToSubscribe.as_view()),
+    path("send_orange_subscription_request/",SendRequestToSubscribe.as_view()),
     path("send_subscription_code/",SendSubscriptionCode.as_view()),
     path("check_subscription_codes/",HandleMtnSubscription.as_view()),
+    path("check_orange_subscription_codes/",HandleMtnSubscription.as_view()),
     path("handle_subscription/",HandleSubscription.as_view()),
     # path("handle_withdraw/",HandleWithdraw.as_view()),
     # path('initiate-payment/', InitiatePaymentAPIView.as_view(), name='initiate-payment'),
@@ -272,9 +413,23 @@ urlpatterns = [
     path('coupons', CouponsView.as_view(), name='coupons'),
     path('app-refer-content/', AppReferView.as_view(), name='app-refer'),
     path('app-refer-content/<int:pk>', AppReferView.as_view(), name='app-refer-detail'),
-    
+
     path('onboarding-return', onboarding_return, name='onboarding_return'),
     path("reauth/<uuid:token>/", reauth_with_token, name="reauth_with_token"),
 
     path('user/delete/', DummyUserDelete.as_view(), name='user/delete/'),
+    path("orange/pay/",OrangePaymentView.as_view(),name="orange-pay"),
+    path("orange_payment_success/",OrangePaymentSuccessView.as_view(),name="orange-payment-success"),
+    path("status/<str:txn_id>/",OrangePaymentStatusView.as_view(),name="orange-status"),
+    path("paymentstatus/<str:pay_token>/",OrangeApiPaymentStatusView.as_view(),name="orange-status"),
+    path("v1/subscription/auth/check-email/", WebsiteSubscriptionEmailCheckView.as_view(), name="website-subscription-check-email"),
+    path("v1/subscription/auth/resend-password/", WebsiteSubscriptionPasswordResendView.as_view(), name="website-subscription-resend-password"),
+    path("v1/subscription/plans/<int:plan_id>/", WebsiteSubscriptionPlanDetailView.as_view(), name="website-subscription-plan-detail"),
+    path("v1/subscription/mtn/initiate/", WebsiteMtnSubscriptionInitiateView.as_view(), name="website-mtn-subscription-initiate"),
+    path("v1/subscription/mtn/preapproval-status/<str:reference_id>/", WebsiteMtnPreapprovalStatusView.as_view(), name="website-mtn-preapproval-status"),
+    path("v1/subscription/orange/initiate/", WebsiteOrangeSubscriptionInitiateView.as_view(), name="website-orange-subscription-initiate"),
+    path("v1/subscription/orange/status/<str:reference_id>/", WebsiteOrangeSubscriptionStatusView.as_view(), name="website-orange-subscription-status"),
+    path("v1/subscription/stripe/initiate/", WebsiteStripeSubscriptionInitiateView.as_view(), name="website-stripe-subscription-initiate"),
+    path("v1/subscription/stripe/status/<str:payment_intent_id>/", WebsiteStripeSubscriptionStatusView.as_view(), name="website-stripe-subscription-status"),
+    path("v1/subscription/stripe/webhook/", WebsiteStripeSubscriptionWebhookView.as_view(), name="website-stripe-subscription-webhook"),
 ]

@@ -19,7 +19,7 @@
 #     return conversation
 
 
-'''  """
-    Get an existing conversation between two profiles or create a new one.
-    Ensure that only service providers can chat with clients and vice versa.
-    """'''
+"""
+Get an existing conversation between two profiles or create a new one.
+Ensure that only service providers can chat with clients and vice versa.
+"""

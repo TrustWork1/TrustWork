@@ -1,19 +1,24 @@
-
-# from chat_management.utils import get_or_create_conversation 
-from profile_management.models import Profile
-from rest_framework.exceptions import ValidationError
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+# from chat_management.utils import get_or_create_conversation
+from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404
-from .serializers import NotificationSerializer
-from rest_framework import status
 from firebase_admin import messaging
-from chat_management.models import Notification
-from .serializers import ChatRoomSerializer,MessagesSerializer, AttatchmentSerializer
-from chat_management.models import ChatRoom,Messages
-from django.db.models import Q, Max
+from rest_framework import status
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from api.pagination import CustomPagination
+from chat_management.models import ChatRoom, Messages, Notification
+from profile_management.models import Profile
+
+from .serializers import (
+    AttatchmentSerializer,
+    ChatRoomSerializer,
+    MessagesSerializer,
+    NotificationSerializer,
+)
+
 
 class ChatHandlerView(APIView):
     # permission_classes=[IsAuthenticated]
@@ -33,12 +38,12 @@ class ChatHandlerView(APIView):
             if serializer.is_valid(raise_exception=True):
                 serializer.save(user1=request.user.profile,user2=user2)
         return Response(serializer.data)
-    
+
     def get(self,request,chat_id=None):
         messages=Messages.objects.filter(chat_room__id=chat_id)
         serializer=MessagesSerializer(messages,many=True)
         return Response(serializer.data)
-    
+
 class ChatListView(APIView):
     def get(self,request):
         chat_rooms = ChatRoom.objects.filter(
@@ -49,7 +54,7 @@ class ChatListView(APIView):
         ).order_by('-last_message_time')
         rooms=ChatRoomSerializer(chat_rooms_with_messages, many=True)
         return Response(rooms.data)
-    
+
 class AttatchmentChatViewSent(APIView):
     def post(self,request):
         user_profile=request.user.profile
@@ -59,7 +64,7 @@ class AttatchmentChatViewSent(APIView):
             serializer.save(user_profile=user_profile,chat_room=chat_room)
             return Response(serializer.data)
         return Response(serializer.errors)
-    
+
 
 # class AttatchmentView(APIView):
 #     permission_classes = [IsAuthenticated]
@@ -113,7 +118,7 @@ class SendNotificationView(APIView):
         # if new_status is None:
         #     return Response({"error": "Status field is required"}, status=400)
 
- 
+
         # # Save notification in the database
         notification = Notification.objects.create(
             sender=sender,
@@ -139,8 +144,6 @@ class SendNotificationView(APIView):
         return Response(serializer.data, status=201)
 
 
-from rest_framework.generics import ListAPIView
-
 class NotificationListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
@@ -150,8 +153,6 @@ class NotificationListView(ListAPIView):
         return Notification.objects.filter(receiver=self.request.user.profile,status=True).order_by('-created_at')
 
 
-
-
 class ChangeNotificationStatusView(APIView):
     """
     API view to toggle the notification status (True/False) for the logged-in user.
@@ -159,8 +160,6 @@ class ChangeNotificationStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        sender = request.user.profile.pk
-
         # Get the current status from the request
         new_status = request.data.get('status')
 

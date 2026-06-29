@@ -1,8 +1,14 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-from profile_management.models import Profile,AbstractModel
-# Create your models here.
+import json
 
+from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from chat_management.models import Notification
+from profile_management.models import AbstractModel, Profile
+
+# Create your models here.
 
 
 user = get_user_model()
@@ -28,7 +34,7 @@ class Project(AbstractModel):
     bid_count= models.IntegerField(default=0)
     can_send_bid= models.BooleanField(default=False)
     project_type=models.CharField(max_length=50,null=True, blank=True, default="normal")
-    
+
     def __str__(self):
         return f'{self.project_title}'
 
@@ -45,7 +51,6 @@ class Bid(AbstractModel):
     is_accepted = models.BooleanField(default=False)
     def __str__(self):
         return f'{self.service_provider}'
-    
 
 
 class Feedback(AbstractModel):
@@ -55,42 +60,39 @@ class Feedback(AbstractModel):
     provider_review=models.TextField(null=True,blank=True)
     client_rating=models.IntegerField(null=True,blank=True)
     provider_rating=models.IntegerField(null=True,blank=True)
-    
+
     def __str__(self):
         return f'{self.service_provider}'
-    
+
 
 class Transactions(AbstractModel):
     escrow_id=models.UUIDField(blank=True,null=True)
+    external_order_id=models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    payment_token=models.CharField(max_length=150, blank=True, null=True, db_index=True)
+    gateway_transaction_id=models.CharField(max_length=100, blank=True, null=True, db_index=True)
     bid=models.ForeignKey(Bid,on_delete=models.PROTECT,null=True)
     status=models.CharField(max_length=100)
     transaction_type=models.CharField(null=True,max_length=100,choices=[("collection","collection"),("disbursement","disbursement")],default="collection")
     project=models.ForeignKey(Project,on_delete=models.PROTECT,null=True)
     payment_type = models.CharField(null=True, blank=True, max_length=100)
+    receipt_email_sent_at = models.DateTimeField(null=True, blank=True)
 
 class Currency(AbstractModel):
     xaf_currency = models.CharField(null=True, blank=True)
 
-from django.db.models.signals import post_save,post_delete
-from django.dispatch import receiver
-from project_management.models import Bid,Project,Feedback
-from chat_management.models import Notification
-from api.profile.serializers  import ProfileSerializer
-from api.project.serializers  import ProjectSerializer,BidSerializer
-from profile_management.models import Profile
-import firebase_admin
-import json
 
 @receiver(post_save, sender=Project)
 def project_post_save_handler(sender, instance:Project, created, **kwargs):
     try:
         if created:
+            from api.project.serializers import ProjectSerializer
+
             sender_profile = instance.client
 
             if instance.status == "myoffer":
                 # Do NOT handle notification for myoffer, write in views.py (CreateAndOfferProjectAPIView)
                 return
-            
+
             message = f"Project '{instance.project_title}' has been created by {sender_profile.user.full_name}."
             related_providers = Profile.objects.filter(job_category=instance.project_category).exclude(user=instance.client.user)
 
@@ -107,23 +109,22 @@ def project_post_save_handler(sender, instance:Project, created, **kwargs):
                     )
                     project=ProjectSerializer(instance).data
                     notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"project_creation"})
-                except Exception as e:
+                except Exception:
                     pass
-            
-            sender_data = ProfileSerializer(sender_profile).data
-            sender_full_name = sender_data.get('full_name')
-    
-    except Exception as e:
+
+    except Exception:
         pass
         # import logging
         # logger = logging.getLogger(__name__)
         # logger.error("Signal error: %s", e)
-        
-        
+
+
 @receiver(post_save, sender=Bid)
 def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
     try:
         if not created:
+            from api.project.serializers import ProjectSerializer
+
             if instance.status=="Accepted":
                 message=f"Bid for project -: {instance.project.project_title} has been Accepted."
 
@@ -137,7 +138,7 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                         bid_id = instance.id,
                         project_id = instance.project.id
                     )
-                
+
                 else:
                     notification=Notification.objects.create(
                         sender=instance.project.client,
@@ -148,7 +149,7 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                         bid_id = instance.id,
                         project_id = instance.project.id
                     )
-                
+
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"accepted"})
@@ -183,6 +184,5 @@ def bid_status_change_handler(sender, instance:Bid, created, **kwargs):
                 project=ProjectSerializer(instance.project).data
                 project.pop("client")
                 notification.send_to_token(extra_data={"project":json.dumps(project),"notification_type":"bid_status_change",'bid_status':"active"})
-    except:
+    except Exception:
         pass
-        

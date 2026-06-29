@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   SafeAreaView,
@@ -11,251 +12,145 @@ import {
 import {Colors, Fonts, GifImage, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
 
-import {useIsFocused} from '@react-navigation/native';
-import Modal from 'react-native-modal';
 import {useDispatch, useSelector} from 'react-redux';
+import Modal from 'react-native-modal';
 import CustomErrorComponent from '../components/CustomErrorComponent';
 import Header from '../components/Header';
 import NextBtn from '../components/NextBtn';
 import TextIn from '../components/TextIn';
 import NavigationService from '../navigators/NavigationService';
-import {mtnPaymentRequest} from '../redux/reducer/AuthReducer';
+import {
+  mtnPaymentRequest,
+  orangePaymentRequest,
+} from '../redux/reducer/AuthReducer';
 import errorMessages from '../utils/errorMessages';
 import connectionrequest from '../utils/helpers/NetInfo';
 import showErrorAlert from '../utils/helpers/Toast';
 
-let status = '';
+const phoneRegex = /^[0-9]{9,15}$/;
 
-let listData = [
-  // {
-  //   id: 1,
-  //   name: 'Bank Transfer',
-  //   category: 'Lorem ipsum dolor sit amet consectetur',
-  // },
+// Orange payment status categories
+const SUCCESS_STATUSES = ['SUCCESS', 'SUCCESSFUL', 'SUCCEEDED'];
+
+const listData = [
   {
     id: 2,
     name: 'MTN Payment',
-    category: 'Lorem ipsum dolor sit amet consectetur',
+    category: 'Pay using your MTN Mobile Money wallet',
   },
   {
     id: 3,
     name: 'ORANGE Payment',
-    category: 'Lorem ipsum dolor sit amet consectetur',
+    category: 'Pay using your Orange Money wallet',
   },
-  // {
-  //   id: 4,
-  //   name: 'Cryptocurrency Payment',
-  //   category: 'Lorem ipsum dolor sit amet consectetur',
-  // },
 ];
 
 const SubscriptionPayment = props => {
   const {plan} = props.route.params;
 
-  const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
 
-  const [cardNo, setCardNo] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [name, setName] = useState('');
   const [showSeen, setShowSeen] = useState(false);
   const [phoneNo, setPhoneNo] = useState('');
   const [openPayNow, setOpenPayNow] = useState(null);
   const [isValidateMobile, setIsValidateMobile] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  // Orange Pay pending state
+  const [orangePending, setOrangePending] = useState(false);
 
+  // ─── MTN Payment ────────────────────────────────────────────────────────────
   const paymentSubscription = () => {
     setIsError(true);
-    if (phoneNo === '') {
-      setErrorMessage(errorMessages.ENTER_MOBILE_NUMBER);
-    } else {
-      setIsError(false);
-
-      let obj = {
-        subscription_plan_id: plan.id,
-        phone_number: phoneNo,
-      };
-
-      connectionrequest()
-        .then(() => {
-          dispatch(mtnPaymentRequest(obj));
-        })
-        .catch(err => {
-          showErrorAlert('Please connect to the internet');
-        });
+    if (phoneNo === '') return;
+    if (!phoneRegex.test(phoneNo)) {
+      setIsValidateMobile(true);
+      return;
     }
+    setIsError(false);
+    setIsValidateMobile(false);
+
+    const obj = {
+      subscription_plan_id: plan.id,
+      phone_number: phoneNo,
+    };
+
+    connectionrequest()
+      .then(() => dispatch(mtnPaymentRequest(obj)))
+      .catch(() => showErrorAlert('Please connect to the internet'));
   };
 
-  if (status == '' || AuthReducer.status != status) {
-    switch (AuthReducer.status) {
-      case 'Auth/mtnPaymentRequest':
-        status = AuthReducer.status;
-        break;
-      case 'Auth/mtnPaymentSuccess':
-        status = AuthReducer.status;
-        setShowSeen(true);
-        break;
-      case 'Auth/mtnPaymentFailure':
-        status = AuthReducer.status;
-        break;
+  // ─── Orange Payment ──────────────────────────────────────────────────────────
+  const orangePayFun = () => {
+    setIsError(true);
+    if (phoneNo === '') return;
+    if (!phoneRegex.test(phoneNo)) {
+      setIsValidateMobile(true);
+      return;
     }
-  }
+    setIsError(false);
+    setIsValidateMobile(false);
 
-  const listHeaderComponent = () => {
-    return (
-      <View
-        style={{
-          backgroundColor: Colors.themeWhite,
-          paddingHorizontal: normalize(15),
-          paddingVertical: normalize(15),
-          justifyContent: 'center',
-          borderRadius: normalize(8),
-          marginVertical: normalize(15),
-        }}>
-        <Text
-          style={{
-            fontFamily: Fonts.FustatSemiBold,
-            fontSize: normalize(14),
-            color: Colors.themeBlack,
-            lineHeight: normalize(22),
-          }}>
-          {'Credit Card/Debit Card'}
-        </Text>
+    // Cameroon prefix: prepend 237 if 9-digit number
+    const finalPhone = phoneNo.length === 9 ? `237${phoneNo}` : phoneNo;
 
-        <TextIn
-          show={cardNo?.length > 0 ? true : false}
-          value={cardNo}
-          isVisible={false}
-          onChangeText={val => setCardNo(val?.trimStart())}
-          height={normalize(50)}
-          width={normalize(280)}
-          fonts={Fonts.FustatMedium}
-          borderColor={Colors.themeBoxBorder}
-          borderWidth={1}
-          maxLength={60}
-          marginTop={normalize(15)}
-          marginBottom={normalize(10)}
-          // marginLeft={normalize(10)}
-          outlineTxtwidth={normalize(50)}
-          label={'Card Number'}
-          placeholder={'Enter Card Number'}
-          //placeholderIcon={Icons.Email}
-          placeholderTextColor={Colors.themePlaceholder}
-          borderRadius={normalize(6)}
-          fontSize={14}
-          //Eyeshow={true}
-          paddingLeft={normalize(10)}
-          paddingRight={normalize(10)}
-        />
+    const obj = {
+      bid_id: String(plan.id),
+      subscriberMsisdn: finalPhone,
+      description: 'Subscription payment',
+      payment_type: 'orange_project',
+    };
 
-        <TextIn
-          show={name?.length > 0 ? true : false}
-          value={name}
-          isVisible={false}
-          onChangeText={val => setName(val?.trimStart())}
-          height={normalize(50)}
-          width={normalize(280)}
-          fonts={Fonts.FustatMedium}
-          borderColor={Colors.themeBoxBorder}
-          borderWidth={1}
-          maxLength={60}
-          marginTop={normalize(15)}
-          marginBottom={normalize(10)}
-          // marginLeft={normalize(10)}
-          outlineTxtwidth={normalize(50)}
-          label={'Card Holder Name'}
-          placeholder={'Enter Card Holder Name'}
-          //placeholderIcon={Icons.Email}
-          placeholderTextColor={Colors.themePlaceholder}
-          borderRadius={normalize(6)}
-          fontSize={14}
-          //Eyeshow={true}
-          paddingLeft={normalize(10)}
-          paddingRight={normalize(10)}
-        />
-
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <TextIn
-            show={expiry?.length > 0 ? true : false}
-            value={expiry}
-            isVisible={false}
-            onChangeText={val => setExpiry(val?.trimStart())}
-            height={normalize(50)}
-            width={normalize(130)}
-            fonts={Fonts.FustatMedium}
-            borderColor={Colors.themeBoxBorder}
-            borderWidth={1}
-            maxLength={60}
-            marginTop={normalize(15)}
-            marginBottom={normalize(10)}
-            // marginLeft={normalize(10)}
-            outlineTxtwidth={normalize(50)}
-            label={'Expire Date'}
-            placeholder={'Enter Expire Date'}
-            //placeholderIcon={Icons.Email}
-            placeholderTextColor={Colors.themePlaceholder}
-            borderRadius={normalize(6)}
-            fontSize={14}
-            //Eyeshow={true}
-            paddingLeft={normalize(10)}
-            paddingRight={normalize(10)}
-          />
-          <TextIn
-            show={cvv?.length > 0 ? true : false}
-            value={cvv}
-            isVisible={false}
-            onChangeText={val => setCvv(val?.trimStart())}
-            height={normalize(50)}
-            width={normalize(130)}
-            fonts={Fonts.FustatMedium}
-            borderColor={Colors.themeBoxBorder}
-            borderWidth={1}
-            maxLength={60}
-            marginTop={normalize(15)}
-            marginBottom={normalize(10)}
-            // marginLeft={normalize(10)}
-            outlineTxtwidth={normalize(50)}
-            label={'CVV'}
-            placeholder={'Enter CVV'}
-            //placeholderIcon={Icons.Email}
-            placeholderTextColor={Colors.themePlaceholder}
-            borderRadius={normalize(6)}
-            fontSize={14}
-            //Eyeshow={true}
-            paddingLeft={normalize(10)}
-            paddingRight={normalize(10)}
-          />
-        </View>
-        <View style={styles.btnMainContainer}>
-          <NextBtn
-            //   loading={AuthReducer?.status == 'Auth/signinRequest'}
-            height={normalize(50)}
-            title={'Pay Now'}
-            borderColor={Colors.themeGreen}
-            color={Colors.themeWhite}
-            backgroundColor={Colors.themeGreen}
-            onPress={() => paymentSubscription()}
-          />
-        </View>
-      </View>
-    );
+    connectionrequest()
+      .then(() => dispatch(orangePaymentRequest(obj)))
+      .catch(() => showErrorAlert('Please connect to the internet'));
   };
 
   const handleMobileNumberValidation = () => {
-    if (phoneNo?.length < 9) {
-      setIsValidateMobile(true);
-    } else {
-      setIsValidateMobile(false);
-    }
+    setIsValidateMobile(phoneNo?.length < 9);
   };
+
+  // ─── Status effects ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    switch (AuthReducer.status) {
+      case 'Auth/mtnPaymentSuccess':
+        setShowSeen(true);
+        break;
+      case 'Auth/mtnPaymentFailure':
+        break;
+
+      case 'Auth/orangePaymentSuccess': {
+        const finalStatus = AuthReducer?.orangePaymentResponse?.finalStatus;
+        if (finalStatus && SUCCESS_STATUSES.includes(finalStatus)) {
+          // Polling resolved as success
+          setOrangePending(false);
+          setShowSeen(true);
+        } else if (finalStatus === 'PENDING') {
+          // Initial response — show pending screen while saga polls
+          setOrangePending(true);
+        }
+        break;
+      }
+      case 'Auth/orangePaymentFailure': {
+        setOrangePending(false);
+        break;
+      }
+    }
+  }, [AuthReducer.status]);
+
+  // ─── UI Components ───────────────────────────────────────────────────────────
+  const pendingComponent = () => (
+    <View style={styles.succesMainComponent}>
+      <ActivityIndicator size="large" color={Colors.themeGreen} />
+      <View style={styles.modalHeaderTxtContainer}>
+        <Text style={styles.modalHeaderTxt}>Processing...</Text>
+        <Text style={styles.modalHeaderSubTxt}>
+          Please complete the payment on your Orange Money app or by dialing
+          *150#. We're verifying your payment.
+        </Text>
+      </View>
+    </View>
+  );
 
   const paymentComponent = () => (
     <View style={styles.paymentContainer}>
@@ -300,20 +195,27 @@ const SubscriptionPayment = props => {
 
       <View style={styles.btnMainContainer}>
         <NextBtn
-          loading={AuthReducer?.status == 'Auth/mtnPaymentRequest'}
+          loading={
+            AuthReducer?.status === 'Auth/mtnPaymentRequest' ||
+            AuthReducer?.status === 'Auth/orangePaymentRequest'
+          }
           height={normalize(50)}
           title={'Pay Now'}
           borderColor={Colors.themeGreen}
           color={Colors.themeWhite}
           backgroundColor={Colors.themeGreen}
-          onPress={() =>
-            openPayNow === 'MTN Payment' ? paymentSubscription() : null
-          }
+          onPress={() => {
+            if (openPayNow === 'MTN Payment') {
+              paymentSubscription();
+            } else if (openPayNow === 'ORANGE Payment') {
+              orangePayFun();
+            }
+          }}
         />
       </View>
     </View>
   );
-  const renderServices = (item, index) => (
+  const renderServices = item => (
     <View style={styles.renderConatiner}>
       <TouchableOpacity
         onPress={() => {
@@ -388,7 +290,7 @@ const SubscriptionPayment = props => {
                 <View style={{height: normalize(10)}} />
               )}
               // ListHeaderComponent={() => listHeaderComponent()}
-              renderItem={({item, index}) => renderServices(item, index)}
+              renderItem={({item}) => renderServices(item)}
               contentContainerStyle={styles.listConatiner}
             />
           </View>
@@ -408,6 +310,23 @@ const SubscriptionPayment = props => {
         onBackButtonPress={() => setShowSeen(false)}>
         <View style={styles.modalMainContainer}>
           <View style={styles.modalSubContainer}>{successComponent()}</View>
+        </View>
+      </Modal>
+
+      {/* Orange Pay — payment in progress */}
+      <Modal
+        propagateSwipe
+        visible={orangePending}
+        backdropOpacity={0.5}
+        useNativeDriverForBackdrop={true}
+        animationIn="slideInDown"
+        animationOut="slideOutDown"
+        useNativeDriver={true}
+        avoidKeyboard={true}
+        style={styles.modalContainer}
+        onBackButtonPress={() => {}}>
+        <View style={styles.modalMainContainer}>
+          <View style={styles.modalSubContainer}>{pendingComponent()}</View>
         </View>
       </Modal>
     </View>

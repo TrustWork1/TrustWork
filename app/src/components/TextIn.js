@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {Image, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {Colors, Fonts, Icons} from '../themes/Themes';
 import normalize from '../utils/helpers/normalize';
 
@@ -75,19 +82,20 @@ export default function TextIn(props) {
         ) : null}
       </View> */}
 
-      <Text
-        style={{
-          color: Colors.themeBlack,
-          fontFamily: Fonts.FustatMedium,
-          textAlign: 'left',
-          // top: Platform.OS === 'ios' ? 0 : normalize(12),
-          paddingBottom: normalize(2),
-          fontSize: 14,
-          lineHeight: normalize(22),
-          marginLeft: props.marginLeft,
-        }}>
-        {props.label}
-      </Text>
+      {!!props.label && (
+        <Text
+          style={{
+            color: Colors.themeBlack,
+            fontFamily: Fonts.FustatMedium,
+            textAlign: 'left',
+            paddingBottom: normalize(2),
+            fontSize: 14,
+            lineHeight: normalize(22),
+            marginLeft: props.marginLeft,
+          }}>
+          {props.label}
+        </Text>
+      )}
 
       <View
         style={{
@@ -275,7 +283,13 @@ export default function TextIn(props) {
               alignSelf: 'center',
               right: normalize(15),
             }}>
-            {!props?.value ? (
+            {props.locationLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={Colors.themeGreen}
+                style={{width: normalize(22), height: normalize(22)}}
+              />
+            ) : !props?.value ? (
               <TouchableOpacity onPress={() => onPress()}>
                 <Image
                   source={Icons.selectLocation}

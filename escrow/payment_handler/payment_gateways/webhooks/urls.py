@@ -14,14 +14,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path,include
-from .MTN.collections_webhook import *
-from .MTN.disbursement_webhook import *
-from .stripe.stripe_webhook import *
+from django.urls import path
+
+from .MTN.collections_webhook import MtnCollectionWebhook
+from .MTN.disbursement_webhook import MtnDisbursementWebhook
+from .stripe.stripe_webhook import ProcessStripeSession
+
 urlpatterns = [
     path('mtn-collection',MtnCollectionWebhook.as_view()),
     path('mtn-disbursement',MtnDisbursementWebhook.as_view()),
-    
+
     path("stripe/process-session/", ProcessStripeSession.as_view(), name="stripe_webhook"),
 ]

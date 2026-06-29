@@ -1,23 +1,64 @@
 [tool.poetry]
 name = "escrow-microservice"
 version = "0.1.0"
-description = ""
-authors = ["Swapnil Chopra <swapnil.chopra@webskitters.in>"]
+description = "Django microservice for escrow, subscription, MTN MoMo, Orange Money, and Stripe payment workflows."
+authors = ["Somnath Singha <somnath.singha@webskitters.com>"]
 readme = "README.md"
+package-mode = true
+packages = [
+    { include = "core" },
+    { include = "escrow_management" },
+    { include = "orange_management" },
+    { include = "payment_handler" },
+    { include = "user_management" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-django = "^4.2"
-requests = "^2.32.3"
 basicauth = "^1.0.0"
-djangorestframework = "^3.15.2"
 celery = "^5.4.0"
-redis = "^5.1.0"
-django-environ = "^0.11.2"
-psycopg2-binary = "^2.9.10"
-stripe = "^11.4.1"
+django = "^4.2"
 django-celery-results = "^2.6.0"
 django-csp = "^4.0"
+django-environ = "^0.11.2"
+djangorestframework = "^3.15.2"
+psycopg2-binary = "^2.9.10"
+redis = "^5.1.0"
+requests = "^2.32.3"
+stripe = "^11.4.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+ruff = "^0.8.4"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+extend-exclude = '''
+/(
+    migrations
+  | staticfiles
+  | media
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = [
+    "migrations",
+    "staticfiles",
+    "media",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [build-system]
 requires = ["poetry-core"]

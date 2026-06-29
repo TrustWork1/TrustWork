@@ -576,10 +576,6 @@ const UserUpdateProfile = props => {
         break;
       case 'Auth/ProfileSuccess':
         status = AuthReducer.status;
-        console.log(
-          'client data fetch----->',
-          AuthReducer?.ProfileResponse?.data,
-        );
         setName(AuthReducer?.ProfileResponse?.data?.full_name);
         setAddress(AuthReducer?.ProfileResponse?.data?.address);
         if (!AuthReducer?.ProfileResponse?.data?.is_user_active) {
@@ -784,7 +780,7 @@ const UserUpdateProfile = props => {
                     color={Colors.themeWhite}
                     backgroundColor={Colors.themeGreen}
                     onPress={() => {
-                      console.log('click next'), profileUpdate();
+                      profileUpdate();
                     }}
                   />
                 </View>

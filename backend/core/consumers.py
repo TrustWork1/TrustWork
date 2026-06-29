@@ -1,6 +1,7 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+
 from asgiref.sync import sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -10,7 +11,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             stream_name = self.scope.get('url_route', {}).get('kwargs', {}).get('stream_name', None)
             self.room_group_name = f'chat_room_{stream_name}'  # Define the group name based on the stream
             self.room = stream_name
-            
+
             # Join the room group
             await self.channel_layer.group_add(
                 self.room_group_name,
@@ -23,9 +24,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def receive(self, text_data):
-        from chat_management.models import Messages, ChatRoom
-        from profile_management.models import Profile
-        from api.chat.serializers import MessagesSerializer
         try:
             data = json.loads(text_data)
             message = data.get('message', '')
@@ -64,7 +62,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         # from chat_management.models import Messages, ChatRoom
-        from api.chat.serializers import MessagesSerializer
         try:
             # Retrieve the last message for the given chat room
             message = await self.get_last_message(self.room)
@@ -78,9 +75,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def save_message(self, username, message, stream_name):
-        from chat_management.models import Messages, ChatRoom
+        from chat_management.models import ChatRoom, Messages
         from profile_management.models import Profile
-        from api.chat.serializers import MessagesSerializer
         try:
             # Fetch the Profile and ChatRoom objects from the database
             sender = Profile.objects.get(id=username)
@@ -95,9 +91,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def get_last_message(self, stream_name):
-        from chat_management.models import Messages, ChatRoom
-        from profile_management.models import Profile
         from api.chat.serializers import MessagesSerializer
+        from chat_management.models import ChatRoom, Messages
         try:
             # Get the last message for the given chat room
             chat_room = ChatRoom.objects.get(id=stream_name)

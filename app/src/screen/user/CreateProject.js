@@ -270,16 +270,12 @@ const CreateProject = props => {
   // };
 
   const handlecertificateUpload = async () => {
-    console.log('------>entering');
     try {
       const response = await pick({
         allowMultiSelection: false,
         type: [types.pdf], // wrap in array
       });
 
-      console.log('-----------> raw response', response);
-
-      // Since response is an array, grab the first item
       const file = response[0];
 
       const transformed = {
@@ -289,12 +285,9 @@ const CreateProject = props => {
         type: file.type,
       };
 
-      console.log('-----------> transformed', transformed);
-
       setDocFile(transformed);
       setDoc(transformed.name);
     } catch (err) {
-      console.log('======>error', err);
       if (err.code === 'CANCELLED') {
         return [];
       }
@@ -359,8 +352,6 @@ const CreateProject = props => {
         break;
     }
   }
-
-  console.log('========');
 
   return (
     <View style={styles.mainContainer}>

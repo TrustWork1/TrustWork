@@ -136,7 +136,6 @@ export function* attachFileSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {

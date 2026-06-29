@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # ContactUs section
 class ContactUs(models.Model):
     section_header = models.CharField(max_length=255, blank=True, null=True)
@@ -25,7 +26,7 @@ class ContactUs(models.Model):
     def __str__(self):
         return self.title or "Untitled ContactUs Section"
 
-# Contact Form 
+# Contact Form
 class ContactForm(models.Model):
     full_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -36,6 +37,6 @@ class ContactForm(models.Model):
 
     def __str__(self):
         return f"{self.full_name or 'Anonymous'} - {self.subject or 'No Subject'}"
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']

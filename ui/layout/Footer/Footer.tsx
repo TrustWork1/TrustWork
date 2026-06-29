@@ -202,7 +202,8 @@ const Footer = () => {
           </Grid2>
           <Box className='social-media-links' sx={{ textAlign: 'center' }}>
             <Typography variant='body2'>
-              © Copyright 2025 <Link href='/'>Trust Work</Link> - All Rights Reserved.
+              © Copyright {new Date().getFullYear()} <Link href='/'>Trust Work</Link> - All Rights
+              Reserved.
             </Typography>
           </Box>
         </Container>

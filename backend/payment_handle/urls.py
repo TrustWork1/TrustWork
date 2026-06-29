@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import CreateEscrowCustomerView, CreateEscrowTransactionView, PaymentTransactionView, PaymentTransactionDetailView, ConfirmTransactionView, CancelTransactionView
+
+from .views import (
+    CancelTransactionView,
+    ConfirmTransactionView,
+    CreateEscrowCustomerView,
+    CreateEscrowTransactionView,
+    PaymentTransactionDetailView,
+    PaymentTransactionView,
+)
 
 urlpatterns = [
     path('create-customer/', CreateEscrowCustomerView.as_view(), name='service-provider-list'),

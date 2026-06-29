@@ -1,5 +1,19 @@
 from rest_framework import serializers
-from content_management.models.home_page_models import *
+
+from content_management.models.home_page_models import (
+    AppDownload,
+    AppInfo,
+    DownloadSection,
+    Feature,
+    FeatureSection,
+    HowItWorksSection,
+    HowItWorksStep,
+    PriceFeatures,
+    PricingPlan,
+    PricingPlanSection,
+    ReferralSection,
+)
+
 
 class AppDownloadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,4 +79,3 @@ class DownloadSectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DownloadSection
         fields = '__all__'
-

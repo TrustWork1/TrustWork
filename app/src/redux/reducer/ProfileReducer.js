@@ -30,6 +30,7 @@ const initialState = {
   ReferralStepsResponse: {},
   deleteGalleryItemResponse: {},
   ReadNotificationResponse:{},
+  aboutUsResponse: {},
 };
 
 const ProfileSlice = createSlice({
@@ -45,7 +46,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     specializationListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -58,7 +59,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     userDetailsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -71,7 +72,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     editProfileFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -84,7 +85,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     viewProfileFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -97,7 +98,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     cmsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -110,7 +111,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     contactUsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -123,7 +124,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     contactUsDetailsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -136,7 +137,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     notificationFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -149,7 +150,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     notificationStatusChangeFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -162,7 +163,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     deleteNotificationFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -175,7 +176,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     bankAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
     // mtn List //
@@ -187,7 +188,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     mtnListFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -200,7 +201,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     addBankAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
     // addMtnAccount //
@@ -212,7 +213,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     addMtnAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -225,7 +226,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     deleteBankAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -238,7 +239,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     deleteMtnFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -251,7 +252,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     updateBankAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -264,7 +265,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     makePrimaryFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -277,7 +278,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     makePrimaryMtnFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -290,7 +291,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     SwitchAccountFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -303,7 +304,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     WithdrawPointsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -316,7 +317,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     BankTransferFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -329,7 +330,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     ReferralStepsFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -342,7 +343,7 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     deleteGalleryItemFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
       state.status = action.type;
     },
 
@@ -355,7 +356,20 @@ const ProfileSlice = createSlice({
       state.status = action.type;
     },
     ReadNotificationFailure(state, action) {
-      state.error = action.error;
+      state.error = action.payload;
+      state.status = action.type;
+    },
+
+    // About Us //
+    aboutUsRequest(state, action) {
+      state.status = action.type;
+    },
+    aboutUsSuccess(state, action) {
+      state.aboutUsResponse = action.payload;
+      state.status = action.type;
+    },
+    aboutUsFailure(state, action) {
+      state.error = action.payload;
       state.status = action.type;
     },
   },
@@ -460,6 +474,10 @@ export const {
   ReadNotificationRequest,
   ReadNotificationSuccess,
   ReadNotificationFailure,
+
+  aboutUsRequest,
+  aboutUsSuccess,
+  aboutUsFailure,
 } = ProfileSlice.actions;
 
 export default ProfileSlice.reducer;

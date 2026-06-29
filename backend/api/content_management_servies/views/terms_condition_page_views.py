@@ -1,14 +1,16 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from api.content_management_servies.serializers.terms_condition_page_serializers import (
+    TermsConditionsSectionSerializer,
+)
 from content_management.models.home_page_models import DownloadSection
-from content_management.models.terms_condition_page_models import *
-from api.content_management_servies.serializers.terms_condition_page_serializers import *
+from content_management.models.terms_condition_page_models import TermsConditionsSection
+
 
 class TermsConditionsSectionView(APIView):
     permission_classes=[IsAuthenticated]
@@ -30,7 +32,7 @@ class TermsConditionsSectionView(APIView):
         section = TermsConditionsSection.objects.last()
         if not section:
             return Response([], status=status.HTTP_200_OK)
-        
+
         serializer = TermsConditionsSectionSerializer(section)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -53,12 +55,12 @@ class TermsConditionsSectionView(APIView):
         if TermsConditionsSection.objects.exists():
             return Response({"message": "TermsConditionsSection already exists. Use PUT to update."},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = TermsConditionsSectionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
@@ -80,12 +82,12 @@ class TermsConditionsSectionView(APIView):
         if not feature_section:
             return Response({"message": "TermsConditionsSection does not exist. Use POST to create."},
                             status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = TermsConditionsSectionSerializer(feature_section, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "TermsConditionsSection updated successfully"}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TermsConditionsView(APIView):

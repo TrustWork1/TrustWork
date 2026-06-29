@@ -1,10 +1,7 @@
 
-import os
-from uuid import uuid4
-import requests
-import json
-from basicauth import encode
 import base64
+
+import requests
 from django.conf import settings
 
 MTN_BASE_URL=settings.MTN_BASE_URL
@@ -35,7 +32,7 @@ class MtnMoMo:
             self.primary_key = MTN_DISBURSEMENT_PRIMARY_KEY
             self.api_user = MTN_DISBURSEMENT_API_USER_ID
             self.api_key = MTN_DISBURSEMENT_API_KEY
-        
+
         # response = requests.get("https://open.er-api.com/v6/latest/USD")
         # self.xaf_currency = 570.730798      # Per USD
         # if response.status_code == 200:
@@ -54,4 +51,3 @@ class MtnMoMo:
         response = requests.post(url, headers=headers)
         # print(response.json())
         return response.json()
-    

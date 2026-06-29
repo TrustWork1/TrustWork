@@ -10,13 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
-import environ
 import os
-from csp.constants import NONE, SELF
+from pathlib import Path
 
+import environ
+import firebase_admin
 import firebase_admin.firestore
-import firebase_admin.firestore_async 
+import firebase_admin.firestore_async
+from csp.constants import NONE, SELF
+from firebase_admin import credentials
+
 env = environ.Env(
     DEBUG=(bool, False)
 )
@@ -41,7 +44,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    
+
     "corsheaders",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -50,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "customuser",
-    "profile_management",
+    "profile_management.apps.ProfileManagementConfig",
     'rest_framework',
     'rest_framework.authtoken',
     'project_management',
@@ -59,27 +62,49 @@ INSTALLED_APPS = [
     "content_management",
    'drf_yasg','chat_management','channels',
    "csp",
-    
+
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'core.authentication.SubscriptionAwareTokenAuthentication',
     ],
        'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ]
 }
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:14208",  
-        "http://127.0.0.1:14208",
-            "http://127.0.0.1:8001",
-            "http://127.0.0.1:8000",
-
-# Example: Frontend development server
-    # "https://yourdomain.com",  # Example: Production site
+    "http://localhost:14334",
+    "http://127.0.0.1:14334",
+    "http://192.168.6.22:14334",
+    "http://localhost:14208",
+    "http://127.0.0.1:14208",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8000",
+    "https://trustwork-dev.dedicateddevelopers.us",
+    "https://trustwork.live",
 ]
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:14334",
+    "http://127.0.0.1:14334",
+    "http://192.168.6.22:14334",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8001",
+    "https://trustwork-dev.dedicateddevelopers.us",
+    "https://trustwork-api.dedicateddevelopers.us",
+    "https://trustwork-escrow.dedicateddevelopers.us",
+    "https://trustwork.live",
+    "https://api.trustwork.live",
+    "https://escrow.trustwork.live",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.app",
+    "https://*.dedicateddevelopers.us",
+]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -118,6 +143,9 @@ CORS_ALLOW_HEADERS = [
     'dnt',
     'origin',
     'user-agent',
+    'idempotency-key',
+    'ngrok-skip-browser-warning',
+    'x-access-token',
     'x-csrftoken',
     'x-requested-with',
 ]
@@ -147,13 +175,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Stripe settings
 STRIPE_TEST_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_TEST_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_SUBSCRIPTION_WEBHOOK_SECRET = os.getenv("STRIPE_SUBSCRIPTION_WEBHOOK_SECRET")
 BASE_FRONTEND_URL="http://localhost:8000"
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [("127.0.0.1", 6379)],  
+            "hosts": [("127.0.0.1", 6379)],
         },
     },
 }
@@ -162,7 +191,6 @@ CHANNEL_LAYERS = {
 #         "BACKEND": "channels.layers.InMemoryChannelLayer",
 #     },
 # }
-
 
 
 # Database
@@ -179,11 +207,11 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DB_NAME'), 
-        'USER': env('DB_USERNAME'), 
-        'PASSWORD': env('DB_PASSWORD'), 
-        'HOST': env('DB_HOST'), 
-        'PORT': env('DB_PORT'), 
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USERNAME'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
@@ -248,14 +276,27 @@ EMAIL_HOST_PASSWORD =env("EMAIL_HOST_PASSWORD")
 
 # Default email for sending OTP
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+try:
+    OTP_VALIDITY_MINUTES = int(os.getenv("OTP_VALIDITY_MINUTES", "10") or 10)
+except (TypeError, ValueError):
+    OTP_VALIDITY_MINUTES = 10
+
+try:
+    WEBSITE_SUBSCRIPTION_PENDING_TTL_MINUTES = int(
+        os.getenv("WEBSITE_SUBSCRIPTION_PENDING_TTL_MINUTES", "30") or 30
+    )
+except (TypeError, ValueError):
+    WEBSITE_SUBSCRIPTION_PENDING_TTL_MINUTES = 30
+
+PAYMENT_RECEIPT_EMAIL_ENABLED = (
+    os.getenv("PAYMENT_RECEIPT_EMAIL_ENABLED", "True").strip().lower()
+    not in {"0", "false", "no", "off"}
+)
 
 # FIREBASE_CREDENTIALS = credentials.Certificate("/home/webskitters/Desktop/Projects/trustwork-backend/credentials/ServiceAccountKey.json")
 # firebase_admin.initialize_app(FIREBASE_CREDENTIALS, {
 #     "databaseURL": "https://your-project-id.firebaseio.com/"
 # })
-
-import firebase_admin
-from firebase_admin import credentials
 
 cred = credentials.Certificate("./credentials/ServiceAccountKey.json")
 firebase_admin.initialize_app(cred)

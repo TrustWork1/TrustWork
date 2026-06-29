@@ -1,44 +1,65 @@
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from customuser.models import CustomUser
-from .serializers import RegistrationSerializer, LoginSerializer,UserProfileSerializer
-from rest_framework.authtoken.models import Token
-from .serializers import UserSerializer
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import DjangoUnicodeDecodeError
-from profile_management.models import Profile
-from .serializers import ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer,ChangePasswordSerializer
-from django.contrib.auth import get_user_model
-from datetime import datetime, timedelta
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-import pytz
-from utils import send_otp_sms
-from .serializers import GenerateOTPSerializer, VerifyOTPSerializer, ChangePasswordSerializer
-from rest_framework.permissions import AllowAny
-import random
-from django.conf import settings
-
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from profile_management.models import Subscriptions, Coupons
-from master.models import Location
-User = get_user_model()
-
+import logging
 import os
+import random
+
 import environ
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.db import transaction
+from django.template.loader import render_to_string
+from django.utils.encoding import DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_decode
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.auth.otp import (
+    clear_user_otp,
+    get_otp_validity_minutes,
+    is_user_otp_expired,
+    otp_remaining_minutes,
+    otp_remaining_seconds,
+    save_user_otp,
+    stamp_user_otp,
+    still_valid_otp_message,
+)
+from customuser.models import CustomUser
+from profile_management.models import Coupons, Profile
+from profile_management.subscriptions import refresh_profile_subscription_status
+from utils import send_otp_sms
+
+from .serializers import (
+    ChangePasswordSerializer,
+    GenerateOTPSerializer,
+    LoginSerializer,
+    RegistrationSerializer,
+    ResetPasswordEmailRequestSerializer,
+    SetNewPasswordSerializer,
+    UserProfileSerializer,
+    UserSerializer,
+)
+
+User = get_user_model()
+logger = logging.getLogger(__name__)
+
 env = environ.Env()
 environ.Env.read_env(".env")
 TRUSTWORK_BASE_API = os.getenv('TRUSTWORK_BASE_API')
 ADMIN_URL = os.getenv('ADMIN_URL')
+
+
+def _save_user_fields(user, fields):
+    try:
+        user.save(update_fields=fields)
+    except TypeError:
+        user.save()
 
 
 class RegisterView(APIView):
@@ -74,7 +95,7 @@ class RegisterView(APIView):
             referal_code=request.data.get("referred_by_code","")
             if referal_code:
                 referer_user=CustomUser.objects.filter(user_referal_code=referal_code).last()
-                if not referer_user:                    
+                if not referer_user:
                     return Response({"message":"Invalid Referal code"})
             user = serializer.save(referred_by_code=request.data.get("referred_by_code",''))
             print(user.otp)
@@ -82,7 +103,7 @@ class RegisterView(APIView):
                 "data" : serializer.data,
                 'message': 'User registered successfully. Please check your email for the OTP.',
                 'email': user.email,
-                # 'otp': user.otp  
+                # 'otp': user.otp
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -132,8 +153,14 @@ class VerifyOTPView(APIView):
 
         # Check if the OTP matches
         if user.otp == otp:
+            if is_user_otp_expired(user):
+                return Response(
+                    {'error': 'OTP has expired. Please request a new OTP.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             user.is_user_active = True  # Activate the user
-            user.save()
+            clear_user_otp(user)
+            _save_user_fields(user, ["is_user_active", "otp", "otp_created_at"])
             response={
                 "status":200,
                 "type":"success",
@@ -143,7 +170,7 @@ class VerifyOTPView(APIView):
             return Response(response, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class LoginView(APIView):
     @swagger_auto_schema(
         manual_parameters=[
@@ -202,23 +229,9 @@ class LoginView(APIView):
                     user.fcmtoken=request.data.get("deviceToken",'')
                     user.devicetype=request.data.get("deviceType",'')
                     user.save()
-                    
-                    if user.profile.is_payment_verified:
-                        try:
-                            profile=Profile.objects.get(user=user)
-                            subscription=Subscriptions.objects.filter(profile=profile).last()
 
-                            if subscription:
-                                if subscription.expire_at and subscription.expire_at <= timezone.now():
-                                    subscription.is_active = False
-                                    subscription.save()
-                                    user.profile.is_payment_verified=False
-                                    user.profile.save()
-                                    
-                        except Exception as e:
-                            print("Error processing subscription:", e)
-                            pass
-                    
+                    refresh_profile_subscription_status(user.profile)
+
                     coupon_check=Coupons.objects.filter(user=user.id, is_active=True)
                     # for coupon in coupon_check:
                     #     if coupon.expire_date < timezone.now().date():
@@ -234,9 +247,9 @@ class LoginView(APIView):
                     token, created = Token.objects.get_or_create(user=user)
                     return Response({'accessToken': token.key,"UserData":UserSerializer(instance=user).data,"status":"200","message":"Login Success."}, status=status.HTTP_200_OK)
                 return Response({'error': 'User Not verified'}, status=status.HTTP_400_BAD_REQUEST)
-                
+
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         error_messages = serializer.errors
 
         # Extract first error message
@@ -312,7 +325,7 @@ class AdminLoginView(APIView):
                     token, created = Token.objects.get_or_create(user=user)
                     return Response({'accessToken': token.key,"UserData":UserSerializer(instance=user).data,"status":"200","message":"Login Success."}, status=status.HTTP_200_OK)
                 return Response({'error': 'You do not have permission for Admin login'}, status=status.HTTP_400_BAD_REQUEST)
-                
+
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
@@ -497,7 +510,7 @@ class ChangePasswordAPIView(APIView):
                 openapi.IN_HEADER,
                 description="Authorization token (Bearer Token)",
                 type=openapi.TYPE_STRING,
-                required=True 
+                required=True
             )
         ],
         request_body=openapi.Schema(
@@ -532,30 +545,25 @@ class ChangePasswordAPIView(APIView):
     )
     def patch(self,request):
         user = request.user
-    
+
     # Get the new password and confirm password from the request data
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
         confirm_password = request.data.get('confirm_password')
-        
+
         if current_password == new_password:
             return Response({'error': 'New password must be different from the current password.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if not user.check_password(current_password):
             return Response({'error': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
         if new_password != confirm_password:
             return Response({'error': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         user.set_password(new_password)
         user.save()
 
         return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
-
-from .serializers import GenerateOTPSerializer, VerifyOTPSerializer, ChangePasswordSerializer
-from rest_framework.permissions import AllowAny
-import random
-from django.conf import settings
 
 User = get_user_model()
 
@@ -565,80 +573,95 @@ class GenerateOTPView(APIView):
 
     @swagger_auto_schema(
         operation_summary="Generate OTP for Password Reset",
-        operation_description="Generates a 4-digit OTP and sends it to the user's email for password reset.",
+        operation_description="Generates a 4-digit OTP and sends it to the user's email or phone for password reset.",
         request_body=GenerateOTPSerializer,
         responses={
-            200: openapi.Response('OTP has been sent to your email'),
+            200: openapi.Response('OTP has been sent'),
             400: openapi.Response('Invalid data provided'),
-            404: openapi.Response('No user found with this email'),
-            500: openapi.Response('Failed to send email'),
+            404: openapi.Response('No user found with this email or phone'),
+            500: openapi.Response('Failed to send OTP'),
         }
     )
     def post(self, request):
         otp = ''.join([str(random.randint(0, 9)) for _ in range(4)])
 
-        email = request.data.get('email',None)
-        phone = request.data.get('phone')
-        
+        email = (request.data.get('email') or '').strip()
+        phone = (request.data.get('phone') or '').strip()
+
+        if not email and not phone:
+            return Response(
+                {'error': 'Email or phone is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             if email:
                 user = CustomUser.objects.get(email=email)
-            if phone:
-                try:
-                    profile = Profile.objects.get(phone=phone)
-                    user = profile.user
-                    send_otp_sms(profile.phone_extension + profile.phone, otp)
-                    user.otp = otp
-                    user.save()
-                    print(user.otp)
-                    return Response({'message': 'OTP has been sent to your phone'}, status=status.HTTP_200_OK)
-                except Profile.DoesNotExist:
-                    return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-                # user=Profile.objects.get(phone=phone)
-                # # user = CustomUser.objects.get(profile__phone=phone)
-                # send_otp_sms(user.phone_extension+user.phone,otp)
-                # user=user.user
-                # user.otp = otp
-                # user.save()
-                # print(user.otp)
-                # return Response(
-                #         {'message': 'OTP has been sent to your phone'}, 
-                #         status=status.HTTP_200_OK
-                #         )
-        except CustomUser.DoesNotExist:
+                profile = Profile.objects.get(user=user)
+            else:
+                profile = Profile.objects.get(phone=phone)
+                user = profile.user
+        except (CustomUser.DoesNotExist, Profile.DoesNotExist):
             return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        
-        user.otp = otp
-        user.save()
-        
-        subject = 'Password Reset OTP'
-        message = f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.'
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list = [email]
-        
-        # Render the email body from the HTML template
-        html_message = render_to_string('email_temp.html', {
-            'title': 'Password Reset OTP',
-            'otp': f'Your OTP for password reset is: {otp}\nThis OTP is valid for 10 minutes.',
-            'image': TRUSTWORK_BASE_API
-        })
-        
-        try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=from_email,
-                recipient_list=recipient_list,
-                html_message=html_message
-            )
+
+        if profile.status == "deleted":
             return Response(
-                {'message': 'OTP has been sent to your email'}, 
+                {'message': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        stamp_user_otp(user, otp)
+        # print(user.otp)
+
+        try:
+            if email:
+                subject = 'Password Reset OTP'
+                message = (
+                    f'Your OTP for password reset is: {otp}\n'
+                    f'This OTP is valid for {get_otp_validity_minutes()} minutes.'
+                )
+                from_email = settings.EMAIL_HOST_USER
+                recipient_list = [email]
+
+                # Render the email body from the HTML template
+                html_message = render_to_string('email_temp.html', {
+                    'title': 'Password Reset OTP',
+                    'otp': message,
+                    'image': TRUSTWORK_BASE_API
+                })
+
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=from_email,
+                    recipient_list=recipient_list,
+                    html_message=html_message
+                )
+                save_user_otp(user)
+
+                return Response(
+                    {'message': 'OTP has been sent to your email'},
+                    status=status.HTTP_200_OK
+                )
+
+            phone_number = f"{profile.phone_extension or ''}{profile.phone or ''}"
+            if not phone_number:
+                return Response(
+                    {'error': 'User phone number is not available'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            send_otp_sms(phone_number, otp)
+            save_user_otp(user)
+            return Response(
+                {'message': 'OTP has been sent to your phone'},
                 status=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
+            logger.exception("Failed to send password reset OTP for user %s", user.pk)
+            delivery_channel = 'email' if email else 'phone'
             return Response(
-                {'error': 'Failed to send email'}, 
+                {'error': f'Failed to send OTP {delivery_channel}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -646,14 +669,15 @@ class AuthVerifyOTPView(APIView):
 
     @swagger_auto_schema(
         operation_summary="Verify OTP for Account Activation",
-        operation_description="Verifies the OTP sent to the user's email. If valid, activates the user's account.",
+        operation_description="Verifies the OTP sent to the user's email or phone. If valid, activates the user's account.",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
                 'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
+                'phone': openapi.Schema(type=openapi.TYPE_STRING, description='User phone'),
                 'otp': openapi.Schema(type=openapi.TYPE_STRING, description='OTP code sent to user'),
             },
-            required=['email', 'otp']
+            required=['otp']
         ),
         responses={
             200: openapi.Response('OTP verified successfully'),
@@ -661,48 +685,59 @@ class AuthVerifyOTPView(APIView):
         }
     )
     def post(self, request):
-        email = request.data.get('email',None)
-        phone = request.data.get('phone')
+        email = (request.data.get('email') or '').strip()
+        phone = (request.data.get('phone') or '').strip()
         # print(request.data)
         otp = request.data.get('otp')
-        print(otp)
+
+        if not email and not phone:
+            return Response(
+                {'error': 'Email or phone is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             if email:
                 user = CustomUser.objects.get(email=email)
-            if phone:
-                user=Profile.objects.get(phone=phone).user
+            else:
+                user = Profile.objects.get(phone=phone).user
                 # user = CustomUser.objects.get(profile__phone=phone)
-                print(user.otp)
-        except CustomUser.DoesNotExist:
+        except (CustomUser.DoesNotExist, Profile.DoesNotExist):
             return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.password_reset_otp is not None and user.password_reset_otp == otp:
-            user.password_reset_otp = None 
+            user.password_reset_otp = None
             user.is_active = True
             user.is_user_active = True
             user.save()
 
             return Response(
-                {'message': 'OTP verified successfully'}, 
+                {'message': 'OTP verified successfully'},
                 status=status.HTTP_200_OK
             )
-        elif user.otp and user.otp==otp:
+        elif user.otp and user.otp == otp:
+            if is_user_otp_expired(user):
+                return Response(
+                    {'error': 'OTP has expired. Please request a new OTP.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             user.is_user_active = True
             user.is_active = True
-            user.save()
+            clear_user_otp(user)
+            _save_user_fields(user, ["is_user_active", "is_active", "otp", "otp_created_at"])
             return Response(
-                {'message': 'OTP verified successfully'}, 
+                {'message': 'OTP verified successfully'},
                 status=status.HTTP_200_OK
             )
         else:
             return Response(
-                {'error': 'OTP not verified, please check your OTP'}, 
+                {'error': 'OTP not verified, please check your OTP'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         # serializer = VerifyOTPSerializer(data=request.data)
         # if serializer.is_valid():
         #     user = serializer.validated_data['user']
-        #     user.password_reset_otp = None 
+        #     user.password_reset_otp = None
         #     user.is_active = None
         #     user.save()
 
@@ -764,6 +799,26 @@ class ChangePasswordView(APIView):
 
 
 class UserProfileCreateView(APIView):
+    @staticmethod
+    def _first_error_message(errors):
+        if isinstance(errors, dict):
+            for value in errors.values():
+                message = UserProfileCreateView._first_error_message(value)
+                if message:
+                    return message
+            return "Invalid input."
+        if isinstance(errors, list | tuple):
+            return UserProfileCreateView._first_error_message(errors[0]) if errors else "Invalid input."
+        return str(errors) if errors else "Invalid input."
+
+    @staticmethod
+    def _safe_request_payload(data):
+        payload = data.copy()
+        sensitive_keys = {"password", "confirm_password", "otp", "token"}
+        for key in sensitive_keys:
+            if key in payload:
+                payload[key] = "***"
+        return payload
 
     @swagger_auto_schema(
         operation_description="Create a new user profile.",
@@ -788,58 +843,178 @@ class UserProfileCreateView(APIView):
         }
     )
     def post(self, request):
+        if settings.DEBUG:
+            logger.info(
+                "DEV signup payload: %s",
+                self._safe_request_payload(request.data),
+            )
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             referal_code=request.data.get("referred_by_code","")
             if referal_code:
                 referer_user=CustomUser.objects.filter(user_referal_code=referal_code).last()
-                if not referer_user:                    
-                    return Response({"error":"Invalid Referal code"}, status=status.HTTP_400_BAD_REQUEST)
-            user = serializer.save(referred_by_code=referal_code)
+                if not referer_user:
+                    return Response({
+                        "status": "400",
+                        "type": "error",
+                        "message": "Invalid Referal code",
+                        "data": {"referred_by_code": ["Invalid Referal code"]},
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                with transaction.atomic():
+                    user = serializer.save(referred_by_code=referal_code)
+            except DRFValidationError as exc:
+                return Response({
+                    "status": "400",
+                    "type": "error",
+                    "message": self._first_error_message(exc.detail),
+                    "data": exc.detail,
+                }, status=status.HTTP_400_BAD_REQUEST)
             response_data = UserProfileSerializer(user).data
-            # response_data['year_of_experiance'] = request.data.get('year_of_experiance')
-            return Response(response_data, status=status.HTTP_200_OK)
-        
-        error_message = list(serializer.errors.values())[0][0]  # Get the first error message
-        return Response({"error": f"{error_message}"}, status=status.HTTP_400_BAD_REQUEST)
+            action = getattr(serializer, "registration_action", "created")
+            message = {
+                "created": f"User registered successfully. Please check your email or phone for the OTP. It is valid for {get_otp_validity_minutes()} minutes.",
+                "reactivated": f"User account reactivated successfully. Please check your email or phone for the OTP. It is valid for {get_otp_validity_minutes()} minutes.",
+                "updated_unverified": f"Registration details updated successfully. A new OTP has been sent. It is valid for {get_otp_validity_minutes()} minutes.",
+            }.get(action, "User registered successfully. Please check your email or phone for the OTP.")
+            return Response({
+                "status": "200",
+                "type": "success",
+                "message": message,
+                "data": response_data,
+            }, status=status.HTTP_200_OK)
+
+        error_message = self._first_error_message(serializer.errors)
+        return Response({
+            "status": "400",
+            "type": "error",
+            "message": error_message,
+            "data": serializer.errors,
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 def send_otp_email(email, otp):
-        subject = 'Your Registration OTP'
-        message = f'Your OTP for registration is {otp}.'
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [email]
+    subject = 'Your Registration OTP'
+    message = f'Your OTP for registration is {otp}. This OTP is valid for {get_otp_validity_minutes()} minutes.'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [email]
 
-        # Render the email body from the HTML template
-        html_message = render_to_string('email_temp.html', {
-            'title': 'Registration OTP',
-            'otp': f'Your OTP for registration is {otp}.',
-            'image': TRUSTWORK_BASE_API
-        })
+    # Render the email body from the HTML template
+    html_message = render_to_string('email_temp.html', {
+        'title': 'Registration OTP',
+        'otp': message,
+        'image': TRUSTWORK_BASE_API
+    })
 
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=from_email,
-            recipient_list=recipient_list,
-            html_message=html_message
-        )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=from_email,
+        recipient_list=recipient_list,
+        html_message=html_message
+    )
+
+
 class ResendOtp(APIView):
-    def post(self,request):
-        otp = str(random.randint(1000, 9999))
-        email=request.data.get("email")
-        phone=request.data.get("phone")
-        if email:
-            user=CustomUser.objects.filter(email=email).last()
-            if user:
-                send_otp_email(email,otp)
-                user.otp=otp
-                user.save()
-        if phone:
-            user=Profile.objects.filter(phone=phone).last()
-            if user:
-                send_otp_sms(user.phone_extension+phone,otp)
-                user=user.user
-                user.otp=otp
-                user.save()
+    permission_classes = [AllowAny]
 
-        return Response({"message":"Resend Otp Success"})
+    def _still_valid_response(self, user, channel):
+        remaining_seconds = otp_remaining_seconds(user)
+        return Response({
+            "status": "200",
+            "type": "success",
+            "message": still_valid_otp_message(channel, remaining_seconds),
+            "resent": False,
+            "expires_in_seconds": remaining_seconds,
+            "expires_in_minutes": otp_remaining_minutes(remaining_seconds),
+        }, status=status.HTTP_200_OK)
+
+    def _resent_response(self, channel):
+        destination = "email" if channel == "email" else "phone"
+        return Response({
+            "status": "200",
+            "type": "success",
+            "message": f"OTP has been resent to your {destination}.",
+            "resent": True,
+            "expires_in_minutes": get_otp_validity_minutes(),
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        otp = str(random.randint(1000, 9999))
+        email = str(request.data.get("email") or "").strip()
+        phone = str(request.data.get("phone") or "").strip()
+
+        if not email and not phone:
+            return Response({
+                "status": "400",
+                "type": "error",
+                "message": "Email or phone is required.",
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if email:
+            user = CustomUser.objects.filter(email=email).last()
+            if not user:
+                return Response({
+                    "status": "404",
+                    "type": "error",
+                    "message": "User not found.",
+                }, status=status.HTTP_404_NOT_FOUND)
+            if user.is_user_active:
+                return Response({
+                    "status": "400",
+                    "type": "error",
+                    "message": "Account is already verified.",
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if otp_remaining_seconds(user) > 0:
+                return self._still_valid_response(user, "email")
+
+            stamp_user_otp(user, otp)
+            try:
+                send_otp_email(email, otp)
+                save_user_otp(user)
+            except Exception:
+                logger.exception("Failed to resend registration OTP email for user %s", user.pk)
+                return Response({
+                    "status": "500",
+                    "type": "error",
+                    "message": "Unable to resend OTP email. Please try again.",
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return self._resent_response("email")
+
+        if phone:
+            profile = Profile.objects.select_related("user").filter(phone=phone).last()
+            if not profile:
+                return Response({
+                    "status": "404",
+                    "type": "error",
+                    "message": "User not found.",
+                }, status=status.HTTP_404_NOT_FOUND)
+            user = profile.user
+            if user.is_user_active:
+                return Response({
+                    "status": "400",
+                    "type": "error",
+                    "message": "Account is already verified.",
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if otp_remaining_seconds(user) > 0:
+                return self._still_valid_response(user, "phone")
+
+            phone_number = f"{profile.phone_extension or ''}{profile.phone or phone}"
+            if not phone_number:
+                return Response({
+                    "status": "400",
+                    "type": "error",
+                    "message": "User phone number is not available.",
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            stamp_user_otp(user, otp)
+            try:
+                send_otp_sms(phone_number, otp)
+                save_user_otp(user)
+            except Exception:
+                logger.exception("Failed to resend registration OTP SMS for user %s", user.pk)
+                return Response({
+                    "status": "500",
+                    "type": "error",
+                    "message": "Unable to resend OTP SMS. Please try again.",
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return self._resent_response("phone")

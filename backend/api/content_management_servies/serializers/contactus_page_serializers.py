@@ -1,7 +1,9 @@
-from rest_framework import serializers
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError as DjangoValidationError
-from content_management.models.contactus_page_models import *
+from django.core.validators import URLValidator
+from rest_framework import serializers
+
+from content_management.models.contactus_page_models import ContactForm, ContactUs
+
 
 class ContactUsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,10 +18,10 @@ class ContactUsSerializer(serializers.ModelSerializer):
             if url:
                 try:
                     validator(url)
-                except DjangoValidationError:
-                    raise serializers.ValidationError({field: "Enter a valid URL."})
+                except DjangoValidationError as err:
+                    raise serializers.ValidationError({field: "Enter a valid URL."}) from err
         return attrs
-    
+
 class ContactFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactForm

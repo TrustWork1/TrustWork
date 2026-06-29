@@ -1,22 +1,52 @@
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView,Http404
-from project_management.models import Project, Bid,Feedback
-from .serializers import ProjectSerializer, ProfileSerializer, BidSerializer #, BidSerializerMobilie
-from rest_framework.permissions import IsAuthenticated
-from api.pagination import CustomPagination, CustomPaginationProjectProfile, CustomProjectPagination
+import json
+
+from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from profile_management.models import Profile
-from master.models import JobCategory
-from rest_framework import generics
-from django.db.models import Avg
-from .serializers import JobCategorySerializer
-from django.db.models import Q
-from rest_framework.parsers import MultiPartParser,JSONParser,FormParser
-from profile_management.models import BankDetails
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView, Http404
+
+from api.pagination import (
+    CustomPagination,
+    CustomPaginationProjectProfile,
+    CustomProjectPagination,
+)
 from chat_management.models import Notification
+from master.models import JobCategory
+from profile_management.models import BankDetails, Profile
+from project_management.models import Bid, Feedback, Project
+
+from .serializers import (  #, BidSerializerMobilie
+    BidSerializer,
+    JobCategorySerializer,
+    ProjectSerializer,
+)
+
+
+def _first_error_message(errors):
+    if isinstance(errors, dict):
+        for value in errors.values():
+            message = _first_error_message(value)
+            if message:
+                return message
+        return "Invalid request."
+    if isinstance(errors, list | tuple):
+        return _first_error_message(errors[0]) if errors else "Invalid request."
+    return str(errors) if errors else "Invalid request."
+
+
+def _mobile_error_response(message, data=None, response_status=status.HTTP_400_BAD_REQUEST):
+    return Response({
+        "status": str(response_status),
+        "type": "error",
+        "message": message,
+        "data": data,
+    }, status=response_status)
+
 
 class MobileProjectList(APIView):
     permission_classes = [IsAuthenticated]
@@ -41,19 +71,25 @@ class MobileProjectList(APIView):
             ),
         ],
         responses={
-            200: "Paginated list of projects", 
+            200: "Paginated list of projects",
             404: "Profile not found",
             400: "Invalid request"
         }
     )
     def get(self, request):
-        client_profile = Profile.objects.get(user=request.user).id        
+        try:
+            client_profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return _mobile_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
         projects = Project.objects.filter(client=client_profile).order_by('created_at')
-        
-        status = request.GET.get("status")
-        if status:
-            projects = projects.filter(status=status)
-        
+
+        status_filter = request.GET.get("status")
+        if status_filter:
+            projects = projects.filter(status=status_filter)
+
         search_query = request.GET.get("search")
         if search_query:
             projects = projects.filter(project_title__icontains=search_query)
@@ -68,8 +104,8 @@ class MobileProjectList(APIView):
         #     projects = projects.none()
         paginator = CustomProjectPagination()
         projects_paginated = paginator.paginate_queryset(projects, request)
-        
-        serializer = ProjectSerializer(projects_paginated, many=True)
+
+        serializer = ProjectSerializer(projects_paginated, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -85,12 +121,27 @@ class MobileProjectList(APIView):
     def post(self, request):
         # data={**request.data}
         # data['client']=Profile.objects.get(user=request.user).id
-        print(request.data)
-        serializer = ProjectSerializer(data=request.data,partial=True)
+        try:
+            client_profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return _mobile_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            job_category = JobCategory.objects.get(id=request.data.get('project_category'))
+        except (JobCategory.DoesNotExist, TypeError, ValueError):
+            return _mobile_error_response("Project category not found.")
+
+        serializer = ProjectSerializer(data=request.data,partial=True, context={'request': request})
         if serializer.is_valid():
-            serializer.save(client=Profile.objects.get(user=request.user),project_category=JobCategory.objects.get(id=request.data['project_category'])) 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            project = serializer.save(client=client_profile, project_category=job_category)
+            response_data = dict(ProjectSerializer(project, context={'request': request}).data)
+            response_data["type"] = "success"
+            response_data["message"] = "Project created successfully"
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        return _mobile_error_response(_first_error_message(serializer.errors), serializer.errors)
 
 class ProjectDetail(APIView):
     permission_classes = [IsAuthenticated]
@@ -99,8 +150,8 @@ class ProjectDetail(APIView):
     def get_object(self, pk):
         try:
             return Project.objects.get(pk=pk)
-        except Project.DoesNotExist:
-            raise Http404
+        except Project.DoesNotExist as err:
+            raise Http404 from err
 
     @swagger_auto_schema(
             operation_description="Get a project",
@@ -118,10 +169,12 @@ class ProjectDetail(APIView):
     )
     def get(self, request, pk):
         project = self.get_object(pk)
-        serializer = ProjectSerializer(project)
-        serializer.data.pop("client")
+        serializer = ProjectSerializer(project, context={'request': request})
+        response_data = dict(serializer.data)
+        response_data["type"] = "success"
+        response_data["message"] = "Project fetched successfully"
 
-        return Response(serializer.data)
+        return Response(response_data)
 
     @swagger_auto_schema(
             operation_description="Update a project",
@@ -139,11 +192,14 @@ class ProjectDetail(APIView):
     )
     def put(self, request, pk):
         project = self.get_object(pk)
-        serializer = ProjectSerializer(project, data=request.data,partial=True)
+        serializer = ProjectSerializer(project, data=request.data,partial=True, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            project = serializer.save()
+            response_data = dict(ProjectSerializer(project, context={'request': request}).data)
+            response_data["type"] = "success"
+            response_data["message"] = "Project updated successfully"
+            return Response(response_data)
+        return _mobile_error_response(_first_error_message(serializer.errors), serializer.errors)
 
     @swagger_auto_schema(
         operation_description="Delete a project",
@@ -174,12 +230,12 @@ class ChangeProjectStatusView(APIView):
             "status" : 202,
             "type" : "success",
             "message" : "Project status changed successfully"
-        } 
+        }
         return Response(response,status=status.HTTP_202_ACCEPTED)
 
 class ProjectBidApiView(APIView):
     permission_classes=[IsAuthenticated]
-    def get(self,request,project_id):  
+    def get(self,request,project_id):
         bids=Bid.objects.filter(project__id=project_id)
         paginator = CustomPagination()
         bids = paginator.paginate_queryset(bids, request)
@@ -189,7 +245,7 @@ class ProjectBidApiView(APIView):
 
 class BidApiView(APIView):
     permission_classes=[IsAuthenticated]
-    
+
     def get(self, request, pk):
         try:
             bid = get_object_or_404(Bid, id=pk)
@@ -197,7 +253,7 @@ class BidApiView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Http404:
             return Response({"error": "Bid not available"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
+        except Exception:
             return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -207,14 +263,13 @@ class ClientActiveProjectsView(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        client_profile = self.request.user.profile
         # print("client_profile", client_profile)
         # projects = Project.objects.filter(client=client_profile)
         # project_status = self.request.GET.get("status")
         status_filter = self.request.query_params.get("status")
 
         queryset = Bid.objects.filter(service_provider__user=self.request.user)
-    
+
         if status_filter in ['ongoing','accepted','active']:
             if status_filter in ["accepted" ,"Accepted"]:
                 queryset = queryset.filter(status__iexact=status_filter).exclude(project__status__iexact="completed")
@@ -279,7 +334,13 @@ class MobileBidList(APIView):
                 }
     )
     def post(self, request):
-        service_provider=Profile.objects.get(user=request.user)
+        try:
+            service_provider = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return _mobile_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
         check_bank_account = BankDetails.objects.filter(user_profile=service_provider.id, status="active").exists()
         if not check_bank_account:
             return Response({
@@ -289,17 +350,27 @@ class MobileBidList(APIView):
                     "detail": "You have to add Bank/MTN account."
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = BidSerializer(data=request.data,partial=True)
         if serializer.is_valid():
-            bid=serializer.save(service_provider=service_provider,project=Project.objects.get(id=request.data.get("project")))  # Adjust if necessary
+            try:
+                project = Project.objects.get(id=request.data.get("project"))
+            except (Project.DoesNotExist, TypeError, ValueError):
+                return _mobile_error_response(
+                    "Project not found.",
+                    response_status=status.HTTP_404_NOT_FOUND,
+                )
+            bid=serializer.save(service_provider=service_provider,project=project)  # Adjust if necessary
             bid.project.bid_count += 1
             bid.project.save()
             bid.bid_sent = False
             bid.is_accepted = False
             bid.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response_data = dict(BidSerializer(bid, context={'request': request}).data)
+            response_data["type"] = "success"
+            response_data["message"] = "Bid created successfully"
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        return _mobile_error_response(_first_error_message(serializer.errors), serializer.errors)
 
 class BidDetail(APIView):
     permission_classes = [IsAuthenticated]
@@ -307,8 +378,8 @@ class BidDetail(APIView):
     def get_object(self, pk):
         try:
             return Bid.objects.get(pk=pk)
-        except Bid.DoesNotExist:
-            raise Http404
+        except Bid.DoesNotExist as err:
+            raise Http404 from err
 
     def get(self, request, pk):
         bid = self.get_object(pk)
@@ -340,7 +411,7 @@ class JobCategoryView(APIView):
     #         return Response(serializer.data, status=status.HTTP_200_OK)
     #     except Exception:
     #         return Response({"message": "Error Occurred Please Check"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def get(self, request, pk=None):
         try:
             if pk:
@@ -370,7 +441,7 @@ class JobCategoryView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"message": "Data Not found "}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def put(self, request, pk):
         try:
             job_category = JobCategory.objects.get(pk=pk)
@@ -382,7 +453,7 @@ class JobCategoryView(APIView):
             return Response(serializer.errors, {'message': 'Job category updated successfully.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"message": "Error Occurred Please Check"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def delete(self, request, pk):
         try:
             job_category = JobCategory.objects.get(pk=pk)
@@ -396,7 +467,13 @@ class ProviderViewProject(APIView):
     permission_classes = [IsAuthenticated]
     # pagination_class = CustomPagination
     def get(self, request):
-        client_profile = self.request.user.profile
+        try:
+            client_profile = self.request.user.profile
+        except Profile.DoesNotExist:
+            return _mobile_error_response(
+                "Profile not found for the current user.",
+                response_status=status.HTTP_404_NOT_FOUND,
+            )
         # print("client_profile", client_profile)
         # status_filter = self.request.query_params.get("status")
         query = Bid.objects.filter(project__in=Project.objects.filter(client=client_profile, status__iexact='active')).exclude(service_provider__status='deleted').exclude(service_provider__status='inactive')  # Accepted
@@ -405,9 +482,9 @@ class ProviderViewProject(APIView):
         # return Response(query)
         paginator = CustomPaginationProjectProfile()
         projects_paginated = paginator.paginate_queryset(query, request)
-        
+
         # serializer = ProjectSerializer(projects_paginated, many=True)
-        serializer = BidSerializer(projects_paginated, many=True)
+        serializer = BidSerializer(projects_paginated, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
         # return Response(ProjectSerializer(query,many=True).data, status=status.HTTP_200_OK)
 
@@ -447,7 +524,8 @@ class OfferProjectAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-import json
+
+
 class CreateAndOfferProjectAPIView(APIView):
     parser_classes=[MultiPartParser,JSONParser,FormParser]
 
@@ -478,14 +556,14 @@ class CreateAndOfferProjectAPIView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             project = serializer.save(client=client_profile,project_category=JobCategory.objects.get(id=project_data.get("project_category")), status="myoffer", project_type="myoffer")#.exclude(status__in="completed")
-            
+
             document=request.FILES['document']
             if document:
                 project.document=document
-            
+
             project.can_send_bid = True
             project.save()
-            
+
             bid = Bid.objects.create(
                 project=project,
                 service_provider=provider,
@@ -495,7 +573,7 @@ class CreateAndOfferProjectAPIView(APIView):
                 time_line=str(project.project_timeline),
                 time_line_hour=str(project.project_hrs_week)
             )
-            
+
             message = f"Offer Project '{project.project_title}' has been created by {client_profile.user.full_name}."
             notification = Notification.objects.create(
                 sender=client_profile,
@@ -534,12 +612,12 @@ class MyOfferProjectListAPIView(APIView):
 
         projects = Project.objects.filter(
             bid__service_provider=provider_profile,
-            status="myoffer" 
+            status="myoffer"
         ).exclude(bid__status__icontains="reject").distinct()
 
         paginator = CustomPaginationProjectProfile()
         paginated_queryset = paginator.paginate_queryset(projects, request)
-        
+
         serializer = ProjectSerializer(paginated_queryset, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
@@ -555,7 +633,7 @@ class   OfferDetailAPIView(APIView):
             # project_data = ProjectSerializer(projects, many=True).data #  context={'request': request}
             response_data = []
             for project in projects:
-                bid = Bid.objects.filter(project=project).first() 
+                bid = Bid.objects.filter(project=project).first()
                 bid_data = BidSerializer(bid).data if bid else None
 
                 response_data.append({
@@ -639,7 +717,7 @@ class ServiceDetailsAPIView(APIView):  #client to provider
             feedbacks = Feedback.objects.filter(
                 service_provider=service_provider, project__project_category__id=job_category_id)
             # feedback=Feedback.objects.get(client_review=client_review)
-            
+
             if not feedbacks.exists():
                 return Response(
                     {
@@ -654,11 +732,11 @@ class ServiceDetailsAPIView(APIView):  #client to provider
                         "clients_feedback": "",
                         "client_review": "",
                         "client_rating": 0,
-                        
+
                     })
         # "Message": f"No feedback found for the service '{job_category_id}'.")
     # status=status.HTTP_200_OK ,status=status.HTTP_200_OK)
-            
+
             try:
                 overall_rating = round(float(feedbacks.aggregate(average_rating=Avg("client_rating"))["average_rating"]),1)
                 project_description= Project.objects.filter(project_category__id=job_category_id).first().project_description
@@ -685,13 +763,13 @@ class ServiceDetailsAPIView(APIView):  #client to provider
                         "description": project_description,
                         "overall_rating": overall_rating,
                         **client_feedbacks
-                        
+
                     }
                     # print(response_data)
-                except:
+                except Exception:
                     return response_data.job_category.title
                 return Response(response_data, status=status.HTTP_200_OK)
-            except:
+            except Exception:
                 return Response({"message": "no rating found", "service_id" : job_category_id,
                         "service_name": job_category.title,
                         "description": project_description,

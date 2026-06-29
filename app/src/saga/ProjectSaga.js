@@ -22,7 +22,10 @@ import {
   JobCategoryProviderFailure,
   JobCategoryProviderSuccess,
   JobCategorySuccess,
+  markAsCompletedFailure,
   markAsCompletedSuccess,
+  orangePayFailure,
+  orangePaySuccess,
   PaymentHistoryFailure,
   PaymentHistorySuccess,
   paymentReqFailure,
@@ -61,7 +64,9 @@ import {
   UploadImagesSuccess,
 } from '../redux/reducer/ProjectReducer';
 import {deleteApi, getApi, postApi, putApi} from '../utils/helpers/ApiRequest';
+import constants from '../utils/helpers/constants';
 import showErrorAlert from '../utils/helpers/Toast';
+import {getErrorDetails} from '../utils/helpers/errorHelper';
 
 let getItem = state => state.AuthReducer;
 let token = '';
@@ -91,16 +96,16 @@ export function* projectListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(projectListFailure(error));
+      yield put(projectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(projectListFailure(error));
+      yield put(projectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(projectListFailure(error));
+      yield put(projectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(projectListFailure(error));
+      yield put(projectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -132,16 +137,16 @@ export function* clientActiveProjectSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(clientActiveProjectFailure(error));
+      yield put(clientActiveProjectFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(clientActiveProjectFailure(error));
+      yield put(clientActiveProjectFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(clientActiveProjectFailure(error));
+      yield put(clientActiveProjectFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(clientActiveProjectFailure(error));
+      yield put(clientActiveProjectFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -172,16 +177,16 @@ export function* ProviderProjectListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ProviderProjectListFailure(error));
+      yield put(ProviderProjectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProviderProjectListFailure(error));
+      yield put(ProviderProjectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProviderProjectListFailure(error));
+      yield put(ProviderProjectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProviderProjectListFailure(error));
+      yield put(ProviderProjectListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -212,16 +217,16 @@ export function* ProviderOfferListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ProviderOfferListFailure(error));
+      yield put(ProviderOfferListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProviderOfferListFailure(error));
+      yield put(ProviderOfferListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProviderOfferListFailure(error));
+      yield put(ProviderOfferListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProviderOfferListFailure(error));
+      yield put(ProviderOfferListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -252,16 +257,16 @@ export function* projectDetailsSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(projectDetailsFailure(error));
+      yield put(projectDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(projectDetailsFailure(error));
+      yield put(projectDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(projectDetailsFailure(error));
+      yield put(projectDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(projectDetailsFailure(error));
+      yield put(projectDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -272,7 +277,6 @@ export function* CreateProjectSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
 
@@ -292,19 +296,9 @@ export function* CreateProjectSaga(action) {
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(CreateProjectFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
-      yield put(CreateProjectFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
-    } else if (error?.status == 504) {
-      yield put(CreateProjectFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(CreateProjectFailure(error));
-      showErrorAlert(error?.message);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(CreateProjectFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -313,7 +307,6 @@ export function* ProviderOfferSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
 
@@ -327,25 +320,20 @@ export function* ProviderOfferSaga(action) {
 
     if (response?.status == 200) {
       yield put(ProviderOfferSuccess(response?.data));
-      showErrorAlert(response?.data?.data?.message);
+      const msg = response?.data?.data?.message || response?.data?.message;
+      if (msg) {
+        showErrorAlert(msg);
+      }
     } else {
       yield put(ProviderOfferFailure(response?.data));
-      showErrorAlert(response?.data?.message);
+      if (response?.data?.message) {
+        showErrorAlert(response?.data?.message);
+      }
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(ProviderOfferFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
-      yield put(ProviderOfferFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
-    } else if (error?.status == 504) {
-      yield put(ProviderOfferFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(ProviderOfferFailure(error));
-      showErrorAlert(error?.message);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(ProviderOfferFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -354,7 +342,6 @@ export function* EditProjectSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
 
@@ -374,19 +361,9 @@ export function* EditProjectSaga(action) {
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(EditProjectFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
-      yield put(EditProjectFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
-    } else if (error?.status == 504) {
-      yield put(EditProjectFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(EditProjectFailure(error));
-      showErrorAlert(error?.message);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(EditProjectFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -414,19 +391,9 @@ export function* ProActiveProjectSaga(action) {
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(ProActiveProjectFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
-      yield put(ProActiveProjectFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
-    } else if (error?.status == 504) {
-      yield put(ProActiveProjectFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(ProActiveProjectFailure(error));
-      showErrorAlert(error?.message);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(ProActiveProjectFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -455,19 +422,9 @@ export function* JobCategorySaga(action) {
       showErrorAlert(response?.data?.message);
     }
   } catch (error) {
-    if (error?.status == 502) {
-      yield put(JobCategoryFailure(error));
-      showErrorAlert(error?.message);
-    } else if (error?.status == 401) {
-      yield put(JobCategoryFailure(error));
-      showErrorAlert(error?.response?.data?.data?.detail);
-    } else if (error?.status == 504) {
-      yield put(JobCategoryFailure(error));
-      showErrorAlert('Request Timed Out');
-    } else {
-      yield put(JobCategoryFailure(error));
-      showErrorAlert(error?.message);
-    }
+    const {status, message} = getErrorDetails(error);
+    yield put(JobCategoryFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -497,16 +454,16 @@ export function* JobCategoryProviderSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(JobCategoryProviderFailure(error));
+      yield put(JobCategoryProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(JobCategoryProviderFailure(error));
+      yield put(JobCategoryProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(JobCategoryProviderFailure(error));
+      yield put(JobCategoryProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(JobCategoryProviderFailure(error));
+      yield put(JobCategoryProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -538,16 +495,16 @@ export function* SendBidSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(SendBidFailure(error));
+      yield put(SendBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 400) {
-      yield put(SendBidFailure(error));
+      yield put(SendBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(SendBidFailure(error));
+      yield put(SendBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(SendBidFailure(error));
+      yield put(SendBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -574,16 +531,16 @@ export function* ProjectBidsSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ProjectBidsFailure(error));
+      yield put(ProjectBidsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProjectBidsFailure(error));
+      yield put(ProjectBidsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProjectBidsFailure(error));
+      yield put(ProjectBidsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProjectBidsFailure(error));
+      yield put(ProjectBidsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -614,18 +571,48 @@ export function* bidStatusSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(bidStatusFailure(error));
+      yield put(bidStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(bidStatusFailure(error));
+      yield put(bidStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(bidStatusFailure(error));
+      yield put(bidStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(bidStatusFailure(error));
+      yield put(bidStatusFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
+  }
+}
+
+//bidList
+export function* orangePaySaga(action) {
+  const items = yield select(getItem);
+  let header = {
+    Accept: 'application/json',
+    contenttype: 'application/json',
+    'X-AUTH-TOKEN': constants.ORANGE_PAY_TOKEN,
+  };
+
+  try {
+    let response = yield call(
+      postApi,
+      constants.ORANGE_PAY_URL,
+      action.payload,
+      header,
+    );
+
+    if (response?.status == 200) {
+      yield put(orangePaySuccess(response?.data));
+    } else {
+      yield put(orangePayFailure(response?.data));
+      showErrorAlert(response?.data?.message);
+    }
+  } catch (error) {
+    const {status, message} = getErrorDetails(error);
+    yield put(orangePayFailure({message, status}));
+    showErrorAlert(message);
   }
 }
 
@@ -655,16 +642,16 @@ export function* bidListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(bidListFailure(error));
+      yield put(bidListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(bidListFailure(error));
+      yield put(bidListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(bidListFailure(error));
+      yield put(bidListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(bidListFailure(error));
+      yield put(bidListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     }
   }
@@ -695,16 +682,16 @@ export function* markAsCompletedSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(markAsCompletedFailure(error));
+      yield put(markAsCompletedFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(markAsCompletedFailure(error));
+      yield put(markAsCompletedFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(markAsCompletedFailure(error));
+      yield put(markAsCompletedFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(markAsCompletedFailure(error));
+      yield put(markAsCompletedFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -735,16 +722,16 @@ export function* sendFeedBackSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(sendFeedBackFailure(error));
+      yield put(sendFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(sendFeedBackFailure(error));
+      yield put(sendFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(sendFeedBackFailure(error));
+      yield put(sendFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(sendFeedBackFailure(error));
+      yield put(sendFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -775,16 +762,16 @@ export function* sendFeedBackProviderSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(sendFeedBackProviderFailure(error));
+      yield put(sendFeedBackProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(sendFeedBackProviderFailure(error));
+      yield put(sendFeedBackProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(sendFeedBackProviderFailure(error));
+      yield put(sendFeedBackProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(sendFeedBackProviderFailure(error));
+      yield put(sendFeedBackProviderFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -815,16 +802,16 @@ export function* getFeedBackSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(getFeedBackFailure(error));
+      yield put(getFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(getFeedBackFailure(error));
+      yield put(getFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(getFeedBackFailure(error));
+      yield put(getFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(getFeedBackFailure(error));
+      yield put(getFeedBackFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -854,16 +841,16 @@ export function* projectListByLocationSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(projectListByLocationFailure(error));
+      yield put(projectListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(projectListByLocationFailure(error));
+      yield put(projectListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(projectListByLocationFailure(error));
+      yield put(projectListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(projectListByLocationFailure(error));
+      yield put(projectListByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -893,16 +880,16 @@ export function* projectDetailsByLocationSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(projectDetailsByLocationFailure(error));
+      yield put(projectDetailsByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(projectDetailsByLocationFailure(error));
+      yield put(projectDetailsByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(projectDetailsByLocationFailure(error));
+      yield put(projectDetailsByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(projectDetailsByLocationFailure(error));
+      yield put(projectDetailsByLocationFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -932,16 +919,16 @@ export function* overalReviewSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(getOveralReviewFailure(error));
+      yield put(getOveralReviewFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(getOveralReviewFailure(error));
+      yield put(getOveralReviewFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(getOveralReviewFailure(error));
+      yield put(getOveralReviewFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(getOveralReviewFailure(error));
+      yield put(getOveralReviewFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -970,16 +957,16 @@ export function* cancelBidSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(cancelBidFailure(error));
+      yield put(cancelBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(cancelBidFailure(error));
+      yield put(cancelBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(cancelBidFailure(error));
+      yield put(cancelBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(cancelBidFailure(error));
+      yield put(cancelBidFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1009,16 +996,16 @@ export function* PendingPaymentSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(PendingPaymentFailure(error));
+      yield put(PendingPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(PendingPaymentFailure(error));
+      yield put(PendingPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(PendingPaymentFailure(error));
+      yield put(PendingPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(PendingPaymentFailure(error));
+      yield put(PendingPaymentFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1048,16 +1035,16 @@ export function* PaymentHistorySaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(PaymentHistoryFailure(error));
+      yield put(PaymentHistoryFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(PaymentHistoryFailure(error));
+      yield put(PaymentHistoryFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(PaymentHistoryFailure(error));
+      yield put(PaymentHistoryFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(PaymentHistoryFailure(error));
+      yield put(PaymentHistoryFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1087,16 +1074,16 @@ export function* ProviderPaymentListSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(ProviderPaymentListFailure(error));
+      yield put(ProviderPaymentListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(ProviderPaymentListFailure(error));
+      yield put(ProviderPaymentListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(ProviderPaymentListFailure(error));
+      yield put(ProviderPaymentListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(ProviderPaymentListFailure(error));
+      yield put(ProviderPaymentListFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1107,7 +1094,6 @@ export function* UploadImagesSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {
@@ -1127,16 +1113,16 @@ export function* UploadImagesSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(UploadImagesFailure(error));
+      yield put(UploadImagesFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(UploadImagesFailure(error));
+      yield put(UploadImagesFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(UploadImagesFailure(error));
+      yield put(UploadImagesFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(UploadImagesFailure(error));
+      yield put(UploadImagesFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1147,7 +1133,6 @@ export function* paymentReqSaga(action) {
   const items = yield select(getItem);
   let header = {
     Accept: 'application/json',
-    contenttype: 'multipart/form-data',
     authorization: items?.getTokenResponse,
   };
   try {
@@ -1167,16 +1152,16 @@ export function* paymentReqSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(paymentReqFailure(error));
+      yield put(paymentReqFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(paymentReqFailure(error));
+      yield put(paymentReqFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(paymentReqFailure(error));
+      yield put(paymentReqFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(paymentReqFailure(error));
+      yield put(paymentReqFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1203,16 +1188,16 @@ export function* bidDetailsSaga(action) {
     }
   } catch (error) {
     if (error?.status == 502) {
-      yield put(bidDetailsFailure(error));
+      yield put(bidDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.message);
     } else if (error?.status == 401) {
-      yield put(bidDetailsFailure(error));
+      yield put(bidDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.detail);
     } else if (error?.status == 504) {
-      yield put(bidDetailsFailure(error));
+      yield put(bidDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert('Request Timed Out');
     } else {
-      yield put(bidDetailsFailure(error));
+      yield put(bidDetailsFailure({ message: error?.message, status: error?.status }));
       showErrorAlert(error?.response?.data?.data?.error);
     }
   }
@@ -1326,6 +1311,9 @@ const watchFunction = [
   })(),
   (function* () {
     yield takeLatest('Project/bidDetailsRequest', bidDetailsSaga);
+  })(),
+  (function* () {
+    yield takeLatest('Project/orangePayRequest', orangePaySaga);
   })(),
 ];
 

@@ -31,8 +31,6 @@ let status = '';
 const ServiceProvidersDetails = props => {
   const {item} = props.route.params;
 
-  console.log(props.route.params);
-
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const AuthReducer = useSelector(state => state.AuthReducer);
@@ -56,9 +54,7 @@ const ServiceProvidersDetails = props => {
         // setLat(JSON.parse(res)?.latitude);
         // setLong(JSON.parse(res)?.longitude);
       })
-      .catch(err => {
-        console.log(err);
-      });
+      .catch(err => {});
   };
 
   const getProviderDetails = (lat, long) => {
@@ -290,7 +286,6 @@ const ServiceProvidersDetails = props => {
       }
       return acc;
     }, []);
-    console.log(rows);
     return (
       <FlatList
         style={{marginTop: normalize(5), marginLeft: normalize(10)}}

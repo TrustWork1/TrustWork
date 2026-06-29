@@ -1,20 +1,24 @@
+import logging
+from time import sleep
+from uuid import UUID
+
 import requests
 from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from escrow_management.models import Escrow,Transactions,Events
-from uuid import UUID
-from time import sleep
 from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from escrow_management.models import Escrow, Events, Transactions
+
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
-import logging
+
 
 logger = logging.getLogger("payment_handler.payment_gateways.webhooks.MTN.disbursement_webhook")
 
 class MtnDisbursementWebhook(APIView):
     '''
     gets the transaction status for the given id
-    
+
     {'financialTransactionId': '1732426759', 'externalId': '622f3da7-930d-4173-9945-88c2d7f79e02', 'amount': '100', 'currency': 'XAF', 'payer': {'partyIdType': 'MSISDN', 'partyId': '467331234521'}, "status": "SUCCESSFUL"}
     '''
     def post(self, request):
@@ -24,8 +28,6 @@ class MtnDisbursementWebhook(APIView):
         return self.handle_callback(request.data)
 
     def handle_callback(self, request_data):
-        from uuid import UUID
-        from time import sleep
         sleep(2)
 
         try:
@@ -59,7 +61,7 @@ class MtnDisbursementWebhook(APIView):
 
             url = f"{TRUSTWORK_BASE_API}/api/webhooks/escrow_disbursement/"
             headers = {"Content-Type": "application/json"}
-            
+
             try:
                 requests.post(url, json=request_data, headers=headers)
             except requests.exceptions.RequestException as e:

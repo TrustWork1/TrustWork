@@ -1,8 +1,4 @@
 from django.apps import AppConfig
-from api import chat
-import firebase_admin
-from firebase_admin import credentials
-
 
 
 class ChatConfig(AppConfig):

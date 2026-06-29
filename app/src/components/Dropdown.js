@@ -61,19 +61,20 @@ const Dropdown = props => {
       style={{
         marginTop: props.marginTop,
       }}>
-      <Text
-        style={{
-          color: Colors.themeBlack,
-          fontFamily: Fonts.FustatMedium,
-          textAlign: 'left',
-          // top: Platform.OS === 'ios' ? 0 : normalize(12),
-          paddingBottom: normalize(2),
-          fontSize: 14,
-          lineHeight: normalize(22),
-          marginLeft: props.marginLeft,
-        }}>
-        {props.label}
-      </Text>
+      {!!props.label && (
+        <Text
+          style={{
+            color: Colors.themeBlack,
+            fontFamily: Fonts.FustatMedium,
+            textAlign: 'left',
+            paddingBottom: normalize(2),
+            fontSize: 14,
+            lineHeight: normalize(22),
+            marginLeft: props.marginLeft,
+          }}>
+          {props.label}
+        </Text>
+      )}
 
       <View
         style={{

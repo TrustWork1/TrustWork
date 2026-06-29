@@ -145,6 +145,8 @@ export const SubscriptionCardWrap = styled(Box)`
   }
 
   .basicPlanCard {
+    width: 100%;
+
     .planTitle {
       font-family: ${fustat.style.fontFamily};
       font-weight: 700;
@@ -202,6 +204,21 @@ export const SubscriptionCardWrap = styled(Box)`
           background-size: 100% 100%;
         }
       }
+    }
+  }
+
+  .selectPlanBtn {
+    height: 50px;
+    border-radius: 6px;
+    font-family: ${fustat.style.fontFamily};
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: capitalize;
+    box-shadow: 0px 14px 25px 0px rgba(66, 124, 54, 0.2);
+
+    @media (max-width: 599px) {
+      height: 46px;
+      font-size: 14px;
     }
   }
 `;

@@ -6,13 +6,13 @@ import normalize from '../utils/helpers/normalize';
 import Markdown from 'react-native-markdown-display';
 import RenderHTML from 'react-native-render-html';
 const HTMLTextComponent = props => {
-  const {htmlContent} = props;
+  const {htmlContent, containerStyle, tagsStyles} = props;
   const cleanHtml = htmlContent
-    .replace(/\s{2,}/g, ' ')
-    .replace(/(<br\s*\/?>)+/gi, '');
+    ?.replace(/\s{2,}/g, ' ')
+    ?.replace(/(<br\s*\/?>)+/gi, '');
 
   return (
-    <View style={{width: '90%'}}>
+    <View style={[styles.container, containerStyle]}>
       {htmlContent && (
         <RenderHTML
           source={{html: cleanHtml}}
@@ -20,6 +20,11 @@ const HTMLTextComponent = props => {
             p: styles.p,
             div: styles.div,
             strong: styles.strong,
+            a: styles.a,
+            li: styles.li,
+            ol: styles.ol,
+            ul: styles.ul,
+            ...tagsStyles,
           }}
         />
 
@@ -30,6 +35,9 @@ const HTMLTextComponent = props => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: '90%',
+  },
   p: {
     marginTop: 0,
     marginBottom: normalize(10),

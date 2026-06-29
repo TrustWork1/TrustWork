@@ -1,8 +1,19 @@
-from django.contrib import admin
 from django.urls import path
+
+from escrow_management.views.initiate_collection import (
+    InitiateStripeCollection,
+    StripeCollectionStatus,
+)
+
 # from escrow_management.views.stripe import CreateEscrowPayment, ReleaseEscrowPayment
-from escrow_management.views.stripe import ProcessStripeSession, PaymentStatus, ReleasePayout, StripeDisbursementAPI, StripeDisbursementWebhook #, PaymentReleaseOut,  ProcessStripeSessionCreate
-from escrow_management.views.initiate_collection import InitiateStripeCollection, StripeCollectionStatus
+from escrow_management.views.stripe import (  #, PaymentReleaseOut,  ProcessStripeSessionCreate
+    PaymentStatus,
+    ProcessStripeSession,
+    ReleasePayout,
+    StripeDisbursementAPI,
+    StripeDisbursementWebhook,
+)
+
 urlpatterns = [
     # path("create-escrow/", CreateEscrowPayment.as_view(), name="create_escrow"),
     # path("release-escrow/", ReleaseEscrowPayment.as_view(), name="release_escrow"),

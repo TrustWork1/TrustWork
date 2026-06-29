@@ -1,12 +1,19 @@
-from celery import shared_task
-from django.utils import timezone
-from .models import MtnSubscriptionTransaction
-from payment_handler.payment_gateways.MTN_MoMo.mtn_subscription import MtnMoMoSubscription
 import logging
-import string
 import random
+import string
+
 import requests
+from celery import shared_task
 from django.conf import settings
+
+# from payment_handler.payment_gateways.orange.client import check_payment_status
+from payment_handler.payment_gateways.MTN_MoMo.mtn_subscription import (
+    MtnMoMoSubscription,
+)
+
+from .models import MtnSubscriptionTransaction
+
+# from payment_handler.payment_gateways.orange.client import check_payment_status
 
 TRUSTWORK_BASE_API=settings.TRUSTWORK_BASE_API
 
@@ -82,3 +89,7 @@ def generate_unique_code():
             code = ''.join(random.choices(characters, k=length))
             if not MtnSubscriptionTransaction.objects.filter(unique_code=code).exists():
                 return code
+
+
+
+

@@ -146,61 +146,60 @@ const ProviderUpdateProfile = props => {
     }
   };
 
+  const pickerOptions = {
+    width: 400,
+    height: 400,
+    cropping: true,
+    cropperCircleOverlay: false,
+    mediaType: 'photo',
+    compressImageQuality: 0.8,
+    // Android: prevent crop UI from going under the status bar
+    cropperStatusBarColor: '#000000',
+    cropperToolbarColor: '#000000',
+    cropperToolbarWidgetColor: '#ffffff',
+    cropperToolbarTitle: 'Edit Photo',
+    freeStyleCropEnabled: false,
+    showCropGuidelines: true,
+    showCropFrame: true,
+    hideBottomControls: false,
+    enableRotationGesture: true,
+    // iOS
+    avoidEmptySpaceAroundImage: true,
+  };
+
+  const handleImageResponse = (response, source) => {
+    let imageObj = {};
+    let fileName = response.filename
+      ? response.filename
+      : response.path.replace(/^.*[\\\/]/, '');
+
+    if (fileName.toLowerCase().endsWith('.heic')) {
+      fileName = fileName.replace(/\.heic$/i, '.jpg');
+    }
+
+    imageObj.name = fileName;
+    imageObj.type =
+      response.mime === 'image/heic' ? 'image/jpeg' : response.mime;
+    imageObj.uri = response.path;
+
+    setImgPicker(false);
+    setSelectedImage(imageObj.uri);
+    setSelectedImgObj(imageObj);
+  };
+
   const withCamera = async type => {
-    ImagePicker?.openCamera({
-      width: 300,
-      height: 400,
-      mediaType: 'photo',
-    })
-      .then(response => {
-        let imageObj = {};
-        let fileName = response.filename
-          ? response.filename
-          : response.path.replace(/^.*[\\\/]/, '');
-
-        if (fileName.toLowerCase().endsWith('.heic')) {
-          fileName = fileName.replace(/\.heic$/i, '.jpg');
-        }
-
-        imageObj.name = fileName;
-        imageObj.type =
-          response.mime === 'image/heic' ? 'image/jpeg' : response.mime;
-        imageObj.uri = response.path;
-
-        setImgPicker(false);
-        setSelectedImage(imageObj.uri);
-        setSelectedImgObj(imageObj);
-      })
+    ImagePicker?.openCamera(pickerOptions)
+      .then(response => handleImageResponse(response, 'camera'))
       .catch(err => console.log(err));
   };
 
   function FromGalary(type) {
-    ImagePicker?.openPicker({
-      width: 300,
-      height: 400,
-      mediaType: 'photo',
-    })
-      .then(response => {
-        let imageObj = {};
-        let fileName = response.filename
-          ? response.filename
-          : response.path.replace(/^.*[\\\/]/, '');
-
-        if (fileName.toLowerCase().endsWith('.heic')) {
-          fileName = fileName.replace(/\.heic$/i, '.jpg');
-        }
-
-        imageObj.name = fileName;
-        imageObj.type =
-          response.mime === 'image/heic' ? 'image/jpeg' : response.mime;
-        imageObj.uri = response.path;
-
-        setImgPicker(false);
-        setSelectedImage(imageObj.uri);
-        setSelectedImgObj(imageObj);
-      })
+    ImagePicker?.openPicker(pickerOptions)
+      .then(response => handleImageResponse(response, 'gallery'))
       .catch(err => console.log(err));
   }
+
+
   const handlecertificateUpload = async () => {
     console.log('------>entering');
     try {

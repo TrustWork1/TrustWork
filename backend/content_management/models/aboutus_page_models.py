@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # AboutUs section
 class AboutUs(models.Model):
     section_header = models.CharField(max_length=255, blank=True, null=True)
@@ -43,6 +44,6 @@ class WhyYouTrustUsFeature(models.Model):
 
     def __str__(self):
         return self.title or "WhyYouTrustUsFeature Untitled"
-    
+
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']

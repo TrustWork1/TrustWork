@@ -11,9 +11,10 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(config => {
   const cookies = parseCookies();
 
-  const token = cookies[process.env.NEXT_APP_TOKEN_NAME!];
+  const token = cookies[process.env.NEXT_APP_TOKEN_NAME ?? 'accessToken'];
   if (token && !!config.headers) {
     config.headers['x-access-token'] = `${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config;

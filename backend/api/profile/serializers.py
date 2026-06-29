@@ -1,17 +1,24 @@
-from rest_framework import serializers
-from profile_management.models import BankDetails, UserDocuments, MembershipPlans, ProfileMembership, Profile,ProfileJobCategories,PreviousWorks, Coupons
 from django.contrib.auth import get_user_model
-from master.models import JobCategory
 from rest_framework import serializers
-from customuser.models import CustomUser
-from api.master.serializers import JobCategorySerailizer
-from api.auth.serializers import UserSerializer
 
-from api.master.serializers import LocationSerailizer
+from api.auth.serializers import UserSerializer
+from customuser.models import CustomUser
+
 # from master.serializers import LocationSerailizer
-from master.models import Location
-from project_management.models import Project, Bid, Feedback
-from django.db.models import F
+from master.models import JobCategory, Location
+from profile_management.models import (
+    BankDetails,
+    Coupons,
+    MembershipPlans,
+    PreviousWorks,
+    Profile,
+    ProfileJobCategories,
+    ProfileMembership,
+    UserDocuments,
+)
+from profile_management.subscriptions import refresh_profile_subscription_status
+from project_management.models import Feedback, Project
+
 # from api.project.serializers import FeedbackSerializer
 
 User = get_user_model()
@@ -22,7 +29,6 @@ class ProfileJobCategoriesSerializer(serializers.ModelSerializer):
         model = ProfileJobCategories
         fields = ['job_category_titles']
     def get_job_category_titles(self, obj):
-        print(obj)
         return obj.job_category.title
 
 class BankDetailsSerializer(serializers.ModelSerializer):
@@ -81,12 +87,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     user_referal_code = serializers.CharField(source='user.user_referal_code', read_only=True)
     full_name = serializers.CharField(source='user.full_name')
     # bank_details = BankDetailsSerializer(many=True, read_only=True, source='bankdetails_set')
-    # user_documents = UserDocumentsSerializer(many=True, read_only=True, source='userdocuments_set') 
-    # total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
-    # total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
-    # referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
-    # memberships = ProfileMembershipSerializer(many=True, read_only=True, source='profilemembership_set')  
-    user_type = serializers.CharField(source='user.get_user_type_display',read_only=True) 
+    # user_documents = UserDocumentsSerializer(many=True, read_only=True, source='userdocuments_set')
+    total_referal_amount = serializers.CharField(source='user.total_referal_amount', read_only=True)
+    total_referal_count = serializers.CharField(source='user.total_referal_count', read_only=True)
+    referred_by_code = serializers.CharField(source='user.referred_by_code', read_only=True)
+    # memberships = ProfileMembershipSerializer(many=True, read_only=True, source='profilemembership_set')
+    user_type = serializers.CharField(source='user.get_user_type_display',read_only=True)
     job_category = serializers.SerializerMethodField()
     year_of_experience = serializers.CharField(required=False)
     latitude = serializers.SerializerMethodField()
@@ -96,7 +102,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     feedback= serializers.SerializerMethodField()
     profile_rating= serializers.SerializerMethodField()
     is_discount = serializers.BooleanField(source='user.is_discount', read_only=True)
-    
+
     def get_job_category(self, obj):
         try:
             job_categories = obj.profilejobcategories_set.all().values(
@@ -121,14 +127,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             # Iterate over accepted bids to calculate ratings
             for bid in obj.profile_bid.filter(status__iexact="Accepted"):
                 feedback_data = Feedback.objects.filter(project=bid.project).values()
-                
+
                 for feedback in feedback_data:
                     job_category_title = bid.project.project_category.title
                     job_category_id = bid.project.project_category.id
-                    
+
                     # Check if the category exists in the category_list
                     category = next(
-                        (cat for cat in category_list if cat["job_category__title"] == job_category_title), 
+                        (cat for cat in category_list if cat["job_category__title"] == job_category_title),
                         None
                     )
 
@@ -160,53 +166,37 @@ class ProfileSerializer(serializers.ModelSerializer):
             print(f"Error in get_job_category: {e}")
             return []
     def get_user(self, obj):
-        data_obj={}
-        user = obj.user 
-        data= UserSerializer(user).data
-        
+        user = obj.user
         return UserSerializer(user).data if user else None
-    
+
     def get_latitude(self, obj):
-        try:
-            return obj.location.latitude
-        except:
-            return None
-        
+        location = getattr(obj, "location", None)
+        return getattr(location, "latitude", None)
+
     def get_longitude(self, obj):
-        try:
-            return obj.location.longitude
-        except:
-            return None
+        location = getattr(obj, "location", None)
+        return getattr(location, "longitude", None)
 
     def get_country(self, obj):
-        try:
-            return obj.location.country
-        except:
-            return None
+        location = getattr(obj, "location", None)
+        return getattr(location, "country", None)
 
     def get_feedback(self, obj):
         try:
-            print(obj.profile_feedback.all())
-            fb={}
-            for feedback in obj.profile_feedback.all():
-                
-                pass
-            return FeedbackSerializer(obj.profile_feedback.all(),many=True).data
-        except:
+            feedbacks = obj.profile_feedback.all()
+            return FeedbackSerializer(feedbacks,many=True).data
+        except Exception:
             return "No feedback"
     def get_profile_rating(self, obj):
         try:
-            print(obj.profile_feedback.all())
+            feedbacks = obj.profile_feedback.all()
             fb={"rating":0,'times':0}
-            for feedback in obj.profile_feedback.all():
-               
+            for feedback in feedbacks:
+
                 rating = feedback.client_rating
-                print(rating)
                 if rating:
                     fb["rating"] += int(rating)
                     fb["times"] += 1
-
-                pass
             if fb["times"] > 0:
                     fb["rating"] /= fb["times"]
                     fb['rating']=round(float(fb['rating']),1)
@@ -215,11 +205,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             print(e)
             return 0
 
-    
+
     def get_completed_project(self, obj):
         provider_id = Project.objects.filter(bid__service_provider = obj.id, status="completed").count()
         return provider_id
-    
+
     class Meta:
         model = Profile
         fields = ["is_user_active","previous_work","phone_extension", 'user_referal_code', 'last_login',
@@ -229,9 +219,15 @@ class ProfileSerializer(serializers.ModelSerializer):
             "user","id","status","job_category","street","profession","city","state","zip_code",
             "is_accepted_terms_conditions",'is_payment_verified', "is_profile_updated","profile_rating", "year_of_experiance" ,
             "latitude", "longitude", "country", "completed_project", "is_discount",
-            #'bank_details','user_documents','memberships','service_details',"total_referal_amount","total_referal_count",'referred_by_code',
+            "total_referal_amount","total_referal_count",'referred_by_code',
+            #'bank_details','user_documents','memberships','service_details',
         ]
-    
+
+    def to_representation(self, instance):
+        if getattr(instance, "is_payment_verified", False):
+            refresh_profile_subscription_status(instance)
+        return super().to_representation(instance)
+
     def create(self, validated_data):
         """
         Create or get the project location and set it to the project.
@@ -244,14 +240,14 @@ class ProfileSerializer(serializers.ModelSerializer):
         location = Location.objects.filter(
             latitude=latitude,
             longitude=longitude,
-            country= country, 
+            country= country,
             code= code
         ).last()
         if not location:
             location = Location.objects.create(
                 latitude=latitude,
                 longitude=longitude,
-                country= country, 
+                country= country,
                 code= code)
             validated_data["country"] = location
         # return super().create(validated_data)
@@ -263,7 +259,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile.location=location
         profile.save()
         return profile
-    
+
     def update(self, instance, validated_data):
         latitude = self.initial_data.get("latitude", "")
         longitude = self.initial_data.get("longitude", "")
@@ -373,10 +369,10 @@ class ProfileCoverImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'user', 'membership_plan', 'phone', 'address', 'profile_picture', 'cover_image', 
-            'associated_organization', 'organization_registration_id', 'service_details', 
-            'client_notes', 'profile_bio', 'profession', 'street', 'city', 'state', 'zip_code', 
-            'country', 'notification_status', 'job_category', 'is_accepted_terms_conditions', 
+            'user', 'membership_plan', 'phone', 'address', 'profile_picture', 'cover_image',
+            'associated_organization', 'organization_registration_id', 'service_details',
+            'client_notes', 'profile_bio', 'profession', 'street', 'city', 'state', 'zip_code',
+            'country', 'notification_status', 'job_category', 'is_accepted_terms_conditions',
             'is_payment_verified', 'is_profile_updated'
         ]
         read_only_fields = ['user']

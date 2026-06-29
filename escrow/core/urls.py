@@ -15,11 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import include, path
+
 # from payment_handler.payment_gateways.MTN_MoMo.webhooks.collections_webhook import MtnCollectionWebhook
+from orange_management.views import OkResponseView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('mtn-momo/', include('escrow_management.urls.mtn_momo')),
     path('webhooks/',include('payment_handler.payment_gateways.webhooks.urls')),
-    path("stripe/", include('escrow_management.urls.stripe'))
+    path("stripe/", include('escrow_management.urls.stripe')),
+    path("orange/", include('orange_management.urls')),
+    path('ok/', OkResponseView.as_view(), name='ok-api'),
 ]

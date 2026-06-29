@@ -1,6 +1,7 @@
 
-from django.contrib.auth.models import  BaseUserManager
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import BaseUserManager, Group
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
